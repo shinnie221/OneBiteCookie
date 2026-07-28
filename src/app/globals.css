@@ -1,0 +1,289 @@
+/* ========================================
+   ONE BITE - Design System
+   ======================================== */
+
+:root {
+  /* Colors */
+  --color-primary: #A0714F;
+  --color-primary-dark: #7A5536;
+  --color-primary-light: #E8D5C4;
+  --color-primary-lighter: #F5EDE5;
+  --color-accent: #D4956B;
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  
+  /* Text */
+  --color-text: #2D1B0E;
+  --color-text-light: #7A6B5D;
+  --color-text-lighter: #A89C90;
+  
+  /* Backgrounds */
+  --color-bg: #FBF8F4;
+  --color-bg-alt: #F5EFE8;
+  --color-bg-lighter: #FDFCFA;
+  
+  /* Borders */
+  --color-border: #E0D5CA;
+  --color-border-light: #EDE6DD;
+  
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(45, 27, 14, 0.06);
+  --shadow-md: 0 4px 16px rgba(45, 27, 14, 0.08);
+  --shadow-lg: 0 12px 40px rgba(45, 27, 14, 0.1);
+  
+  /* Fonts */
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Playfair Display', Georgia, serif;
+}
+
+/* ========================================
+   Reset & Base
+   ======================================== */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ========================================
+   Typography
+   ======================================== */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* ========================================
+   Layout Utilities
+   ======================================== */
+
+.pageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  min-height: 60vh;
+}
+
+.card {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border-light);
+  overflow: hidden;
+}
+
+.flex { display: flex; }
+.gap1 { gap: 8px; }
+.gap2 { gap: 16px; }
+.gap3 { gap: 24px; }
+.mt1 { margin-top: 8px; }
+.mt2 { margin-top: 16px; }
+.mt3 { margin-top: 24px; }
+.mb1 { margin-bottom: 8px; }
+.mb2 { margin-bottom: 16px; }
+.mb3 { margin-bottom: 24px; }
+.textCenter { text-align: center; }
+.textRight { text-align: right; }
+
+/* ========================================
+   Form Styles
+   ======================================== */
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.formGroup input,
+.formGroup textarea,
+.formGroup select {
+  padding: 12px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: white;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus,
+.formGroup select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(160, 113, 79, 0.1);
+}
+
+.formGroup textarea {
+  resize: vertical;
+}
+
+/* ========================================
+   Button Styles
+   ======================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btnPrimary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btnPrimary:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.btnSecondary {
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+}
+
+.btnSecondary:hover {
+  background: var(--color-border);
+}
+
+.btnOutline {
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.btnOutline:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-lighter);
+}
+
+.btnDanger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.btnDanger:hover {
+  background: #fecaca;
+}
+
+/* ========================================
+   Table Styles
+   ======================================== */
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  background: var(--color-bg-alt);
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border-light);
+  font-size: 0.95rem;
+}
+
+tbody tr:hover {
+  background: var(--color-bg-alt);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ========================================
+   Scrollbar
+   ======================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-lighter);
+}
+
+/* ========================================
+   Selection
+   ======================================== */
+
+::selection {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}

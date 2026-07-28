@@ -1,0 +1,106 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 1.8rem;
+  color: var(--color-text);
+}
+
+.inactiveRow {
+  opacity: 0.6;
+}
+
+.inactiveRow:hover {
+  opacity: 1;
+}
+
+.codeCell {
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  color: var(--color-primary-dark);
+}
+
+.discountCell {
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.statusToggle {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.statusActive {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.statusActive:hover {
+  background: #a7f3d0;
+}
+
+.statusInactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.statusInactive:hover {
+  background: #fecaca;
+}
+
+.textError {
+  color: var(--color-error);
+  font-weight: 500;
+}
+
+/* Modal form */
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+
+.checkboxLabel span {
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}

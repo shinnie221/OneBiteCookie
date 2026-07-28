@@ -1,0 +1,163 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 1.8rem;
+  color: var(--color-text);
+}
+
+.filtersSection {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.filterTabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.filterTab {
+  padding: 10px 20px;
+  border: 1px solid var(--color-border);
+  background: white;
+  border-radius: 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.filterTab:hover {
+  background: var(--color-bg-alt);
+}
+
+.filterTab.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.customDateForm {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-md);
+}
+
+.dateInput {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dateInput label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.dateInput input {
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+.summaryStats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+.statBox {
+  padding: 24px;
+  border-right: 1px solid var(--color-border-light);
+  text-align: center;
+}
+
+.statBox:last-child {
+  border-right: none;
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+  font-weight: 500;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statValue {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.statValuePrimary {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.cardHeader {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cardHeader h2 {
+  font-size: 1.2rem;
+}
+
+.orderId {
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.itemsSummary {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+}
+
+.totalCell {
+  font-weight: 700;
+}
+
+.textSuccess {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .summaryStats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .statBox:nth-child(2) {
+    border-right: none;
+  }
+  .statBox {
+    border-bottom: 1px solid var(--color-border-light);
+  }
+}
+
+@media (max-width: 600px) {
+  .customDateForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

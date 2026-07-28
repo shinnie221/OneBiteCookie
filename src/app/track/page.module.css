@@ -1,0 +1,226 @@
+.trackContainer {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.pageTitle {
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.searchForm {
+  margin-bottom: 40px;
+}
+
+.searchInput {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 8px 8px 8px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s;
+}
+
+.searchInput:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 16px rgba(160, 113, 79, 0.15);
+}
+
+.searchIcon {
+  font-size: 1.2rem;
+  opacity: 0.5;
+  margin-right: 12px;
+}
+
+.searchInput input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px 0;
+  font-size: 1.05rem;
+  outline: none;
+  text-transform: uppercase;
+}
+
+.searchInput button {
+  border-radius: var(--radius-lg);
+  padding: 12px 28px;
+}
+
+.errorBox {
+  background: var(--color-error);
+  color: white;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.resultCard {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-light);
+  overflow: hidden;
+  animation: slideUp 0.4s ease-out;
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 30px;
+  background: var(--color-bg-alt);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.orderId {
+  font-size: 1.4rem;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.orderDate {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+}
+
+.timeline {
+  padding: 40px 30px;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  gap: 20px;
+  min-height: 80px;
+}
+
+.step:last-child {
+  min-height: auto;
+}
+
+.stepIconWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.stepIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-bg-alt);
+  border: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.3s;
+  z-index: 2;
+}
+
+.stepLine {
+  flex: 1;
+  width: 2px;
+  background: var(--color-border);
+  margin-top: 4px;
+  margin-bottom: 4px;
+  transition: all 0.3s;
+}
+
+.stepContent {
+  padding-top: 10px;
+  flex: 1;
+}
+
+.stepContent h4 {
+  font-size: 1.1rem;
+  color: var(--color-text-light);
+  transition: color 0.3s;
+}
+
+/* Status variants */
+.completed .stepIcon {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+.completed .stepLine {
+  background: var(--color-primary);
+}
+.completed .stepContent h4 {
+  color: var(--color-text);
+}
+
+.active .stepIcon {
+  background: var(--color-primary-lighter);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(160, 113, 79, 0.15);
+}
+.active .stepContent h4 {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.failedState {
+  text-align: center;
+  padding: 20px 0;
+}
+.failedIcon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+.failedState h3 {
+  color: var(--color-error);
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+.failedState p {
+  color: var(--color-text-light);
+}
+
+.itemsList {
+  padding: 30px;
+  background: var(--color-bg-lighter);
+}
+.itemsList h3 {
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.itemRow {
+  background: white;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+  font-weight: 500;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .orderHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

@@ -1,0 +1,87 @@
+.footer {
+  background: #1a0f08;
+  color: #e8ddd4;
+  margin-top: 60px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 20px 30px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+}
+
+.logoText {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: var(--color-primary);
+}
+
+.tagline {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  opacity: 0.7;
+}
+
+.links h4, .contact h4 {
+  font-size: 1rem;
+  margin-bottom: 16px;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.links a {
+  display: block;
+  color: #e8ddd4;
+  opacity: 0.7;
+  text-decoration: none;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.links a:hover {
+  opacity: 1;
+  color: var(--color-primary);
+  padding-left: 4px;
+}
+
+.contact p {
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  opacity: 0.7;
+}
+
+.bottom {
+  text-align: center;
+  padding-top: 24px;
+}
+
+.bottom p {
+  font-size: 0.85rem;
+  opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+}
