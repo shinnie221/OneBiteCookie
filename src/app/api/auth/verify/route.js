@@ -1,7 +1,7 @@
-import { getStaffFromRequest } from '@/lib/auth';
+import { verifyAuth } from '@/lib/auth';
 
 export async function GET(request) {
-  const staff = getStaffFromRequest(request);
+  const staff = verifyAuth(request);
   if (!staff) {
     return Response.json({ error: 'Invalid token' }, { status: 401 });
   }
