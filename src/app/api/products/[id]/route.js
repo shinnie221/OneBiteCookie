@@ -1,4 +1,5 @@
-import { getDb, queryOne, runStmt } from '@/lib/db';
+import { db } from '@/lib/firebase';
+import { ref, get, update, remove, child } from 'firebase/database';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
@@ -10,28 +11,32 @@ export async function PUT(request, { params }) {
     }
 
     const { id } = await params;
-    const db = await getDb();
     const body = await request.json();
     
-    const existing = queryOne(db, 'SELECT * FROM products WHERE id = ?', [id]);
-    if (!existing) {
+    const dbRef = ref(db);
+    const snapshot = await get(child(dbRef, `products/${id}`));
+    
+    if (!snapshot.exists()) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
+
+    const existing = snapshot.val();
 
     const name = body.name ?? existing.name;
     const description = body.description ?? existing.description;
     const price = body.price ?? existing.price;
     const stock = body.stock ?? existing.stock;
-    const available = body.available !== undefined ? (body.available ? 1 : 0) : existing.available;
+    const available = body.available !== undefined ? !!body.available : existing.available;
     const image = body.image !== undefined ? body.image : existing.image;
 
-    runStmt(db,
-      'UPDATE products SET name=?, description=?, price=?, stock=?, available=?, image=? WHERE id=?',
-      [name, description, price, stock, available, image, id]
-    );
+    const updatedData = { name, description, price, stock, available, image };
+    
+    await update(ref(db, `products/${id}`), updatedData);
 
-    const updated = queryOne(db, 'SELECT * FROM products WHERE id = ?', [id]);
-    return NextResponse.json({ message: 'Product updated', product: updated });
+    return NextResponse.json({ 
+      message: 'Product updated', 
+      product: { id, ...updatedData } 
+    });
   } catch (error) {
     console.error('PUT /api/products/[id] error:', error);
     return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
@@ -46,9 +51,8 @@ export async function DELETE(request, { params }) {
     }
 
     const { id } = await params;
-    const db = await getDb();
     
-    runStmt(db, 'DELETE FROM products WHERE id = ?', [id]);
+    await remove(ref(db, `products/${id}`));
     
     return NextResponse.json({ message: 'Product deleted' });
   } catch (error) {

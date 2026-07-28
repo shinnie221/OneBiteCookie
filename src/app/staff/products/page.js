@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Modal from '@/components/Modal/Modal';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
+import { uploadImageToImgBB } from '@/lib/imgbb';
 import styles from './page.module.css';
 
 export default function ProductsPage() {
@@ -30,6 +31,7 @@ export default function ProductsPage() {
   
   const [formData, setFormData] = useState(defaultForm);
   const [previewImage, setPreviewImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -54,6 +56,7 @@ export default function ProductsPage() {
     setEditingProduct(null);
     setFormData(defaultForm);
     setPreviewImage(null);
+    setImageFile(null);
     setIsModalOpen(true);
   };
 
@@ -64,10 +67,11 @@ export default function ProductsPage() {
       description: product.description,
       price: product.price,
       stock: product.stock,
-      available: product.available === 1,
+      available: Boolean(product.available),
       image: product.image
     });
     setPreviewImage(product.image);
+    setImageFile(null);
     setIsModalOpen(true);
   };
 
@@ -88,12 +92,9 @@ export default function ProductsPage() {
       return;
     }
     
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setPreviewImage(e.target.result);
-      setFormData(prev => ({ ...prev, image: e.target.result }));
-    };
-    reader.readAsDataURL(file);
+    setImageFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setPreviewImage(previewUrl);
   };
 
   const handleSubmit = async (e) => {
@@ -101,6 +102,19 @@ export default function ProductsPage() {
     setActionLoading(true);
     
     try {
+      let imageUrl = formData.image;
+      if (imageFile) {
+        try {
+          imageUrl = await uploadImageToImgBB(imageFile);
+        } catch (uploadError) {
+          toast.error('Failed to upload image to ImgBB');
+          setActionLoading(false);
+          return;
+        }
+      }
+
+      const payload = { ...formData, image: imageUrl };
+
       const url = editingProduct 
         ? `/api/products/${editingProduct.id}` 
         : '/api/products';
@@ -110,7 +124,7 @@ export default function ProductsPage() {
       const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       
       const data = await res.json();

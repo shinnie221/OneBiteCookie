@@ -1,13 +1,20 @@
-import { getDb, queryAll } from '@/lib/db';
-import { seedDatabase } from '@/lib/seed';
+import { db } from '@/lib/firebase';
+import { ref, get, push, set, child } from 'firebase/database';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    await seedDatabase();
-    const db = await getDb();
+    const dbRef = ref(db);
+    const snapshot = await get(child(dbRef, 'products'));
     
-    const products = queryAll(db, 'SELECT * FROM products WHERE available = 1 ORDER BY id ASC');
+    let products = [];
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      products = Object.keys(data).map(key => ({
+        id: key,
+        ...data[key]
+      }));
+    }
     
     return NextResponse.json({ products });
   } catch (error) {
@@ -24,22 +31,29 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const db = await getDb();
     const { name, description, price, stock, available, image } = await request.json();
     
     if (!name || price == null) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
     }
     
-    const { runStmt } = await import('@/lib/db');
-    const result = runStmt(db,
-      'INSERT INTO products (name, description, price, stock, available, image) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, description || '', price, stock || 0, available ? 1 : 0, image || null]
-    );
+    const newProduct = {
+      name,
+      description: description || '',
+      price,
+      stock: stock || 0,
+      available: available ? true : false,
+      image: image || null,
+      createdAt: new Date().toISOString()
+    };
+    
+    const productsRef = ref(db, 'products');
+    const newProductRef = push(productsRef);
+    await set(newProductRef, newProduct);
 
     return NextResponse.json({ 
       message: 'Product created',
-      product: { id: result.lastInsertRowid, name, description, price, stock, available: available ? 1 : 0, image }
+      product: { id: newProductRef.key, ...newProduct }
     }, { status: 201 });
   } catch (error) {
     console.error('POST /api/products error:', error);
