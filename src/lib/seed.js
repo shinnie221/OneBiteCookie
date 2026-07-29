@@ -63,10 +63,10 @@ export async function seedDatabase() {
     ['ONEBITE5', 'fixed', 5, 30, 1]
   );
 
-  // Seed admin staff
+  // Seed admin user
   const hashedPassword = bcrypt.hashSync('admin123', 10);
   runStmt(db,
-    'INSERT INTO staff (name, email, password, role) VALUES (?, ?, ?, ?)',
+    'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
     ['Admin', 'admin@onebite.com', hashedPassword, 'admin']
   );
 

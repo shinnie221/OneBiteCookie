@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { path: '/staff/dashboard', label: 'Dashboard', icon: '📊' },
   { path: '/staff/orders', label: 'Orders', icon: '🛍️' },
   { path: '/staff/products', label: 'Products & Stock', icon: '🍪' },
+  { path: '/staff/customers', label: 'Customers', icon: '👥' },
   { path: '/staff/vouchers', label: 'Vouchers', icon: '🎟️' },
   { path: '/staff/qr-payment', label: 'QR Payment', icon: '📱' },
   { path: '/staff/sales', label: 'Sales History', icon: '📈' },
