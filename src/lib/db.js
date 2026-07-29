@@ -42,6 +42,7 @@ export async function getDb() {
     CREATE TABLE IF NOT EXISTS orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       order_id TEXT UNIQUE NOT NULL,
+      customer_id INTEGER DEFAULT NULL,
       customer_name TEXT NOT NULL,
       phone TEXT NOT NULL,
       email TEXT DEFAULT '',
@@ -83,6 +84,7 @@ export async function getDb() {
     )
   `);
 
+  // Create staff table for legacy reasons, or just directly create users
   _db.run(`
     CREATE TABLE IF NOT EXISTS staff (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,6 +95,40 @@ export async function getDb() {
       created_at TEXT DEFAULT (datetime('now'))
     )
   `);
+
+  // Check if users table exists, if not create and migrate
+  const hasUsers = queryOne(_db, "SELECT name FROM sqlite_master WHERE type='table' AND name='users'");
+  if (!hasUsers) {
+    _db.run(`
+      CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'customer',
+        created_at TEXT DEFAULT (datetime('now'))
+      )
+    `);
+    
+    // Migrate staff to users
+    const staffRows = queryAll(_db, "SELECT * FROM staff");
+    if (staffRows.length > 0) {
+      const stmt = _db.prepare("INSERT INTO users (name, email, password, role, created_at) VALUES (?, ?, ?, ?, ?)");
+      for (const row of staffRows) {
+        stmt.bind([row.name, row.email, row.password, row.role, row.created_at]);
+        stmt.step();
+        stmt.reset();
+      }
+      stmt.free();
+    }
+  }
+
+  // Check if orders table has customer_id, if not add it
+  try {
+    _db.run("ALTER TABLE orders ADD COLUMN customer_id INTEGER DEFAULT NULL");
+  } catch (e) {
+    // Column might already exist
+  }
 
   _db.run(`
     CREATE TABLE IF NOT EXISTS settings (

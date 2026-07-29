@@ -19,17 +19,21 @@ const NAV_ITEMS = [
 export default function StaffLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, loading, logout, staff } = useAuth();
+  const { isAuthenticated, loading, logout, user } = useAuth();
   
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.replace('/login');
+    if (!loading) {
+      if (!isAuthenticated) {
+        router.replace('/login');
+      } else if (user?.role === 'customer') {
+        router.replace('/');
+      }
     }
-  }, [loading, isAuthenticated, router]);
+  }, [loading, isAuthenticated, user, router]);
 
-  if (loading || !isAuthenticated) {
+  if (loading || !isAuthenticated || user?.role === 'customer') {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <LoadingSpinner text="Checking authentication..." />
@@ -63,10 +67,10 @@ export default function StaffLayout({ children }) {
             <span className={styles.logoText}>One Bite</span>
           </div>
           <div className={styles.staffInfo}>
-            <div className={styles.avatar}>{staff?.name?.charAt(0) || 'S'}</div>
+            <div className={styles.avatar}>{user?.name?.charAt(0) || 'S'}</div>
             <div>
-              <div className={styles.staffName}>{staff?.name || 'Staff'}</div>
-              <div className={styles.staffRole}>Administrator</div>
+              <div className={styles.staffName}>{user?.name || 'Staff'}</div>
+              <div className={styles.staffRole}>{user?.role === 'admin' ? 'Administrator' : 'Staff'}</div>
             </div>
           </div>
         </div>

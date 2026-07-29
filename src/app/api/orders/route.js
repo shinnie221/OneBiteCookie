@@ -14,6 +14,12 @@ function generateOrderId() {
 export async function GET(request) {
   try {
     const db = await getDb();
+    const user = verifyAuth(request);
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const dateFrom = searchParams.get('dateFrom');
@@ -22,6 +28,12 @@ export async function GET(request) {
     let sql = 'SELECT * FROM orders';
     const conditions = [];
     const params = [];
+
+    // Customer can only see their own orders
+    if (user.role === 'customer') {
+      conditions.push('customer_id = ?');
+      params.push(user.id);
+    }
 
     if (status && status !== 'all') {
       if (status === 'accepted') {
@@ -63,6 +75,12 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const db = await getDb();
+    const user = verifyAuth(request);
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { customer_name, phone, email, order_type, address, items, voucher_code, payment_screenshot } = body;
 
@@ -120,9 +138,9 @@ export async function POST(request) {
 
     // Insert order
     runStmt(db,
-      `INSERT INTO orders (order_id, customer_name, phone, email, order_type, address, subtotal, discount, total, voucher_code, payment_screenshot, payment_status, order_status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending_verification')`,
-      [orderId, customer_name, phone, email || '', order_type || 'pickup', address || '', subtotal, discount, total, voucher_code || null, payment_screenshot || null]
+      `INSERT INTO orders (order_id, customer_id, customer_name, phone, email, order_type, address, subtotal, discount, total, voucher_code, payment_screenshot, payment_status, order_status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending_verification')`,
+      [orderId, user.id, customer_name, phone, email || '', order_type || 'pickup', address || '', subtotal, discount, total, voucher_code || null, payment_screenshot || null]
     );
 
     // Insert order items

@@ -3,12 +3,23 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request, { params }) {
   try {
+    const { verifyAuth } = await import('@/lib/auth');
+    const user = verifyAuth(request);
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
     const db = await getDb();
     
     const order = queryOne(db, 'SELECT * FROM orders WHERE order_id = ?', [id.toUpperCase()]);
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    if (user.role === 'customer' && order.customer_id !== user.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
     order.items = queryAll(db, 'SELECT * FROM order_items WHERE order_id = ?', [order.order_id]);

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Navbar from '@/components/Navbar/Navbar';
 import Footer from '@/components/Footer/Footer';
@@ -12,6 +13,7 @@ import styles from './page.module.css';
 export default function PaymentPage() {
   const router = useRouter();
   const { items, total, voucher, clearCart } = useCart();
+  const { authFetch } = useAuth();
   const toast = useToast();
   
   const [checkoutData, setCheckoutData] = useState(null);
@@ -98,7 +100,7 @@ export default function PaymentPage() {
         payment_screenshot: paymentScreenshotBase64
       };
       
-      const orderRes = await fetch('/api/orders', {
+      const orderRes = await authFetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload)

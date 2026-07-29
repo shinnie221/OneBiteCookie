@@ -4,12 +4,19 @@ import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
   const { totalQuantity } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
 
   return (
     <nav className={styles.navbar}>
@@ -22,7 +29,10 @@ export default function Navbar() {
         <div className={`${styles.nav} ${mobileOpen ? styles.open : ''}`}>
           <Link href="/" className={styles.navLink} onClick={() => setMobileOpen(false)}>Home</Link>
           <Link href="/#menu" className={styles.navLink} onClick={() => setMobileOpen(false)}>Menu</Link>
-          <Link href="/track" className={styles.navLink} onClick={() => setMobileOpen(false)}>Track Order</Link>
+          
+          {isAuthenticated && user?.role === 'customer' && (
+            <Link href="/orders" className={styles.navLink} onClick={() => setMobileOpen(false)}>Order History</Link>
+          )}
         </div>
 
         <div className={styles.actions}>
@@ -34,9 +44,15 @@ export default function Navbar() {
           </Link>
           
           {isAuthenticated ? (
-            <Link href="/staff/dashboard" className={styles.loginBtn}>Dashboard</Link>
+            <>
+              {user?.role === 'customer' ? (
+                <button onClick={handleLogout} className={styles.loginBtn}>Logout</button>
+              ) : (
+                <Link href="/staff/dashboard" className={styles.loginBtn}>Dashboard</Link>
+              )}
+            </>
           ) : (
-            <Link href="/login" className={styles.loginBtn}>Staff Login</Link>
+            <Link href="/login" className={styles.loginBtn}>Login</Link>
           )}
 
           <button className={styles.hamburger} onClick={() => setMobileOpen(!mobileOpen)}>

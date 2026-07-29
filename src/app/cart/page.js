@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Navbar from '@/components/Navbar/Navbar';
 import Footer from '@/components/Footer/Footer';
@@ -12,6 +13,7 @@ import styles from './page.module.css';
 export default function CartPage() {
   const router = useRouter();
   const { items, updateQuantity, removeItem, clearCart, setVoucher, removeVoucher, voucher, discount, subtotal, total, totalQuantity } = useCart();
+  const { isAuthenticated } = useAuth();
   const toast = useToast();
   
   const [voucherCode, setVoucherCode] = useState('');
@@ -163,9 +165,22 @@ export default function CartPage() {
                 </div>
               )}
               
-              <Link href="/checkout" className={`btn btnPrimary ${styles.checkoutBtn}`}>
-                Proceed to Checkout
-              </Link>
+              {isAuthenticated ? (
+                <Link href="/checkout" className={`btn btnPrimary ${styles.checkoutBtn}`}>
+                  Proceed to Checkout
+                </Link>
+              ) : (
+                <button 
+                  className={`btn btnPrimary ${styles.checkoutBtn}`} 
+                  onClick={() => {
+                    toast.info('Please log in to proceed to checkout');
+                    router.push('/login');
+                  }}
+                  style={{ width: '100%' }}
+                >
+                  Login to Checkout
+                </button>
+              )}
             </div>
           </div>
         )}

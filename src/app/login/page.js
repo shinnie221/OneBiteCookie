@@ -9,29 +9,45 @@ import styles from './page.module.css';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated } = useAuth();
+  const { login, register, isAuthenticated, user } = useAuth();
   const toast = useToast();
   
+  const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/staff/dashboard');
+    if (isAuthenticated && user) {
+      if (user.role === 'customer') {
+        router.replace('/');
+      } else {
+        router.replace('/staff/dashboard');
+      }
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, user, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      await login(email, password);
-      toast.success('Login successful');
-      router.push('/staff/dashboard');
+      if (isLogin) {
+        const data = await login(email, password);
+        toast.success('Login successful');
+        if (data.user.role === 'customer') {
+          router.push('/');
+        } else {
+          router.push('/staff/dashboard');
+        }
+      } else {
+        const data = await register(name, email, password);
+        toast.success('Registration successful');
+        router.push('/');
+      }
     } catch (error) {
-      toast.error(error.message || 'Invalid credentials');
+      toast.error(error.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
@@ -45,11 +61,23 @@ export default function LoginPage() {
             <span className={styles.logoIcon}>🍪</span>
             <span className={styles.logoText}>One Bite</span>
           </Link>
-          <h2>Staff Portal</h2>
-          <p>Please log in to manage the shop.</p>
+          <h2>{isLogin ? 'Welcome Back' : 'Create an Account'}</h2>
+          <p>{isLogin ? 'Please log in to continue.' : 'Sign up to place orders and track history.'}</p>
         </div>
         
         <form onSubmit={handleSubmit} className={styles.form}>
+          {!isLogin && (
+            <div className="formGroup mb2">
+              <label htmlFor="name">Full Name</label>
+              <input 
+                type="text" 
+                id="name" 
+                value={name}
+                onChange={e => setName(e.target.value)}
+                required={!isLogin} 
+              />
+            </div>
+          )}
           <div className="formGroup mb2">
             <label htmlFor="email">Email Address</label>
             <input 
@@ -73,13 +101,20 @@ export default function LoginPage() {
           </div>
           
           <button type="submit" className="btn btnPrimary" disabled={loading} style={{ width: '100%' }}>
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Processing...' : (isLogin ? 'Login' : 'Register')}
           </button>
         </form>
         
+        <div className={styles.toggleText}>
+          {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <button type="button" className={styles.toggleBtn} onClick={() => setIsLogin(!isLogin)}>
+            {isLogin ? 'Register here' : 'Login here'}
+          </button>
+        </div>
+
         <div className={styles.footer}>
           <Link href="/" className={styles.backLink}>
-            ← Back to Customer Website
+            ← Back to Home
           </Link>
         </div>
       </div>

@@ -1,12 +1,16 @@
 'use client';
 
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
+import { useRouter } from 'next/navigation';
 import styles from './ProductCard.module.css';
 
 export default function ProductCard({ product }) {
   const { addItem, items } = useCart();
+  const { isAuthenticated } = useAuth();
   const toast = useToast();
+  const router = useRouter();
   
   const cartItem = items.find(i => i.product_id === product.id);
   const cartQuantity = cartItem ? cartItem.quantity : 0;
@@ -14,6 +18,12 @@ export default function ProductCard({ product }) {
   const isFull = cartQuantity >= product.stock;
 
   const handleAdd = () => {
+    if (!isAuthenticated) {
+      toast.info('Please log in or register to order cookies.');
+      router.push('/login');
+      return;
+    }
+
     if (isOutOfStock) {
       toast.error('This cookie is sold out!');
       return;

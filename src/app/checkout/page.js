@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Navbar from '@/components/Navbar/Navbar';
 import Footer from '@/components/Footer/Footer';
@@ -11,20 +12,42 @@ import styles from './page.module.css';
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, discount, total, totalQuantity } = useCart();
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
   const toast = useToast();
   
   const [deliveryEnabled, setDeliveryEnabled] = useState(true);
   const hasRedirected = useRef(false);
   
   const [formData, setFormData] = useState({
-    customer_name: '',
+    customer_name: user?.name || '',
     phone: '',
-    email: '',
+    email: user?.email || '',
     order_type: 'pickup',
     address: ''
   });
 
   useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        customer_name: user.name || prev.customer_name,
+        email: user.email || prev.email,
+      }));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    
+    if (!isAuthenticated) {
+      if (!hasRedirected.current) {
+        hasRedirected.current = true;
+        toast.info('Please log in to checkout');
+        router.push('/login');
+      }
+      return;
+    }
+
     // Check if cart is empty
     if (items.length === 0) {
       if (!hasRedirected.current) {
@@ -44,7 +67,7 @@ export default function CheckoutPage() {
         }
       })
       .catch(console.error);
-  }, [items, router, toast]);
+  }, [items, router, toast, isAuthenticated, authLoading]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -76,7 +99,7 @@ export default function CheckoutPage() {
     router.push('/payment');
   };
 
-  if (items.length === 0) return null;
+  if (authLoading || !isAuthenticated || items.length === 0) return null;
 
   return (
     <>

@@ -5,17 +5,17 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [staff, setStaff] = useState(null);
+  const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     try {
       const savedToken = localStorage.getItem('onebite_token');
-      const savedStaff = localStorage.getItem('onebite_staff');
-      if (savedToken && savedStaff) {
+      const savedUser = localStorage.getItem('onebite_user');
+      if (savedToken && savedUser) {
         setToken(savedToken);
-        setStaff(JSON.parse(savedStaff));
+        setUser(JSON.parse(savedUser));
       }
     } catch (e) {}
     setLoading(false);
@@ -35,18 +35,39 @@ export function AuthProvider({ children }) {
     }
     
     setToken(data.token);
-    setStaff(data.staff);
+    setUser(data.user);
     localStorage.setItem('onebite_token', data.token);
-    localStorage.setItem('onebite_staff', JSON.stringify(data.staff));
+    localStorage.setItem('onebite_user', JSON.stringify(data.user));
+    
+    return data;
+  }, []);
+
+  const register = useCallback(async (name, email, password) => {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
+    
+    const data = await res.json();
+    
+    if (!res.ok) {
+      throw new Error(data.error || 'Registration failed');
+    }
+    
+    setToken(data.token);
+    setUser(data.user);
+    localStorage.setItem('onebite_token', data.token);
+    localStorage.setItem('onebite_user', JSON.stringify(data.user));
     
     return data;
   }, []);
 
   const logout = useCallback(() => {
     setToken(null);
-    setStaff(null);
+    setUser(null);
     localStorage.removeItem('onebite_token');
-    localStorage.removeItem('onebite_staff');
+    localStorage.removeItem('onebite_user');
   }, []);
 
   const authFetch = useCallback(async (url, options = {}) => {
@@ -59,10 +80,10 @@ export function AuthProvider({ children }) {
     return fetch(url, { ...options, headers });
   }, [token]);
 
-  const isAuthenticated = !!token && !!staff;
+  const isAuthenticated = !!token && !!user;
 
   return (
-    <AuthContext.Provider value={{ staff, token, loading, isAuthenticated, login, logout, authFetch }}>
+    <AuthContext.Provider value={{ user, token, loading, isAuthenticated, login, register, logout, authFetch }}>
       {children}
     </AuthContext.Provider>
   );

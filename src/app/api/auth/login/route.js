@@ -14,26 +14,26 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    const staff = queryOne(db, 'SELECT * FROM staff WHERE email = ?', [email]);
-    if (!staff) {
+    const user = queryOne(db, 'SELECT * FROM users WHERE email = ?', [email]);
+    if (!user) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const validPassword = bcrypt.compareSync(password, staff.password);
+    const validPassword = bcrypt.compareSync(password, user.password);
     if (!validPassword) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const token = signToken({ id: staff.id, email: staff.email, name: staff.name, role: staff.role });
+    const token = signToken({ id: user.id, email: user.email, name: user.name, role: user.role });
 
     return NextResponse.json({
       message: 'Login successful',
       token,
-      staff: {
-        id: staff.id,
-        name: staff.name,
-        email: staff.email,
-        role: staff.role
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
       }
     });
   } catch (error) {
