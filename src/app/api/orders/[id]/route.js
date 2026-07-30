@@ -1,4 +1,5 @@
-import { getDb, queryOne, queryAll, runStmt } from '@/lib/db';
+import { db } from '@/lib/firebase';
+import { ref, get, update, query, orderByChild, equalTo } from 'firebase/database';
 import { NextResponse } from 'next/server';
 
 export async function GET(request, { params }) {
@@ -11,18 +12,22 @@ export async function GET(request, { params }) {
     }
 
     const { id } = await params;
-    const db = await getDb();
     
-    const order = queryOne(db, 'SELECT * FROM orders WHERE order_id = ?', [id.toUpperCase()]);
-    if (!order) {
+    const ordersRef = ref(db, 'orders');
+    const orderQuery = query(ordersRef, orderByChild('order_id'), equalTo(id.toUpperCase()));
+    const snapshot = await get(orderQuery);
+    
+    if (!snapshot.exists()) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
+
+    const data = snapshot.val();
+    const orderKey = Object.keys(data)[0];
+    const order = { id: orderKey, ...data[orderKey] };
 
     if (user.role === 'customer' && order.customer_id !== user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
-
-    order.items = queryAll(db, 'SELECT * FROM order_items WHERE order_id = ?', [order.order_id]);
 
     return NextResponse.json({ order });
   } catch (error) {
@@ -40,28 +45,36 @@ export async function PUT(request, { params }) {
     }
 
     const { id } = await params;
-    const db = await getDb();
     const body = await request.json();
 
-    const existing = queryOne(db, 'SELECT * FROM orders WHERE order_id = ?', [id.toUpperCase()]);
-    if (!existing) {
+    const ordersRef = ref(db, 'orders');
+    const orderQuery = query(ordersRef, orderByChild('order_id'), equalTo(id.toUpperCase()));
+    const snapshot = await get(orderQuery);
+
+    if (!snapshot.exists()) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // Update allowed fields
+    const data = snapshot.val();
+    const orderKey = Object.keys(data)[0];
+    const existing = data[orderKey];
+
     const orderStatus = body.order_status ?? existing.order_status;
     const paymentStatus = body.payment_status ?? existing.payment_status;
 
-    runStmt(db,
-      'UPDATE orders SET order_status = ?, payment_status = ? WHERE order_id = ?',
-      [orderStatus, paymentStatus, id.toUpperCase()]
-    );
+    await update(ref(db, `orders/${orderKey}`), {
+      order_status: orderStatus,
+      payment_status: paymentStatus
+    });
 
-    // Fetch updated order with items
-    const updated = queryOne(db, 'SELECT * FROM orders WHERE order_id = ?', [id.toUpperCase()]);
-    updated.items = queryAll(db, 'SELECT * FROM order_items WHERE order_id = ?', [updated.order_id]);
+    const updatedOrder = {
+      id: orderKey,
+      ...existing,
+      order_status: orderStatus,
+      payment_status: paymentStatus
+    };
 
-    return NextResponse.json({ message: 'Order updated', order: updated });
+    return NextResponse.json({ message: 'Order updated', order: updatedOrder });
   } catch (error) {
     console.error('PUT /api/orders/[id] error:', error);
     return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });

@@ -1,4 +1,5 @@
-import { getDb, queryAll, queryOne, runStmt } from '@/lib/db';
+import { db } from '@/lib/firebase';
+import { ref, get, push, set, query, orderByChild, equalTo } from 'firebase/database';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
@@ -8,8 +9,24 @@ export async function GET(request) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const db = await getDb();
-    const vouchers = queryAll(db, 'SELECT * FROM vouchers ORDER BY id DESC');
+    
+    const snapshot = await get(ref(db, 'vouchers'));
+    let vouchers = [];
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      vouchers = Object.keys(data).map(key => ({
+        id: key,
+        ...data[key]
+      }));
+    }
+    
+    // Sort by descending created_at
+    vouchers.sort((a, b) => {
+      const dateA = new Date(a.created_at || 0).getTime();
+      const dateB = new Date(b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+
     return NextResponse.json({ vouchers });
   } catch (error) {
     console.error('GET /api/vouchers error:', error);
@@ -23,23 +40,32 @@ export async function POST(request) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const db = await getDb();
+    
     const { code, discount_type, discount_value, min_order, expiry_date, active } = await request.json();
     
     if (!code || !discount_type || discount_value == null) {
       return NextResponse.json({ error: 'Code, type, and value are required' }, { status: 400 });
     }
 
-    // Check duplicate code
-    const existing = queryOne(db, 'SELECT id FROM vouchers WHERE code = ?', [code.toUpperCase()]);
-    if (existing) {
+    const vouchersRef = ref(db, 'vouchers');
+    const upperCode = code.toUpperCase();
+    const codeQuery = query(vouchersRef, orderByChild('code'), equalTo(upperCode));
+    const snapshot = await get(codeQuery);
+
+    if (snapshot.exists()) {
       return NextResponse.json({ error: 'Voucher code already exists' }, { status: 400 });
     }
 
-    runStmt(db,
-      'INSERT INTO vouchers (code, discount_type, discount_value, min_order, expiry_date, active) VALUES (?, ?, ?, ?, ?, ?)',
-      [code.toUpperCase(), discount_type, discount_value, min_order || 0, expiry_date || null, active ? 1 : 0]
-    );
+    const newVoucherRef = push(vouchersRef);
+    await set(newVoucherRef, {
+      code: upperCode,
+      discount_type,
+      discount_value,
+      min_order: min_order || 0,
+      expiry_date: expiry_date || null,
+      active: active ? 1 : 0,
+      created_at: new Date().toISOString()
+    });
 
     return NextResponse.json({ message: 'Voucher created' }, { status: 201 });
   } catch (error) {

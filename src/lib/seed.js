@@ -1,4 +1,5 @@
-import { getDb, queryOne, queryAll, runStmt } from './db.js';
+import { db } from './firebase.js';
+import { ref, get, push, set } from 'firebase/database';
 import bcrypt from 'bcryptjs';
 
 // Cookie SVG data URIs as Base64 product images
@@ -23,15 +24,14 @@ function cookieSvg(color1, color2, label) {
 }
 
 export async function seedDatabase() {
-  const db = await getDb();
-
-  // Check if already seeded
-  const existingProducts = queryAll(db, 'SELECT id FROM products LIMIT 1');
-  if (existingProducts.length > 0) {
+  const productsRef = ref(db, 'products');
+  const productsSnapshot = await get(productsRef);
+  
+  if (productsSnapshot.exists() && Object.keys(productsSnapshot.val()).length > 0) {
     return; // Already seeded
   }
 
-  console.log('🍪 Seeding database...');
+  console.log('🍪 Seeding database to Firebase...');
 
   // Seed products
   const products = [
@@ -47,42 +47,46 @@ export async function seedDatabase() {
 
   for (const p of products) {
     const image = cookieSvg(p.c1, p.c2, p.name.split(' ')[0]);
-    runStmt(db,
-      'INSERT INTO products (name, description, price, stock, available, image) VALUES (?, ?, ?, ?, 1, ?)',
-      [p.name, p.desc, p.price, p.stock, image]
-    );
+    const newProductRef = push(productsRef);
+    await set(newProductRef, {
+      name: p.name,
+      description: p.desc,
+      price: p.price,
+      stock: p.stock,
+      available: true,
+      image,
+      createdAt: new Date().toISOString()
+    });
   }
 
   // Seed vouchers
-  runStmt(db,
-    'INSERT INTO vouchers (code, discount_type, discount_value, min_order, active) VALUES (?, ?, ?, ?, ?)',
-    ['WELCOME10', 'percentage', 10, 20, 1]
-  );
-  runStmt(db,
-    'INSERT INTO vouchers (code, discount_type, discount_value, min_order, active) VALUES (?, ?, ?, ?, ?)',
-    ['ONEBITE5', 'fixed', 5, 30, 1]
-  );
+  const vouchersRef = ref(db, 'vouchers');
+  const v1 = push(vouchersRef);
+  await set(v1, { code: 'WELCOME10', discount_type: 'percentage', discount_value: 10, min_order: 20, active: 1, created_at: new Date().toISOString() });
+  
+  const v2 = push(vouchersRef);
+  await set(v2, { code: 'ONEBITE5', discount_type: 'fixed', discount_value: 5, min_order: 30, active: 1, created_at: new Date().toISOString() });
 
   // Seed admin user
   const hashedPassword = bcrypt.hashSync('admin123', 10);
-  runStmt(db,
-    'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-    ['Admin', 'admin@onebite.com', hashedPassword, 'admin']
-  );
+  const usersRef = ref(db, 'users');
+  const newAdminRef = push(usersRef);
+  await set(newAdminRef, {
+    name: 'Admin',
+    email: 'admin@onebite.com',
+    password: hashedPassword,
+    role: 'admin',
+    createdAt: new Date().toISOString()
+  });
 
   // Seed default settings
-  const defaultSettings = {
-    'qr_code': '',
-    'delivery_enabled': 'true',
-    'shop_phone': '012-345-6789',
-    'shop_email': 'hello@onebite.com',
-  };
-  for (const [key, value] of Object.entries(defaultSettings)) {
-    runStmt(db,
-      'INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)',
-      [key, value]
-    );
-  }
+  const settingsRef = ref(db, 'settings');
+  await set(settingsRef, {
+    qr_code: '',
+    delivery_enabled: 'true',
+    shop_phone: '012-345-6789',
+    shop_email: 'hello@onebite.com'
+  });
 
   console.log('✅ Database seeded successfully!');
 }

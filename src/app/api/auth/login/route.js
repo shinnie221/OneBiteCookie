@@ -1,4 +1,5 @@
-import { getDb, queryOne } from '@/lib/db';
+import { db } from '@/lib/firebase';
+import { ref, get, query, orderByChild, equalTo } from 'firebase/database';
 import { signToken } from '@/lib/auth';
 import { seedDatabase } from '@/lib/seed';
 import bcrypt from 'bcryptjs';
@@ -7,17 +8,23 @@ import { NextResponse } from 'next/server';
 export async function POST(request) {
   try {
     await seedDatabase();
-    const db = await getDb();
     const { email, password } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    const user = queryOne(db, 'SELECT * FROM users WHERE email = ?', [email]);
-    if (!user) {
+    const usersRef = ref(db, 'users');
+    const emailQuery = query(usersRef, orderByChild('email'), equalTo(email));
+    const snapshot = await get(emailQuery);
+
+    if (!snapshot.exists()) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
+
+    const usersData = snapshot.val();
+    const userId = Object.keys(usersData)[0];
+    const user = { id: userId, ...usersData[userId] };
 
     const validPassword = bcrypt.compareSync(password, user.password);
     if (!validPassword) {

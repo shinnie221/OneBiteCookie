@@ -1,15 +1,14 @@
-import { getDb, queryAll, queryOne, runStmt } from '@/lib/db';
+import { db } from '@/lib/firebase';
+import { ref, get, update } from 'firebase/database';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
   try {
-    const db = await getDb();
-    const settings = queryAll(db, 'SELECT * FROM settings');
-    
-    const settingsObj = {};
-    for (const row of settings) {
-      settingsObj[row.key] = row.value;
+    const snapshot = await get(ref(db, 'settings'));
+    let settingsObj = {};
+    if (snapshot.exists()) {
+      settingsObj = snapshot.val();
     }
     
     return NextResponse.json({ settings: settingsObj });
@@ -26,17 +25,8 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const db = await getDb();
     const body = await request.json();
-    
-    for (const [key, value] of Object.entries(body)) {
-      const existing = queryOne(db, 'SELECT key FROM settings WHERE key = ?', [key]);
-      if (existing) {
-        runStmt(db, 'UPDATE settings SET value = ? WHERE key = ?', [value, key]);
-      } else {
-        runStmt(db, 'INSERT INTO settings (key, value) VALUES (?, ?)', [key, value]);
-      }
-    }
+    await update(ref(db, 'settings'), body);
     
     return NextResponse.json({ message: 'Settings updated' });
   } catch (error) {

@@ -1,4 +1,5 @@
-import { getDb, queryOne, runStmt } from '@/lib/db';
+import { db } from '@/lib/firebase';
+import { ref, get, update, remove, child } from 'firebase/database';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
@@ -10,13 +11,16 @@ export async function PUT(request, { params }) {
     }
     
     const { id } = await params;
-    const db = await getDb();
     const body = await request.json();
     
-    const existing = queryOne(db, 'SELECT * FROM vouchers WHERE id = ?', [id]);
-    if (!existing) {
+    const voucherRef = child(ref(db), `vouchers/${id}`);
+    const snapshot = await get(voucherRef);
+    
+    if (!snapshot.exists()) {
       return NextResponse.json({ error: 'Voucher not found' }, { status: 404 });
     }
+    
+    const existing = snapshot.val();
     
     const code = body.code !== undefined ? body.code.toUpperCase() : existing.code;
     const discountType = body.discount_type ?? existing.discount_type;
@@ -25,10 +29,14 @@ export async function PUT(request, { params }) {
     const expiryDate = body.expiry_date !== undefined ? body.expiry_date : existing.expiry_date;
     const active = body.active !== undefined ? (body.active ? 1 : 0) : existing.active;
     
-    runStmt(db,
-      'UPDATE vouchers SET code=?, discount_type=?, discount_value=?, min_order=?, expiry_date=?, active=? WHERE id=?',
-      [code, discountType, discountValue, minOrder, expiryDate, active, id]
-    );
+    await update(voucherRef, {
+      code,
+      discount_type: discountType,
+      discount_value: discountValue,
+      min_order: minOrder,
+      expiry_date: expiryDate,
+      active
+    });
     
     return NextResponse.json({ message: 'Voucher updated' });
   } catch (error) {
@@ -45,9 +53,8 @@ export async function DELETE(request, { params }) {
     }
     
     const { id } = await params;
-    const db = await getDb();
     
-    runStmt(db, 'DELETE FROM vouchers WHERE id = ?', [id]);
+    await remove(child(ref(db), `vouchers/${id}`));
     
     return NextResponse.json({ message: 'Voucher deleted' });
   } catch (error) {

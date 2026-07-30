@@ -1,4 +1,5 @@
-import { getDb, queryAll } from '@/lib/db';
+import { db } from '@/lib/firebase';
+import { ref, get, query, orderByChild, equalTo } from 'firebase/database';
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
@@ -11,16 +12,40 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const db = await getDb();
-    
-    // Fetch all customers (excluding passwords)
-    const customers = queryAll(db, "SELECT id, name, email, created_at FROM users WHERE role = 'customer' ORDER BY created_at DESC");
+    const usersQuery = query(ref(db, 'users'), orderByChild('role'), equalTo('customer'));
+    const usersSnapshot = await get(usersQuery);
+
+    let customers = [];
+    if (usersSnapshot.exists()) {
+      const data = usersSnapshot.val();
+      customers = Object.keys(data).map(key => {
+        const { password, ...safeData } = data[key];
+        return {
+          id: key,
+          ...safeData
+        };
+      });
+    }
+
+    // Sort by created_at DESC
+    customers.sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.created_at || 0).getTime();
+      const dateB = new Date(b.createdAt || b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+
+    const ordersSnapshot = await get(ref(db, 'orders'));
+    let orders = [];
+    if (ordersSnapshot.exists()) {
+      const data = ordersSnapshot.val();
+      orders = Object.keys(data).map(key => data[key]);
+    }
 
     // Also get order counts and total spent for each customer
     for (let customer of customers) {
-      const stats = queryAll(db, "SELECT COUNT(*) as orderCount, SUM(total) as totalSpent FROM orders WHERE customer_id = ?", [customer.id]);
-      customer.orderCount = stats[0]?.orderCount || 0;
-      customer.totalSpent = stats[0]?.totalSpent || 0;
+      const customerOrders = orders.filter(o => o.customer_id === customer.id);
+      customer.orderCount = customerOrders.length;
+      customer.totalSpent = customerOrders.reduce((sum, order) => sum + (order.total || 0), 0);
     }
 
     return NextResponse.json({ customers });
