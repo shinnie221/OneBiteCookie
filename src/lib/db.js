@@ -173,9 +173,11 @@ export function queryOne(db, sql, params = []) {
 // Helper: run a statement (INSERT, UPDATE, DELETE) and return changes info
 export function runStmt(db, sql, params = []) {
   db.run(sql, params);
+  const changes = db.getRowsModified();
+  const lastInsertRowid = queryOne(db, 'SELECT last_insert_rowid() as id')?.id;
   saveDb();
   return {
-    changes: db.getRowsModified(),
-    lastInsertRowid: queryOne(db, 'SELECT last_insert_rowid() as id')?.id
+    changes,
+    lastInsertRowid
   };
 }
