@@ -1,5 +1,5 @@
 import { db } from './firebase.js';
-import { ref, get, push, set } from 'firebase/database';
+import { collection, getDocs, addDoc, doc, setDoc } from 'firebase/firestore';
 import bcrypt from 'bcryptjs';
 
 // Cookie SVG data URIs as Base64 product images
@@ -24,10 +24,10 @@ function cookieSvg(color1, color2, label) {
 }
 
 export async function seedDatabase() {
-  const productsRef = ref(db, 'products');
-  const productsSnapshot = await get(productsRef);
+  const productsRef = collection(db, 'products');
+  const productsSnapshot = await getDocs(productsRef);
   
-  if (productsSnapshot.exists() && Object.keys(productsSnapshot.val()).length > 0) {
+  if (!productsSnapshot.empty) {
     return; // Already seeded
   }
 
@@ -47,8 +47,7 @@ export async function seedDatabase() {
 
   for (const p of products) {
     const image = cookieSvg(p.c1, p.c2, p.name.split(' ')[0]);
-    const newProductRef = push(productsRef);
-    await set(newProductRef, {
+    await addDoc(productsRef, {
       name: p.name,
       description: p.desc,
       price: p.price,
@@ -60,18 +59,14 @@ export async function seedDatabase() {
   }
 
   // Seed vouchers
-  const vouchersRef = ref(db, 'vouchers');
-  const v1 = push(vouchersRef);
-  await set(v1, { code: 'WELCOME10', discount_type: 'percentage', discount_value: 10, min_order: 20, active: 1, created_at: new Date().toISOString() });
-  
-  const v2 = push(vouchersRef);
-  await set(v2, { code: 'ONEBITE5', discount_type: 'fixed', discount_value: 5, min_order: 30, active: 1, created_at: new Date().toISOString() });
+  const vouchersRef = collection(db, 'vouchers');
+  await addDoc(vouchersRef, { code: 'WELCOME10', discount_type: 'percentage', discount_value: 10, min_order: 20, active: 1, created_at: new Date().toISOString() });
+  await addDoc(vouchersRef, { code: 'ONEBITE5', discount_type: 'fixed', discount_value: 5, min_order: 30, active: 1, created_at: new Date().toISOString() });
 
   // Seed admin user
   const hashedPassword = bcrypt.hashSync('admin123', 10);
-  const usersRef = ref(db, 'users');
-  const newAdminRef = push(usersRef);
-  await set(newAdminRef, {
+  const usersRef = collection(db, 'users');
+  await addDoc(usersRef, {
     name: 'Admin',
     email: 'admin@onebite.com',
     password: hashedPassword,
@@ -80,8 +75,8 @@ export async function seedDatabase() {
   });
 
   // Seed default settings
-  const settingsRef = ref(db, 'settings');
-  await set(settingsRef, {
+  const settingsRef = doc(db, 'settings', 'config');
+  await setDoc(settingsRef, {
     qr_code: '',
     delivery_enabled: 'true',
     shop_phone: '012-345-6789',

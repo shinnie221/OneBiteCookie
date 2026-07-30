@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { ref, get, push, set, query, orderByChild, equalTo } from 'firebase/database';
+import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { signToken } from '@/lib/auth';
 import { seedDatabase } from '@/lib/seed';
 import bcrypt from 'bcryptjs';
@@ -14,17 +14,16 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Name, email and password are required' }, { status: 400 });
     }
 
-    const usersRef = ref(db, 'users');
-    const emailQuery = query(usersRef, orderByChild('email'), equalTo(email));
-    const snapshot = await get(emailQuery);
+    const usersRef = collection(db, 'users');
+    const emailQuery = query(usersRef, where('email', '==', email));
+    const snapshot = await getDocs(emailQuery);
 
-    if (snapshot.exists()) {
+    if (!snapshot.empty) {
       return NextResponse.json({ error: 'Email already registered' }, { status: 400 });
     }
 
     const hashedPassword = bcrypt.hashSync(password, 10);
     
-    const newUserRef = push(usersRef);
     const user = {
       name,
       email,
@@ -33,10 +32,10 @@ export async function POST(request) {
       createdAt: new Date().toISOString()
     };
     
-    await set(newUserRef, user);
+    const docRef = await addDoc(usersRef, user);
 
     const safeUser = {
-      id: newUserRef.key,
+      id: docRef.id,
       name,
       email,
       role: 'customer'

@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getDatabase } from 'firebase/database';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -15,7 +15,7 @@ const firebaseConfig = {
 // Initialize Firebase only if it hasn't been initialized already (important for Next.js hot reloading)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Realtime Database
-const db = getDatabase(app);
+// Initialize Cloud Firestore
+const db = getFirestore(app);
 
 export { app, db };

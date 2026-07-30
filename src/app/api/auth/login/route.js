@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { ref, get, query, orderByChild, equalTo } from 'firebase/database';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { signToken } from '@/lib/auth';
 import { seedDatabase } from '@/lib/seed';
 import bcrypt from 'bcryptjs';
@@ -14,17 +14,16 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    const usersRef = ref(db, 'users');
-    const emailQuery = query(usersRef, orderByChild('email'), equalTo(email));
-    const snapshot = await get(emailQuery);
+    const usersRef = collection(db, 'users');
+    const emailQuery = query(usersRef, where('email', '==', email));
+    const snapshot = await getDocs(emailQuery);
 
-    if (!snapshot.exists()) {
+    if (snapshot.empty) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const usersData = snapshot.val();
-    const userId = Object.keys(usersData)[0];
-    const user = { id: userId, ...usersData[userId] };
+    const userDoc = snapshot.docs[0];
+    const user = { id: userDoc.id, ...userDoc.data() };
 
     const validPassword = bcrypt.compareSync(password, user.password);
     if (!validPassword) {
