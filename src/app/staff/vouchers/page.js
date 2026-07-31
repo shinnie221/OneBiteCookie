@@ -71,7 +71,7 @@ export default function VouchersPage() {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : (type === 'number' ? parseFloat(value) : value)
+      [name]: type === 'checkbox' ? checked : (type === 'number' ? (value === '' ? '' : parseFloat(value)) : value)
     }));
   };
 
@@ -269,7 +269,7 @@ export default function VouchersPage() {
                 id="discount_value" 
                 name="discount_value" 
                 min="0.1" 
-                step={formData.discount_type === 'percentage' ? "1" : "0.1"} 
+                step="any" 
                 value={formData.discount_value} 
                 onChange={handleInputChange} 
                 required 
@@ -285,7 +285,7 @@ export default function VouchersPage() {
                 id="min_order" 
                 name="min_order" 
                 min="0" 
-                step="0.1" 
+                step="any" 
                 value={formData.min_order} 
                 onChange={handleInputChange} 
                 required 

@@ -30,6 +30,7 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [fullScreenshotUrl, setFullScreenshotUrl] = useState(null);
 
   useEffect(() => {
     fetchOrders();
@@ -247,7 +248,14 @@ export default function OrdersPage() {
               <div className={styles.sectionHeader}>Payment Screenshot</div>
               {selectedOrder.payment_screenshot ? (
                 <div className={styles.screenshotBox}>
-                  <img src={selectedOrder.payment_screenshot} alt="Payment Proof" className={styles.screenshot} />
+                  <img 
+                    src={selectedOrder.payment_screenshot} 
+                    alt="Payment Proof" 
+                    className={styles.screenshot} 
+                    style={{ cursor: 'zoom-in' }}
+                    onClick={() => setFullScreenshotUrl(selectedOrder.payment_screenshot)}
+                    title="Click to zoom in"
+                  />
                 </div>
               ) : (
                 <p className={styles.noData}>No payment screenshot provided.</p>
@@ -280,6 +288,15 @@ export default function OrdersPage() {
           </div>
         )}
       </Modal>
+
+      {fullScreenshotUrl && (
+        <div 
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, cursor: 'zoom-out' }}
+          onClick={() => setFullScreenshotUrl(null)}
+        >
+          <img src={fullScreenshotUrl} style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain' }} alt="Full Screenshot" />
+        </div>
+      )}
     </div>
   );
 }

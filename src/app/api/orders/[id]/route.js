@@ -14,16 +14,22 @@ export async function GET(request, { params }) {
     const { id } = await params;
     
     const ordersRef = ref(db, 'orders');
-    const orderQuery = query(ordersRef, orderByChild('order_id'), equalTo(id.toUpperCase()));
-    const snapshot = await get(orderQuery);
+    // Using a direct fetch to avoid Firebase indexing errors if rules aren't setup
+    const snapshot = await get(ordersRef);
     
     if (!snapshot.exists()) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    const data = snapshot.val();
-    const orderKey = Object.keys(data)[0];
-    const order = { id: orderKey, ...data[orderKey] };
+    const allOrders = snapshot.val();
+    const targetId = id.toUpperCase();
+    const orderKey = Object.keys(allOrders).find(k => allOrders[k].order_id === targetId || k === id);
+    
+    if (!orderKey) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    const order = { id: orderKey, ...allOrders[orderKey] };
 
     if (user.role === 'customer' && order.customer_id !== user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -48,16 +54,22 @@ export async function PUT(request, { params }) {
     const body = await request.json();
 
     const ordersRef = ref(db, 'orders');
-    const orderQuery = query(ordersRef, orderByChild('order_id'), equalTo(id.toUpperCase()));
-    const snapshot = await get(orderQuery);
+    // Using a direct fetch to avoid Firebase indexing errors
+    const snapshot = await get(ordersRef);
 
     if (!snapshot.exists()) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    const data = snapshot.val();
-    const orderKey = Object.keys(data)[0];
-    const existing = data[orderKey];
+    const allOrders = snapshot.val();
+    const targetId = id.toUpperCase();
+    const orderKey = Object.keys(allOrders).find(k => allOrders[k].order_id === targetId || k === id);
+    
+    if (!orderKey) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    const existing = allOrders[orderKey];
 
     const orderStatus = body.order_status ?? existing.order_status;
     const paymentStatus = body.payment_status ?? existing.payment_status;

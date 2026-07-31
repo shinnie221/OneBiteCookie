@@ -113,6 +113,7 @@ export default function PaymentPage() {
       }
       
       // Clear data and redirect
+      hasRedirected.current = true;
       localStorage.removeItem('onebite_checkout');
       clearCart();
       toast.success('Order submitted successfully!');
