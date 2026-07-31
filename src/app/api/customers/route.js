@@ -1,5 +1,6 @@
-import { rtdb as db } from '@/lib/firebase';
-import { ref, get, query, orderByChild, equalTo } from 'firebase/database';
+import { db, rtdb } from '@/lib/firebase';
+import { collection, query as firestoreQuery, where, getDocs } from 'firebase/firestore';
+import { ref, get } from 'firebase/database';
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
@@ -12,20 +13,20 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const usersQuery = query(ref(db, 'users'), orderByChild('role'), equalTo('customer'));
-    const usersSnapshot = await get(usersQuery);
+    // Fetch customers from Firestore
+    const usersRef = collection(db, 'users');
+    const q = firestoreQuery(usersRef, where('role', '==', 'customer'));
+    const usersSnapshot = await getDocs(q);
 
     let customers = [];
-    if (usersSnapshot.exists()) {
-      const data = usersSnapshot.val();
-      customers = Object.keys(data).map(key => {
-        const { password, ...safeData } = data[key];
-        return {
-          id: key,
-          ...safeData
-        };
+    usersSnapshot.forEach((doc) => {
+      const data = doc.data();
+      const { password, ...safeData } = data;
+      customers.push({
+        id: doc.id,
+        ...safeData
       });
-    }
+    });
 
     // Sort by created_at DESC
     customers.sort((a, b) => {
@@ -34,7 +35,8 @@ export async function GET(request) {
       return dateB - dateA;
     });
 
-    const ordersSnapshot = await get(ref(db, 'orders'));
+    // Fetch orders from Realtime Database
+    const ordersSnapshot = await get(ref(rtdb, 'orders'));
     let orders = [];
     if (ordersSnapshot.exists()) {
       const data = ordersSnapshot.val();
