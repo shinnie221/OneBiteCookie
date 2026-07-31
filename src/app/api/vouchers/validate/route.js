@@ -13,15 +13,20 @@ export async function POST(request) {
     const today = new Date().toISOString().split('T')[0];
     
     const vouchersRef = ref(db, 'vouchers');
-    const voucherQuery = query(vouchersRef, orderByChild('code'), equalTo(code.toUpperCase()));
-    const snapshot = await get(voucherQuery);
+    const snapshot = await get(vouchersRef);
 
     if (!snapshot.exists()) {
-      return NextResponse.json({ error: 'Invalid or expired voucher code', valid: false }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid voucher code' }, { status: 400 });
     }
 
     const vouchersData = snapshot.val();
-    const vKey = Object.keys(vouchersData)[0];
+    const upperCode = code.toUpperCase();
+    const vKey = Object.keys(vouchersData).find(key => vouchersData[key].code === upperCode);
+
+    if (!vKey) {
+      return NextResponse.json({ error: 'Invalid voucher code' }, { status: 400 });
+    }
+
     const voucher = { id: vKey, ...vouchersData[vKey] };
 
     const active = voucher.active === 1 || voucher.active === true;

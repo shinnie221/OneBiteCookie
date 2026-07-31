@@ -49,11 +49,14 @@ export async function POST(request) {
 
     const vouchersRef = ref(db, 'vouchers');
     const upperCode = code.toUpperCase();
-    const codeQuery = query(vouchersRef, orderByChild('code'), equalTo(upperCode));
-    const snapshot = await get(codeQuery);
-
+    
+    const snapshot = await get(vouchersRef);
     if (snapshot.exists()) {
-      return NextResponse.json({ error: 'Voucher code already exists' }, { status: 400 });
+      const data = snapshot.val();
+      const exists = Object.values(data).some(v => v.code === upperCode);
+      if (exists) {
+        return NextResponse.json({ error: 'Voucher code already exists' }, { status: 400 });
+      }
     }
 
     const newVoucherRef = push(vouchersRef);

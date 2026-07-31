@@ -132,24 +132,27 @@ export async function POST(request) {
     let discount = 0;
     if (voucher_code) {
       const today = new Date().toISOString().split('T')[0];
-      const voucherQuery = query(ref(db, 'vouchers'), orderByChild('code'), equalTo(voucher_code.toUpperCase()));
-      const voucherSnapshot = await get(voucherQuery);
+      const voucherSnapshot = await get(ref(db, 'vouchers'));
       
       if (voucherSnapshot.exists()) {
         const vouchersData = voucherSnapshot.val();
-        const vKey = Object.keys(vouchersData)[0];
-        const voucher = vouchersData[vKey];
+        const upperCode = voucher_code.toUpperCase();
+        const vKey = Object.keys(vouchersData).find(key => vouchersData[key].code === upperCode);
         
-        const active = voucher.active === 1 || voucher.active === true;
-        const notExpired = !voucher.expiry_date || voucher.expiry_date >= today;
-        
-        if (active && notExpired && subtotal >= voucher.min_order) {
-          if (voucher.discount_type === 'percentage') {
-            discount = subtotal * (voucher.discount_value / 100);
-          } else {
-            discount = voucher.discount_value;
+        if (vKey) {
+          const voucher = vouchersData[vKey];
+          
+          const active = voucher.active === 1 || voucher.active === true;
+          const notExpired = !voucher.expiry_date || voucher.expiry_date >= today;
+          
+          if (active && notExpired && subtotal >= voucher.min_order) {
+            if (voucher.discount_type === 'percentage') {
+              discount = subtotal * (voucher.discount_value / 100);
+            } else {
+              discount = voucher.discount_value;
+            }
+            discount = Math.min(discount, subtotal);
           }
-          discount = Math.min(discount, subtotal);
         }
       }
     }
