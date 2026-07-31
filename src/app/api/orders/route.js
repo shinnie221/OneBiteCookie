@@ -1,4 +1,4 @@
-import { db } from '@/lib/firebase';
+import { rtdb as db } from '@/lib/firebase';
 import { ref, get, push, set, update, query, orderByChild, equalTo, child } from 'firebase/database';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';

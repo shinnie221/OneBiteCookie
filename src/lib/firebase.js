@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -18,4 +19,7 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 // Initialize Cloud Firestore
 const db = getFirestore(app);
 
-export { app, db };
+// Initialize Realtime Database
+const rtdb = getDatabase(app);
+
+export { app, db, rtdb };
