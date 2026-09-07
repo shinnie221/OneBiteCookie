@@ -14,9 +14,18 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
+    const cleanEmail = email.trim();
     const usersRef = collection(db, 'users');
-    const emailQuery = query(usersRef, where('email', '==', email));
-    const snapshot = await getDocs(emailQuery);
+    
+    // Check with lowercase email first
+    let emailQuery = query(usersRef, where('email', '==', cleanEmail.toLowerCase()));
+    let snapshot = await getDocs(emailQuery);
+
+    // Fallback to exact match if not found (for legacy records)
+    if (snapshot.empty && cleanEmail !== cleanEmail.toLowerCase()) {
+      emailQuery = query(usersRef, where('email', '==', cleanEmail));
+      snapshot = await getDocs(emailQuery);
+    }
 
     if (snapshot.empty) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });

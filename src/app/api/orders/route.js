@@ -1,5 +1,5 @@
-import { rtdb as db } from '@/lib/firebase';
-import { ref, get, push, set, update, query, orderByChild, equalTo, child } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
@@ -25,27 +25,23 @@ export async function GET(request) {
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
 
-    const ordersRef = ref(db, 'orders');
+    const ordersRef = collection(db, 'orders');
     let snapshot;
     
     // Customer can only see their own orders
     if (user.role === 'customer') {
-      const customerQuery = query(ordersRef, orderByChild('customer_id'), equalTo(user.id));
-      snapshot = await get(customerQuery);
+      const q = query(ordersRef, where('customer_id', '==', user.id));
+      snapshot = await getDocs(q);
     } else {
-      snapshot = await get(ordersRef);
+      snapshot = await getDocs(ordersRef);
     }
 
     let orders = [];
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      orders = Object.keys(data).map(key => ({
-        id: key,
-        ...data[key]
-      }));
-    }
+    snapshot.forEach(doc => {
+      orders.push({ id: doc.id, ...doc.data() });
+    });
 
-    // Filter by status and date in memory since Firebase Realtime Database has limited multi-field querying
+    // Filter by status and date in memory since Firestore composite queries require indexes
     if (status && status !== 'all') {
       if (status === 'accepted') {
         const acceptedStatuses = ['accepted', 'preparing', 'ready_pickup', 'out_delivery'];
@@ -101,13 +97,14 @@ export async function POST(request) {
     const resolvedItems = [];
     
     for (const item of items) {
-      const productSnapshot = await get(child(ref(db), `products/${item.product_id}`));
+      const productRef = doc(db, 'products', item.product_id);
+      const productSnapshot = await getDoc(productRef);
       
       if (!productSnapshot.exists()) {
         return NextResponse.json({ error: `Product "${item.product_name}" is no longer available` }, { status: 400 });
       }
       
-      const product = productSnapshot.val();
+      const product = productSnapshot.data();
       
       if (product.available === false || product.available === 0) {
         return NextResponse.json({ error: `Product "${item.product_name}" is no longer available` }, { status: 400 });
@@ -132,27 +129,21 @@ export async function POST(request) {
     let discount = 0;
     if (voucher_code) {
       const today = new Date().toISOString().split('T')[0];
-      const voucherSnapshot = await get(ref(db, 'vouchers'));
+      const q = query(collection(db, 'vouchers'), where('code', '==', voucher_code.toUpperCase()));
+      const voucherSnapshot = await getDocs(q);
       
-      if (voucherSnapshot.exists()) {
-        const vouchersData = voucherSnapshot.val();
-        const upperCode = voucher_code.toUpperCase();
-        const vKey = Object.keys(vouchersData).find(key => vouchersData[key].code === upperCode);
+      if (!voucherSnapshot.empty) {
+        const voucher = voucherSnapshot.docs[0].data();
+        const active = voucher.active === 1 || voucher.active === true;
+        const notExpired = !voucher.expiry_date || voucher.expiry_date >= today;
         
-        if (vKey) {
-          const voucher = vouchersData[vKey];
-          
-          const active = voucher.active === 1 || voucher.active === true;
-          const notExpired = !voucher.expiry_date || voucher.expiry_date >= today;
-          
-          if (active && notExpired && subtotal >= voucher.min_order) {
-            if (voucher.discount_type === 'percentage') {
-              discount = subtotal * (voucher.discount_value / 100);
-            } else {
-              discount = voucher.discount_value;
-            }
-            discount = Math.min(discount, subtotal);
+        if (active && notExpired && subtotal >= voucher.min_order) {
+          if (voucher.discount_type === 'percentage') {
+            discount = subtotal * (voucher.discount_value / 100);
+          } else {
+            discount = voucher.discount_value;
           }
+          discount = Math.min(discount, subtotal);
         }
       }
     }
@@ -161,8 +152,6 @@ export async function POST(request) {
     const orderId = generateOrderId();
     const createdAt = new Date().toISOString();
 
-    const newOrderRef = push(ref(db, 'orders'));
-    
     const newOrder = {
       order_id: orderId,
       customer_id: user.id,
@@ -182,21 +171,21 @@ export async function POST(request) {
       created_at: createdAt
     };
 
-    await set(newOrderRef, newOrder);
+    const docRef = await addDoc(collection(db, 'orders'), newOrder);
 
     // Deduct stock
     for (const item of resolvedItems) {
-      const productRef = child(ref(db), `products/${item.product_id}`);
-      const snap = await get(productRef);
+      const productRef = doc(db, 'products', item.product_id);
+      const snap = await getDoc(productRef);
       if (snap.exists()) {
-        const prod = snap.val();
-        await update(productRef, { stock: prod.stock - item.quantity });
+        const prod = snap.data();
+        await updateDoc(productRef, { stock: prod.stock - item.quantity });
       }
     }
 
     return NextResponse.json({
       message: 'Order placed successfully',
-      order: { id: newOrderRef.key, ...newOrder }
+      order: { id: docRef.id, ...newOrder }
     }, { status: 201 });
   } catch (error) {
     console.error('POST /api/orders error:', error);

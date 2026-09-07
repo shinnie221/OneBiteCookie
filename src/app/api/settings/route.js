@@ -1,14 +1,15 @@
-import { rtdb as db } from '@/lib/firebase';
-import { ref, get, update } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
   try {
-    const snapshot = await get(ref(db, 'settings'));
+    const docRef = doc(db, 'settings', 'store_settings');
+    const snapshot = await getDoc(docRef);
     let settingsObj = {};
     if (snapshot.exists()) {
-      settingsObj = snapshot.val();
+      settingsObj = snapshot.data();
     }
     
     return NextResponse.json({ settings: settingsObj });
@@ -26,7 +27,10 @@ export async function PUT(request) {
     }
     
     const body = await request.json();
-    await update(ref(db, 'settings'), body);
+    const docRef = doc(db, 'settings', 'store_settings');
+    
+    // We use setDoc with { merge: true } which acts like update in RTDB
+    await setDoc(docRef, body, { merge: true });
     
     return NextResponse.json({ message: 'Settings updated' });
   } catch (error) {

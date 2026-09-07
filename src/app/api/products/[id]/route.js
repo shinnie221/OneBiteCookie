@@ -1,5 +1,5 @@
-import { rtdb as db } from '@/lib/firebase';
-import { ref, get, update, remove, child } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
@@ -13,14 +13,14 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const body = await request.json();
     
-    const dbRef = ref(db);
-    const snapshot = await get(child(dbRef, `products/${id}`));
+    const docRef = doc(db, 'products', id);
+    const snapshot = await getDoc(docRef);
     
     if (!snapshot.exists()) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    const existing = snapshot.val();
+    const existing = snapshot.data();
 
     const name = body.name ?? existing.name;
     const description = body.description ?? existing.description;
@@ -31,7 +31,7 @@ export async function PUT(request, { params }) {
 
     const updatedData = { name, description, price, stock, available, image };
     
-    await update(ref(db, `products/${id}`), updatedData);
+    await updateDoc(docRef, updatedData);
 
     return NextResponse.json({ 
       message: 'Product updated', 
@@ -52,7 +52,7 @@ export async function DELETE(request, { params }) {
 
     const { id } = await params;
     
-    await remove(ref(db, `products/${id}`));
+    await deleteDoc(doc(db, 'products', id));
     
     return NextResponse.json({ message: 'Product deleted' });
   } catch (error) {

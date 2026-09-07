@@ -1,5 +1,5 @@
-import { rtdb as db } from '@/lib/firebase';
-import { ref, get, update, remove, child } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
@@ -13,14 +13,14 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const body = await request.json();
     
-    const voucherRef = child(ref(db), `vouchers/${id}`);
-    const snapshot = await get(voucherRef);
+    const voucherRef = doc(db, 'vouchers', id);
+    const snapshot = await getDoc(voucherRef);
     
     if (!snapshot.exists()) {
       return NextResponse.json({ error: 'Voucher not found' }, { status: 404 });
     }
     
-    const existing = snapshot.val();
+    const existing = snapshot.data();
     
     const code = body.code !== undefined ? body.code.toUpperCase() : existing.code;
     const discountType = body.discount_type ?? existing.discount_type;
@@ -29,7 +29,7 @@ export async function PUT(request, { params }) {
     const expiryDate = body.expiry_date !== undefined ? body.expiry_date : existing.expiry_date;
     const active = body.active !== undefined ? (body.active ? 1 : 0) : existing.active;
     
-    await update(voucherRef, {
+    await updateDoc(voucherRef, {
       code,
       discount_type: discountType,
       discount_value: discountValue,
@@ -54,7 +54,7 @@ export async function DELETE(request, { params }) {
     
     const { id } = await params;
     
-    await remove(child(ref(db), `vouchers/${id}`));
+    await deleteDoc(doc(db, 'vouchers', id));
     
     return NextResponse.json({ message: 'Voucher deleted' });
   } catch (error) {

@@ -1,5 +1,5 @@
-import { rtdb as db } from '@/lib/firebase';
-import { ref, get, push, set, query, orderByChild, equalTo } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
@@ -10,15 +10,13 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const snapshot = await get(ref(db, 'vouchers'));
+    const vouchersRef = collection(db, 'vouchers');
+    const snapshot = await getDocs(vouchersRef);
     let vouchers = [];
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      vouchers = Object.keys(data).map(key => ({
-        id: key,
-        ...data[key]
-      }));
-    }
+    
+    snapshot.forEach(doc => {
+      vouchers.push({ id: doc.id, ...doc.data() });
+    });
     
     // Sort by descending created_at
     vouchers.sort((a, b) => {
@@ -47,20 +45,16 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Code, type, and value are required' }, { status: 400 });
     }
 
-    const vouchersRef = ref(db, 'vouchers');
     const upperCode = code.toUpperCase();
     
-    const snapshot = await get(vouchersRef);
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      const exists = Object.values(data).some(v => v.code === upperCode);
-      if (exists) {
-        return NextResponse.json({ error: 'Voucher code already exists' }, { status: 400 });
-      }
+    const q = query(collection(db, 'vouchers'), where('code', '==', upperCode));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      return NextResponse.json({ error: 'Voucher code already exists' }, { status: 400 });
     }
 
-    const newVoucherRef = push(vouchersRef);
-    await set(newVoucherRef, {
+    await addDoc(collection(db, 'vouchers'), {
       code: upperCode,
       discount_type,
       discount_value,

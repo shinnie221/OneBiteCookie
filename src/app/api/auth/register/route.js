@@ -14,8 +14,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Name, email and password are required' }, { status: 400 });
     }
 
+    const cleanEmail = email.trim().toLowerCase();
     const usersRef = collection(db, 'users');
-    const emailQuery = query(usersRef, where('email', '==', email));
+    const emailQuery = query(usersRef, where('email', '==', cleanEmail));
     const snapshot = await getDocs(emailQuery);
 
     if (!snapshot.empty) {
@@ -25,8 +26,8 @@ export async function POST(request) {
     const hashedPassword = bcrypt.hashSync(password, 10);
     
     const user = {
-      name,
-      email,
+      name: name.trim(),
+      email: cleanEmail,
       password: hashedPassword,
       role: 'customer',
       createdAt: new Date().toISOString()

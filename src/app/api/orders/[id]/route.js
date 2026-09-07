@@ -1,5 +1,5 @@
-import { rtdb as db } from '@/lib/firebase';
-import { ref, get, update, query, orderByChild, equalTo } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 
 export async function GET(request, { params }) {
@@ -12,24 +12,32 @@ export async function GET(request, { params }) {
     }
 
     const { id } = await params;
+    let orderDoc = null;
+    let orderId = id;
     
-    const ordersRef = ref(db, 'orders');
-    // Using a direct fetch to avoid Firebase indexing errors if rules aren't setup
-    const snapshot = await get(ordersRef);
+    // First try by document ID
+    let docRef = doc(db, 'orders', id);
+    let snapshot = await getDoc(docRef);
     
-    if (!snapshot.exists()) {
+    if (snapshot.exists()) {
+      orderDoc = snapshot.data();
+    } else {
+      // If not found by document ID, try by order_id field
+      const q = query(collection(db, 'orders'), where('order_id', '==', id.toUpperCase()));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const docSnap = querySnapshot.docs[0];
+        orderId = docSnap.id;
+        orderDoc = docSnap.data();
+      }
+    }
+    
+    if (!orderDoc) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    const allOrders = snapshot.val();
-    const targetId = id.toUpperCase();
-    const orderKey = Object.keys(allOrders).find(k => allOrders[k].order_id === targetId || k === id);
-    
-    if (!orderKey) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
-
-    const order = { id: orderKey, ...allOrders[orderKey] };
+    const order = { id: orderId, ...orderDoc };
 
     if (user.role === 'customer' && order.customer_id !== user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -53,34 +61,44 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const body = await request.json();
 
-    const ordersRef = ref(db, 'orders');
-    // Using a direct fetch to avoid Firebase indexing errors
-    const snapshot = await get(ordersRef);
-
-    if (!snapshot.exists()) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
-
-    const allOrders = snapshot.val();
-    const targetId = id.toUpperCase();
-    const orderKey = Object.keys(allOrders).find(k => allOrders[k].order_id === targetId || k === id);
+    let orderDoc = null;
+    let orderId = id;
     
-    if (!orderKey) {
+    // First try by document ID
+    let docRef = doc(db, 'orders', id);
+    let snapshot = await getDoc(docRef);
+    
+    if (snapshot.exists()) {
+      orderDoc = snapshot.data();
+    } else {
+      // If not found by document ID, try by order_id field
+      const q = query(collection(db, 'orders'), where('order_id', '==', id.toUpperCase()));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const docSnap = querySnapshot.docs[0];
+        orderId = docSnap.id;
+        orderDoc = docSnap.data();
+        docRef = doc(db, 'orders', orderId);
+      }
+    }
+    
+    if (!orderDoc) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    const existing = allOrders[orderKey];
+    const existing = orderDoc;
 
     const orderStatus = body.order_status ?? existing.order_status;
     const paymentStatus = body.payment_status ?? existing.payment_status;
 
-    await update(ref(db, `orders/${orderKey}`), {
+    await updateDoc(docRef, {
       order_status: orderStatus,
       payment_status: paymentStatus
     });
 
     const updatedOrder = {
-      id: orderKey,
+      id: orderId,
       ...existing,
       order_status: orderStatus,
       payment_status: paymentStatus

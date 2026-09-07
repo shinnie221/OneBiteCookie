@@ -1,6 +1,5 @@
-import { db, rtdb } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, query as firestoreQuery, where, getDocs } from 'firebase/firestore';
-import { ref, get } from 'firebase/database';
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
@@ -35,13 +34,12 @@ export async function GET(request) {
       return dateB - dateA;
     });
 
-    // Fetch orders from Realtime Database
-    const ordersSnapshot = await get(ref(rtdb, 'orders'));
+    // Fetch orders from Firestore
+    const ordersSnapshot = await getDocs(collection(db, 'orders'));
     let orders = [];
-    if (ordersSnapshot.exists()) {
-      const data = ordersSnapshot.val();
-      orders = Object.keys(data).map(key => data[key]);
-    }
+    ordersSnapshot.forEach(doc => {
+      orders.push({ id: doc.id, ...doc.data() });
+    });
 
     // Also get order counts and total spent for each customer
     for (let customer of customers) {

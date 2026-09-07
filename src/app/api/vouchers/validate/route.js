@@ -1,5 +1,5 @@
-import { rtdb as db } from '@/lib/firebase';
-import { ref, get, query, orderByChild, equalTo } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
@@ -12,22 +12,16 @@ export async function POST(request) {
     
     const today = new Date().toISOString().split('T')[0];
     
-    const vouchersRef = ref(db, 'vouchers');
-    const snapshot = await get(vouchersRef);
-
-    if (!snapshot.exists()) {
-      return NextResponse.json({ error: 'Invalid voucher code' }, { status: 400 });
-    }
-
-    const vouchersData = snapshot.val();
     const upperCode = code.toUpperCase();
-    const vKey = Object.keys(vouchersData).find(key => vouchersData[key].code === upperCode);
+    const q = query(collection(db, 'vouchers'), where('code', '==', upperCode));
+    const snapshot = await getDocs(q);
 
-    if (!vKey) {
+    if (snapshot.empty) {
       return NextResponse.json({ error: 'Invalid voucher code' }, { status: 400 });
     }
 
-    const voucher = { id: vKey, ...vouchersData[vKey] };
+    const docSnap = snapshot.docs[0];
+    const voucher = { id: docSnap.id, ...docSnap.data() };
 
     const active = voucher.active === 1 || voucher.active === true;
     const notExpired = !voucher.expiry_date || voucher.expiry_date >= today;

@@ -1,5 +1,5 @@
-import { rtdb as db } from '@/lib/firebase';
-import { ref, get } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
@@ -12,19 +12,17 @@ export async function GET(request) {
     
     const today = new Date().toISOString().split('T')[0];
 
-    const ordersSnapshot = await get(ref(db, 'orders'));
+    const ordersSnapshot = await getDocs(collection(db, 'orders'));
     let allOrders = [];
-    if (ordersSnapshot.exists()) {
-      const data = ordersSnapshot.val();
-      allOrders = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-    }
+    ordersSnapshot.forEach(doc => {
+      allOrders.push({ id: doc.id, ...doc.data() });
+    });
 
-    const productsSnapshot = await get(ref(db, 'products'));
+    const productsSnapshot = await getDocs(collection(db, 'products'));
     let allProducts = [];
-    if (productsSnapshot.exists()) {
-      const data = productsSnapshot.val();
-      allProducts = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-    }
+    productsSnapshot.forEach(doc => {
+      allProducts.push({ id: doc.id, ...doc.data() });
+    });
 
     let todaySales = 0;
     let todayOrders = 0;

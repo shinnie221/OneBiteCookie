@@ -1,20 +1,16 @@
-import { rtdb as db } from '@/lib/firebase';
-import { ref, get, push, set, child } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const dbRef = ref(db);
-    const snapshot = await get(child(dbRef, 'products'));
+    const productsRef = collection(db, 'products');
+    const snapshot = await getDocs(productsRef);
     
     let products = [];
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      products = Object.keys(data).map(key => ({
-        id: key,
-        ...data[key]
-      }));
-    }
+    snapshot.forEach(doc => {
+      products.push({ id: doc.id, ...doc.data() });
+    });
     
     return NextResponse.json({ products });
   } catch (error) {
@@ -47,13 +43,11 @@ export async function POST(request) {
       createdAt: new Date().toISOString()
     };
     
-    const productsRef = ref(db, 'products');
-    const newProductRef = push(productsRef);
-    await set(newProductRef, newProduct);
+    const docRef = await addDoc(collection(db, 'products'), newProduct);
 
     return NextResponse.json({ 
       message: 'Product created',
-      product: { id: newProductRef.key, ...newProduct }
+      product: { id: docRef.id, ...newProduct }
     }, { status: 201 });
   } catch (error) {
     console.error('POST /api/products error:', error);
