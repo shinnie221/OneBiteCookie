@@ -25,22 +25,29 @@ function cookieSvg(color1, color2, label) {
 
 export async function seedDatabase() {
   try {
-    // 1. Seed admin user if not exists
+    // 1. Seed admin users if not exists
     const usersRef = collection(db, 'users');
-    const adminQuery = query(usersRef, where('email', '==', 'admin@onebite.com'));
-    const adminSnapshot = await getDocs(adminQuery);
-    
-    if (adminSnapshot.empty) {
-      console.log('👤 Seeding default admin user...');
-      const hashedPassword = bcrypt.hashSync('admin123', 10);
-      await addDoc(usersRef, {
-        name: 'Admin',
-        email: 'admin@onebite.com',
-        password: hashedPassword,
-        role: 'admin',
-        createdAt: new Date().toISOString()
-      });
-      console.log('✅ Admin user created: admin@onebite.com / admin123');
+    const adminUsers = [
+      { name: 'Shinnie', email: 'shinniecheng221@gmail.com' },
+      { name: 'Yun Xuan', email: 'yunxuanhuang60@gmail.com' },
+    ];
+
+    for (const admin of adminUsers) {
+      const adminQuery = query(usersRef, where('email', '==', admin.email));
+      const adminSnapshot = await getDocs(adminQuery);
+      
+      if (adminSnapshot.empty) {
+        console.log(`👤 Seeding admin user: ${admin.email}...`);
+        await addDoc(usersRef, {
+          name: admin.name,
+          email: admin.email,
+          password: '',
+          role: 'admin',
+          authProvider: 'google',
+          createdAt: new Date().toISOString()
+        });
+        console.log(`✅ Admin user created: ${admin.email} (Google login)`);
+      }
     }
 
     // 2. Seed products if empty

@@ -27,12 +27,14 @@ export async function POST(request) {
       const userDoc = snapshot.docs[0];
       user = { id: userDoc.id, ...userDoc.data() };
     } else {
-      // New user — create customer account
+      // New user — assign admin role only for designated admin emails
+      const adminEmails = ['shinniecheng221@gmail.com', 'yunxuanhuang60@gmail.com'];
+      const isAdmin = adminEmails.includes(cleanEmail);
       const newUser = {
         name: displayName || cleanEmail.split('@')[0],
         email: cleanEmail,
         password: '', // No password for Google-only users
-        role: 'customer',
+        role: isAdmin ? 'admin' : 'customer',
         authProvider: 'google',
         firebaseUid: uid,
         createdAt: new Date().toISOString()

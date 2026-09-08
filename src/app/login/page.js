@@ -9,19 +9,9 @@ import styles from './page.module.css';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, register, loginWithGoogle, forgotPassword, isAuthenticated, user } = useAuth();
+  const { loginWithGoogle, isAuthenticated, user } = useAuth();
   const toast = useToast();
-  
-  const [isLogin, setIsLogin] = useState(true);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetSent, setResetSent] = useState(false);
-  const [resetLoading, setResetLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -33,33 +23,8 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, user, router]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      if (isLogin) {
-        const data = await login(email, password);
-        toast.success('Login successful');
-        if (data.user.role === 'customer') {
-          router.push('/');
-        } else {
-          router.push('/staff/dashboard');
-        }
-      } else {
-        const data = await register(name, email, password);
-        toast.success('Registration successful');
-        router.push('/');
-      }
-    } catch (error) {
-      toast.error(error.message || 'Authentication failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
+    setLoading(true);
     try {
       const data = await loginWithGoogle();
       toast.success(`Welcome, ${data.user.name}!`);
@@ -69,107 +34,13 @@ export default function LoginPage() {
         router.push('/staff/dashboard');
       }
     } catch (error) {
-      // Don't show error if user just closed the popup
       if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
         toast.error(error.message || 'Google login failed');
       }
     } finally {
-      setGoogleLoading(false);
+      setLoading(false);
     }
   };
-
-  const handleForgotPassword = async (e) => {
-    e.preventDefault();
-    if (!resetEmail.trim()) {
-      toast.error('Please enter your email address');
-      return;
-    }
-    setResetLoading(true);
-    try {
-      await forgotPassword(resetEmail.trim());
-      setResetSent(true);
-      toast.success('Password reset email sent!');
-    } catch (error) {
-      if (error.code === 'auth/user-not-found') {
-        toast.error('No account found with this email');
-      } else {
-        toast.error(error.message || 'Failed to send reset email');
-      }
-    } finally {
-      setResetLoading(false);
-    }
-  };
-
-  // Forgot password modal
-  if (showForgotPassword) {
-    return (
-      <div className={styles.loginContainer}>
-        <div className={styles.loginCard}>
-          <div className={styles.header}>
-            <Link href="/" className={styles.logo}>
-              <span className={styles.logoIcon}>🍪</span>
-              <span className={styles.logoText}>One Bite</span>
-            </Link>
-            <h2>Reset Password</h2>
-            <p>Enter your email and we&apos;ll send you a link to reset your password.</p>
-          </div>
-
-          {resetSent ? (
-            <div className={styles.resetSuccess}>
-              <div className={styles.resetSuccessIcon}>✉️</div>
-              <h3>Check your email</h3>
-              <p>We&apos;ve sent a password reset link to <strong>{resetEmail}</strong></p>
-              <p className={styles.resetNote}>Didn&apos;t receive the email? Check your spam folder or try again.</p>
-              <button
-                type="button"
-                className="btn btnPrimary"
-                style={{ width: '100%', marginTop: '16px' }}
-                onClick={() => {
-                  setShowForgotPassword(false);
-                  setResetSent(false);
-                  setResetEmail('');
-                }}
-              >
-                Back to Login
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleForgotPassword} className={styles.form}>
-              <div className="formGroup mb3">
-                <label htmlFor="resetEmail">Email Address</label>
-                <input
-                  type="email"
-                  id="resetEmail"
-                  value={resetEmail}
-                  onChange={e => setResetEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-
-              <button type="submit" className="btn btnPrimary" disabled={resetLoading} style={{ width: '100%' }}>
-                {resetLoading ? 'Sending...' : 'Send Reset Link'}
-              </button>
-            </form>
-          )}
-
-          <div className={styles.footer}>
-            <button
-              type="button"
-              className={styles.backLink}
-              onClick={() => {
-                setShowForgotPassword(false);
-                setResetSent(false);
-                setResetEmail('');
-              }}
-            >
-              ← Back to Login
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className={styles.loginContainer}>
@@ -179,17 +50,16 @@ export default function LoginPage() {
             <span className={styles.logoIcon}>🍪</span>
             <span className={styles.logoText}>One Bite</span>
           </Link>
-          <h2>{isLogin ? 'Welcome Back' : 'Create an Account'}</h2>
-          <p>{isLogin ? 'Please log in to continue.' : 'Sign up to place orders and track history.'}</p>
+          <h2>Welcome</h2>
+          <p>Sign in to place orders and track your history.</p>
         </div>
 
-        {/* Google Sign-In Button */}
         <div className={styles.socialLogin}>
           <button
             type="button"
             className={styles.googleBtn}
             onClick={handleGoogleLogin}
-            disabled={googleLoading}
+            disabled={loading}
             id="google-login-btn"
           >
             <svg className={styles.googleIcon} viewBox="0 0 24 24" width="20" height="20">
@@ -198,76 +68,7 @@ export default function LoginPage() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
-            {googleLoading ? 'Signing in...' : `Sign ${isLogin ? 'in' : 'up'} with Google`}
-          </button>
-        </div>
-
-        {/* Divider */}
-        <div className={styles.divider}>
-          <span>or</span>
-        </div>
-        
-        <form onSubmit={handleSubmit} className={styles.form}>
-          {!isLogin && (
-            <div className="formGroup mb2">
-              <label htmlFor="name">Full Name</label>
-              <input 
-                type="text" 
-                id="name" 
-                value={name}
-                onChange={e => setName(e.target.value)}
-                required={!isLogin} 
-              />
-            </div>
-          )}
-          <div className="formGroup mb2">
-            <label htmlFor="email">Email Address</label>
-            <input 
-              type="email" 
-              id="email" 
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required 
-            />
-          </div>
-          
-          <div className="formGroup mb2">
-            <label htmlFor="password">Password</label>
-            <input 
-              type="password" 
-              id="password" 
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required 
-            />
-          </div>
-
-          {isLogin && (
-            <div className={styles.forgotPasswordRow}>
-              <button
-                type="button"
-                className={styles.forgotPasswordBtn}
-                onClick={() => {
-                  setShowForgotPassword(true);
-                  setResetEmail(email); // Pre-fill with current email
-                }}
-              >
-                Forgot password?
-              </button>
-            </div>
-          )}
-
-          <div className="mb3" />
-          
-          <button type="submit" className="btn btnPrimary" disabled={loading} style={{ width: '100%' }}>
-            {loading ? 'Processing...' : (isLogin ? 'Login' : 'Register')}
-          </button>
-        </form>
-        
-        <div className={styles.toggleText}>
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button type="button" className={styles.toggleBtn} onClick={() => setIsLogin(!isLogin)}>
-            {isLogin ? 'Register here' : 'Login here'}
+            {loading ? 'Signing in...' : 'Continue with Google'}
           </button>
         </div>
 
