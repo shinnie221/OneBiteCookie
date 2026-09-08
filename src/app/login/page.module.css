@@ -55,6 +55,155 @@
   padding: 0 30px 30px;
 }
 
+/* ========================================
+   Google Sign-In Button
+   ======================================== */
+
+.socialLogin {
+  padding: 0 30px;
+}
+
+.googleBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background: white;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.googleBtn:hover {
+  background: #f8f9fa;
+  border-color: #dadce0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.googleBtn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.googleBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.googleIcon {
+  flex-shrink: 0;
+}
+
+/* ========================================
+   Divider
+   ======================================== */
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 30px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-light);
+}
+
+.divider span {
+  font-size: 0.85rem;
+  color: var(--color-text-lighter);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========================================
+   Forgot Password
+   ======================================== */
+
+.forgotPasswordRow {
+  text-align: right;
+  margin-top: 4px;
+}
+
+.forgotPasswordBtn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font-body);
+  transition: color 0.2s;
+}
+
+.forgotPasswordBtn:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+/* ========================================
+   Reset Password Success
+   ======================================== */
+
+.resetSuccess {
+  padding: 20px 30px 30px;
+  text-align: center;
+}
+
+.resetSuccessIcon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  animation: floatIn 0.5s ease-out;
+}
+
+.resetSuccess h3 {
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+  color: var(--color-text);
+}
+
+.resetSuccess p {
+  font-size: 0.95rem;
+  color: var(--color-text-light);
+  line-height: 1.5;
+}
+
+.resetNote {
+  font-size: 0.85rem !important;
+  margin-top: 12px;
+  color: var(--color-text-lighter) !important;
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ========================================
+   Toggle & Footer
+   ======================================== */
+
 .footer {
   padding: 20px 30px;
   background: var(--color-bg-alt);
@@ -89,6 +238,10 @@
   font-size: 0.9rem;
   font-weight: 500;
   transition: color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
 }
 
 .backLink:hover {
