@@ -31,6 +31,14 @@ export async function PUT(request, { params }) {
     const isPublic = body.is_public !== undefined ? Boolean(body.is_public) : (existing.is_public !== undefined ? existing.is_public : true);
     const usageLimit = body.usage_limit !== undefined ? body.usage_limit : (existing.usage_limit || 'unlimited');
     
+    const targetType = body.target_type !== undefined ? body.target_type : (existing.target_type || 'all');
+    const customerEmail = body.customer_email !== undefined 
+      ? (body.customer_email ? body.customer_email.trim().toLowerCase() : null) 
+      : (existing.customer_email || null);
+    const customerName = body.customer_name !== undefined 
+      ? (body.customer_name ? body.customer_name.trim() : null) 
+      : (existing.customer_name || null);
+    
     await updateDoc(voucherRef, {
       code,
       discount_type: discountType,
@@ -39,7 +47,10 @@ export async function PUT(request, { params }) {
       expiry_date: expiryDate,
       active,
       is_public: isPublic,
-      usage_limit: usageLimit
+      usage_limit: usageLimit,
+      target_type: targetType,
+      customer_email: customerEmail,
+      customer_name: customerName
     });
     
     return NextResponse.json({ message: 'Voucher updated' });

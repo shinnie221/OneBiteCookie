@@ -38,6 +38,22 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid or expired voucher code', valid: false }, { status: 400 });
     }
 
+    // Check customer targeting (if assigned exclusively to one customer)
+    if (voucher.customer_email) {
+      if (!user || !user.email) {
+        return NextResponse.json({
+          error: 'Please log in with your account to use this exclusive voucher',
+          valid: false
+        }, { status: 400 });
+      }
+      if (user.email.toLowerCase() !== voucher.customer_email.toLowerCase()) {
+        return NextResponse.json({
+          error: 'This voucher is exclusively reserved for another customer account',
+          valid: false
+        }, { status: 400 });
+      }
+    }
+
     // Check usage limits
     const usageLimit = voucher.usage_limit || 'unlimited';
 

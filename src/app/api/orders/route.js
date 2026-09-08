@@ -160,6 +160,14 @@ export async function POST(request) {
         const notExpired = !voucher.expiry_date || voucher.expiry_date >= today;
         const usageLimit = voucher.usage_limit || 'unlimited';
 
+        // Check exclusive customer targeting
+        if (voucher.customer_email && !isStaffOrAdmin) {
+          const userEmail = (user.email || email || '').toLowerCase();
+          if (userEmail !== voucher.customer_email.toLowerCase()) {
+            return NextResponse.json({ error: 'This voucher is exclusively reserved for another customer account' }, { status: 400 });
+          }
+        }
+
         // Check single-use total
         if (usageLimit === 'once_total' && (voucher.times_used || 0) >= 1) {
           return NextResponse.json({ error: 'This single-use voucher has already been redeemed' }, { status: 400 });

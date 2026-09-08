@@ -188,9 +188,14 @@ export default function CartPage() {
                         const isSingleUse = v.usage_limit === 'once_total' || v.usage_limit === 'once_per_customer';
                         
                         return (
-                          <div key={v.id} className={styles.voucherCard}>
+                          <div key={v.id} className={`${styles.voucherCard} ${v.is_targeted ? styles.voucherCardTargeted : ''}`}>
                             <div className={styles.voucherCardLeft}>
-                              <div className={styles.voucherCardBadge}>{v.code}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                <div className={styles.voucherCardBadge}>{v.code}</div>
+                                {v.is_targeted && (
+                                  <span className={styles.exclusiveBadge}>🎁 Exclusive For You</span>
+                                )}
+                              </div>
                               <div className={styles.voucherCardDiscount}>
                                 {v.discount_type === 'percentage'
                                   ? `${v.discount_value}% OFF`

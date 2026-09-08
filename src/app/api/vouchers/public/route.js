@@ -37,6 +37,18 @@ export async function GET(request) {
         alreadyUsedByThisUser = data.used_by.includes(currentUser.id) || (currentUser.email && data.used_by.includes(currentUser.email));
       }
 
+      // Check customer targeting (if assigned to a specific customer)
+      const isTargeted = data.target_type === 'specific_customer' || Boolean(data.customer_email);
+      if (isTargeted) {
+        // Only visible if the logged-in customer matches the targeted customer email
+        if (!currentUser || !currentUser.email) {
+          return; // Skip for guests / unauthenticated
+        }
+        if (currentUser.email.toLowerCase() !== (data.customer_email || '').toLowerCase()) {
+          return; // Skip for other customers
+        }
+      }
+
       if (isActive && isPublic && notExpired && !isUsedUp && !alreadyUsedByThisUser) {
         availableVouchers.push({
           id: doc.id,
@@ -46,7 +58,9 @@ export async function GET(request) {
           min_order: data.min_order || 0,
           expiry_date: data.expiry_date || null,
           usage_limit: data.usage_limit || 'unlimited',
-          is_public: true
+          is_public: true,
+          is_targeted: isTargeted,
+          customer_name: data.customer_name || null
         });
       }
     });

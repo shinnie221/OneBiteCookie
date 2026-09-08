@@ -1,3 +1,7 @@
+/* ========================================
+   Staff Vouchers Page
+   ======================================== */
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -13,108 +17,188 @@
 }
 
 .subtitle {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: var(--color-text-light);
+  max-width: 520px;
+  line-height: 1.5;
 }
 
+/* ========================================
+   Table Row States
+   ======================================== */
+
 .inactiveRow {
-  opacity: 0.55;
+  opacity: 0.5;
   background-color: #fafafa;
 }
 
 .inactiveRow:hover {
-  opacity: 1;
+  opacity: 0.85;
 }
+
+/* ========================================
+   Table Cell Styles
+   ======================================== */
 
 .codeCell {
   font-weight: 700;
-  font-family: monospace;
-  font-size: 1.05rem;
-  letter-spacing: 1px;
+  font-family: 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+  font-size: 0.88rem;
+  letter-spacing: 0.8px;
   color: var(--color-primary);
+  white-space: nowrap;
 }
 
 .discountCell {
   font-weight: 700;
   color: var(--color-success);
+  white-space: nowrap;
 }
 
-/* Visibility Badges */
+/* ========================================
+   Shared Badge Base
+   ======================================== */
+
+.badgeBase {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+/* ========================================
+   Target / Recipient Badges
+   ======================================== */
+
+.badgeTargetCustomer {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+  color: #6d28d9;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #ddd6fe;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badgeTargetAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #f8fafc;
+  color: #475569;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+/* ========================================
+   Cart Visibility Badges
+   ======================================== */
+
 .badgeVisible {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
-  background: #ecfdf5;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
   color: #065f46;
-  border-radius: 12px;
-  font-size: 0.78rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
   font-weight: 600;
   border: 1px solid #a7f3d0;
+  white-space: nowrap;
 }
 
 .badgeHidden {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
-  background: #f8fafc;
+  padding: 4px 10px;
+  background: #f1f5f9;
   color: #64748b;
-  border-radius: 12px;
-  font-size: 0.78rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
   font-weight: 600;
   border: 1px solid #cbd5e1;
+  white-space: nowrap;
 }
 
-/* Usage Limit Badges */
+/* ========================================
+   Usage Limit Badges
+   ======================================== */
+
 .badgeSingleUse {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
-  background: #fff7ed;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
   color: #c2410c;
-  border-radius: 12px;
-  font-size: 0.78rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
   font-weight: 600;
-  border: 1px solid #ffedd5;
+  border: 1px solid #fed7aa;
+  white-space: nowrap;
 }
 
 .badgeOnceUser {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
-  background: #eff6ff;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
   color: #1d4ed8;
-  border-radius: 12px;
-  font-size: 0.78rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
   font-weight: 600;
-  border: 1px solid #dbeafe;
+  border: 1px solid #bfdbfe;
+  white-space: nowrap;
 }
 
 .badgeUnlimited {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
+  padding: 4px 10px;
   background: #f3f4f6;
   color: #4b5563;
-  border-radius: 12px;
-  font-size: 0.78rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
   font-weight: 600;
   border: 1px solid #e5e7eb;
+  white-space: nowrap;
 }
+
+/* ========================================
+   Status Toggle Button
+   ======================================== */
 
 .statusToggle {
   border: none;
-  padding: 6px 12px;
+  padding: 5px 14px;
   border-radius: 20px;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .statusActive {
@@ -140,7 +224,10 @@
   font-weight: 600;
 }
 
-/* Modal form */
+/* ========================================
+   Modal Form
+   ======================================== */
+
 .form {
   display: flex;
   flex-direction: column;
@@ -152,21 +239,24 @@
   gap: 16px;
 }
 
-/* Config Blocks */
+/* ========================================
+   Config Blocks (Target / Visibility / Limit)
+   ======================================== */
+
 .configBlock {
   background: #fdfaf6;
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-md);
-  padding: 14px 16px;
+  padding: 16px 18px;
   margin-bottom: 16px;
 }
 
 .configHeader {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--color-text);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .radioGroup {
@@ -180,12 +270,20 @@
   align-items: flex-start;
   gap: 10px;
   cursor: pointer;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.radioLabel:hover {
+  background: rgba(0, 0, 0, 0.025);
 }
 
 .radioLabel input {
   margin-top: 3px;
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
   accent-color: var(--color-primary);
 }
 
@@ -200,8 +298,48 @@
   font-size: 0.78rem;
   color: var(--color-text-light);
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.4;
 }
+
+/* ========================================
+   Customer Select Box (for specific target)
+   ======================================== */
+
+.customerSelectBox {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--color-border);
+}
+
+.subLabel {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.select,
+.input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  background: white;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.select:focus,
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 139, 92, 246), 0.1);
+}
+
+/* ========================================
+   Active Status Checkbox
+   ======================================== */
 
 .checkboxLabel {
   display: flex;
@@ -221,13 +359,22 @@
   font-size: 0.9rem;
 }
 
+/* ========================================
+   Responsive
+   ======================================== */
+
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
+
   .grid2 {
     grid-template-columns: 1fr;
+  }
+
+  .radioLabel {
+    padding: 6px 4px;
   }
 }
