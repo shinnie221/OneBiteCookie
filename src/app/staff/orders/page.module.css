@@ -1,18 +1,26 @@
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 24px;
+  gap: 20px;
 }
 
 .title {
   font-size: 1.8rem;
   color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-light);
 }
 
 .filters {
   display: flex;
   gap: 12px;
+  align-items: center;
 }
 
 .filterSelect {
@@ -22,6 +30,7 @@
   background: white;
   font-weight: 500;
   outline: none;
+  font-size: 0.9rem;
 }
 
 .highlightRow {
@@ -33,9 +42,10 @@
 }
 
 .orderIdCell {
-  font-weight: 600;
+  font-weight: 700;
   font-family: monospace;
   font-size: 0.95rem;
+  color: var(--color-text);
 }
 
 .customerName {
@@ -45,6 +55,30 @@
 .customerPhone {
   font-size: 0.8rem;
   color: var(--color-text-light);
+}
+
+.deliveryBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.pickupBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #fdf2f8;
+  color: #be185d;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .totalCell {
@@ -59,6 +93,363 @@
   gap: 20px;
 }
 
+/* Flow Section */
+.flowSection {
+  background: #ffffff;
+  border: 2px solid var(--color-primary-light);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.flowHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.flowHeaderSubtitle {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-light);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.currentStatusRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.orderTypeTag {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  background: var(--color-bg-alt);
+  border-radius: 20px;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.flowActionBox {
+  background: #fdfaf6;
+  border: 1.5px dashed var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.flowStepNotice {
+  font-size: 0.95rem;
+  color: var(--color-text);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.actionButtonGroup {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btnAccept {
+  flex: 1;
+  min-width: 200px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btnAccept:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.btnDeny {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1.5px solid #fca5a5;
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnDeny:hover:not(:disabled) {
+  background: #fecaca;
+  color: #b91c1c;
+}
+
+.btnPreparingDone {
+  flex: 1;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btnPreparingDone:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.btnComplete {
+  flex: 1;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btnComplete:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+
+/* Deny Box */
+.denyBox {
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+
+.denyLabel {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #991b1b;
+  margin-bottom: 8px;
+}
+
+.requiredStar {
+  color: #dc2626;
+}
+
+.denyTextarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #fca5a5;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  outline: none;
+}
+
+.denyTextarea:focus {
+  border-color: #dc2626;
+}
+
+.denyActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btnConfirmDeny {
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnConfirmDeny:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+/* Status Notices */
+.completedNotice {
+  padding: 14px 18px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1.5px solid #a7f3d0;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.rejectedNotice {
+  padding: 14px 18px;
+  background: #fef2f2;
+  border: 1.5px solid #fecaca;
+  border-radius: var(--radius-md);
+}
+
+.rejectedTitle {
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.cancelledNotice {
+  padding: 14px 18px;
+  background: #fef2f2;
+  border: 1.5px solid #fecaca;
+  border-radius: var(--radius-md);
+}
+
+.cancelledTitle {
+  color: #b91c1c;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.refundedNotice {
+  padding: 14px 18px;
+  background: #f5f3ff;
+  border: 1.5px solid #ddd6fe;
+  border-radius: var(--radius-md);
+}
+
+.refundedTitle {
+  color: #6d28d9;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.reasonText {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+/* Special Actions (Customer cancellation & refund) */
+.specialActionsSection {
+  background: #fafafa;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+
+.specialActionsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  margin-bottom: 10px;
+}
+
+.specialButtonsRow {
+  display: flex;
+  gap: 10px;
+}
+
+.btnSecondaryCancel {
+  background: white;
+  border: 1.5px solid #f87171;
+  color: #dc2626;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnSecondaryCancel:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.btnSecondaryRefund {
+  background: white;
+  border: 1.5px solid #a78bfa;
+  color: #7c3aed;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnSecondaryRefund:hover:not(:disabled) {
+  background: #ede9fe;
+}
+
+.specialActionForm {
+  background: white;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.specialActionTitle {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.specialActionInput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  outline: none;
+  margin-bottom: 8px;
+}
+
+.btnConfirmRefund {
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnConfirmRefund:hover:not(:disabled) {
+  background: #6d28d9;
+}
+
+/* Grid & Info Blocks */
 .grid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -79,39 +470,13 @@
 
 .sectionHeader {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--color-text-light);
   margin-bottom: 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--color-border);
-}
-
-.statusSection {
-  background: var(--color-primary-lighter);
-  padding: 16px;
-  border-radius: var(--radius-md);
-  border: 1px dashed var(--color-primary);
-}
-
-.statusControls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.currentStatus {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 600;
-}
-
-.updateStatus select {
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
 }
 
 .grandTotal {
@@ -126,16 +491,6 @@
   color: var(--color-success);
 }
 
-.paymentActions {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.paymentActions .btn {
-  flex: 1;
-}
-
 .screenshotBox {
   width: 100%;
   max-height: 400px;
@@ -143,6 +498,7 @@
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   background: white;
+  position: relative;
 }
 
 .screenshot {
@@ -151,9 +507,21 @@
   display: block;
 }
 
+.screenshotHint {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.65);
+  color: white;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
 .noData {
   color: var(--color-text-light);
   font-style: italic;
+  font-size: 0.9rem;
 }
 
 .itemsTable {
@@ -163,6 +531,7 @@
 .itemsTable th {
   padding: 8px 0;
   border-bottom: 1px solid var(--color-border);
+  font-size: 0.85rem;
 }
 
 .itemsTable td {
@@ -180,9 +549,10 @@
   .grid2 {
     grid-template-columns: 1fr;
   }
-  .statusControls {
+  .actionButtonGroup {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+  }
+  .btnAccept, .btnDeny, .btnPreparingDone, .btnComplete {
+    width: 100%;
   }
 }

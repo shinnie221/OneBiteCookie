@@ -11,7 +11,6 @@ import styles from './page.module.css';
 
 const ORDER_TIMELINE = [
   { id: 'pending_verification', label: 'Payment Pending', icon: '⏳' },
-  { id: 'accepted', label: 'Order Accepted', icon: '📝' },
   { id: 'preparing', label: 'Preparing', icon: '🧑‍🍳' },
   { id: 'ready_pickup', label: 'Ready / Out for Delivery', icon: '📦' },
   { id: 'completed', label: 'Completed', icon: '✅' },
@@ -53,13 +52,12 @@ export default function OrdersPage() {
     fetchOrders();
   }, [isAuthenticated, authLoading, router, authFetch]);
 
-  // Calculate active step
+  // Calculate active step in the 4-step flow
   const getActiveStepIndex = (status) => {
-    if (status === 'rejected' || status === 'cancelled') return -1;
-    if (status === 'completed') return 4;
-    if (status === 'out_delivery' || status === 'ready_pickup') return 3;
-    if (status === 'preparing') return 2;
-    if (status === 'accepted') return 1;
+    if (status === 'rejected' || status === 'cancelled' || status === 'refunded') return -1;
+    if (status === 'completed') return 3;
+    if (status === 'out_delivery' || status === 'ready_pickup') return 2;
+    if (status === 'preparing' || status === 'accepted') return 1;
     return 0; // pending_verification
   };
 
@@ -72,7 +70,7 @@ export default function OrdersPage() {
       <Navbar />
       <main className="pageContainer">
         <div className={styles.trackContainer}>
-          <h1 className={styles.pageTitle}>Order History</h1>
+          <h1 className={styles.pageTitle}>Order History & Tracking</h1>
           
           {error && <div className={styles.errorBox}>{error}</div>}
           
@@ -86,24 +84,105 @@ export default function OrdersPage() {
             <div className={styles.ordersList}>
               {orders.map(order => {
                 const activeStep = getActiveStepIndex(order.order_status);
-                const isFailed = order.order_status === 'rejected' || order.order_status === 'cancelled';
+                const isSpecialState = order.order_status === 'rejected' || order.order_status === 'cancelled' || order.order_status === 'refunded';
+                const isActiveOrder = !isSpecialState && order.order_status !== 'completed';
+                
+                const whatsappCancelUrl = `https://wa.me/601110897061?text=${encodeURIComponent(`Hi OneBite, I would like to inquire about my order #${order.order_id}.`)}`;
                 
                 return (
                   <div key={order.order_id} className={styles.resultCard} style={{ marginBottom: '30px' }}>
                     <div className={styles.orderHeader}>
                       <div>
                         <h2 className={styles.orderId}>{order.order_id}</h2>
-                        <p className={styles.orderDate}>{new Date(order.created_at).toLocaleString()}</p>
+                        <p className={styles.orderDate}>
+                          Placed on: {new Date(order.created_at).toLocaleString()}
+                        </p>
                       </div>
-                      <OrderStatusBadge status={order.order_status} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className={order.order_type === 'delivery' ? styles.typeTagDelivery : styles.typeTagPickup}>
+                          {order.order_type === 'delivery' ? '🚚 Delivery' : '🛍️ Pickup'}
+                        </span>
+                        <OrderStatusBadge status={order.order_status} />
+                      </div>
                     </div>
                     
+                    {/* Order Timeline or Special State Box */}
                     <div className={styles.timeline}>
-                      {isFailed ? (
-                        <div className={styles.failedState}>
-                          <div className={styles.failedIcon}>❌</div>
-                          <h3>Order {order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}</h3>
-                          <p>Please contact our support for more information.</p>
+                      {isSpecialState ? (
+                        <div className={styles.specialStatusCard}>
+                          {order.order_status === 'rejected' && (
+                            <div className={styles.rejectedBanner}>
+                              <div className={styles.failedIcon}>✕</div>
+                              <h3>Order Denied</h3>
+                              {order.reject_reason ? (
+                                <div className={styles.reasonBox}>
+                                  <strong>Reason from OneBite:</strong>
+                                  <p>{order.reject_reason}</p>
+                                </div>
+                              ) : (
+                                <p>Our team could not process this order.</p>
+                              )}
+                              <p className={styles.contactHint}>
+                                Have questions or want to fix payment? Contact us directly:
+                              </p>
+                              <a 
+                                href={whatsappCancelUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className={styles.btnWhatsApp}
+                              >
+                                💬 WhatsApp Support (011-10897061)
+                              </a>
+                            </div>
+                          )}
+
+                          {order.order_status === 'cancelled' && (
+                            <div className={styles.cancelledBanner}>
+                              <div className={styles.failedIcon}>🚫</div>
+                              <h3>Order Cancelled</h3>
+                              {order.staff_note && (
+                                <div className={styles.reasonBox}>
+                                  <strong>Note:</strong>
+                                  <p>{order.staff_note}</p>
+                                </div>
+                              )}
+                              <p className={styles.contactHint}>
+                                If you need a refund or assistance regarding this cancellation:
+                              </p>
+                              <a 
+                                href={whatsappCancelUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className={styles.btnWhatsApp}
+                              >
+                                💬 Contact Support on WhatsApp
+                              </a>
+                            </div>
+                          )}
+
+                          {order.order_status === 'refunded' && (
+                            <div className={styles.refundedBanner}>
+                              <div className={styles.failedIcon}>💳</div>
+                              <h3>Order Refunded</h3>
+                              {order.staff_note && (
+                                <div className={styles.reasonBox}>
+                                  <strong>Refund Note:</strong>
+                                  <p>{order.staff_note}</p>
+                                </div>
+                              )}
+                              <p className={styles.contactHint}>
+                                Payment has been refunded. If you have any inquiries, feel free to contact us.
+                              </p>
+                              <a 
+                                href={whatsappCancelUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className={styles.btnWhatsApp}
+                              >
+                                💬 WhatsApp Support
+                              </a>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className={styles.steps}>
@@ -112,9 +191,9 @@ export default function OrdersPage() {
                             if (index < activeStep) status = 'completed';
                             if (index === activeStep) status = 'active';
                             
-                            // Handle delivery vs pickup
+                            // Handle delivery vs pickup label
                             let label = step.label;
-                            if (index === 3) {
+                            if (index === 2) {
                               label = order.order_type === 'delivery' ? 'Out for Delivery' : 'Ready for Pickup';
                             }
                             
@@ -126,6 +205,9 @@ export default function OrdersPage() {
                                 </div>
                                 <div className={styles.stepContent}>
                                   <h4>{label}</h4>
+                                  {index === activeStep && (
+                                    <span className={styles.currentStepBadge}>In Progress</span>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -133,18 +215,36 @@ export default function OrdersPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* Active Order Cancellation Note */}
+                    {isActiveOrder && (
+                      <div className={styles.cancelHelpBox}>
+                        <span>Need to cancel or request refund?</span>
+                        <a 
+                          href={whatsappCancelUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.cancelLink}
+                        >
+                          💬 Contact us via WhatsApp
+                        </a>
+                      </div>
+                    )}
                     
+                    {/* Items & Total Summary */}
                     <div className={styles.itemsList}>
                       <h3>Items Ordered</h3>
                       <div className={styles.items}>
-                        {order.items && order.items.map(item => (
-                          <div key={item.id} className={styles.itemRow}>
+                        {order.items && order.items.map((item, idx) => (
+                          <div key={item.id || idx} className={styles.itemRow}>
                             <span>{item.quantity}x {item.product_name}</span>
+                            <span>RM{item.subtotal?.toFixed(2) || '0.00'}</span>
                           </div>
                         ))}
                       </div>
-                      <div style={{ marginTop: '15px', fontWeight: 'bold' }}>
-                        Total: RM{order.total.toFixed(2)}
+                      <div className={styles.summaryTotalRow}>
+                        <span>Total Paid</span>
+                        <span>RM{order.total.toFixed(2)}</span>
                       </div>
                     </div>
                   </div>

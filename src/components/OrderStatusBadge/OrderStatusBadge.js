@@ -9,6 +9,7 @@ const STATUS_MAP = {
   completed: { label: 'Completed', variant: 'success' },
   rejected: { label: 'Rejected', variant: 'error' },
   cancelled: { label: 'Cancelled', variant: 'error' },
+  refunded: { label: 'Refunded', variant: 'neutral' },
 };
 
 export default function OrderStatusBadge({ status }) {

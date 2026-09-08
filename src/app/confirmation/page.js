@@ -112,8 +112,8 @@ function ConfirmationContent() {
       </div>
       
       <div className={styles.actions}>
-        <Link href={`/track?id=${order.order_id}`} className="btn btnPrimary">
-          Track Order Status
+        <Link href="/orders" className="btn btnPrimary">
+          View & Track Orders
         </Link>
         <Link href="/" className="btn btnSecondary">
           Back to Home

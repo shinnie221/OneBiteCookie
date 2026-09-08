@@ -1,62 +1,35 @@
 .trackContainer {
-  max-width: 700px;
+  max-width: 850px;
   margin: 0 auto;
+  padding: 40px 20px 80px;
 }
 
 .pageTitle {
-  font-size: 2.5rem;
-  margin-bottom: 30px;
-  text-align: center;
-}
-
-.searchForm {
-  margin-bottom: 40px;
-}
-
-.searchInput {
-  display: flex;
-  align-items: center;
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: 8px 8px 8px 20px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s;
-}
-
-.searchInput:focus-within {
-  border-color: var(--color-primary);
-  box-shadow: 0 4px 16px rgba(160, 113, 79, 0.15);
-}
-
-.searchIcon {
-  font-size: 1.2rem;
-  opacity: 0.5;
-  margin-right: 12px;
-}
-
-.searchInput input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 10px 0;
-  font-size: 1.05rem;
-  outline: none;
-  text-transform: uppercase;
-}
-
-.searchInput button {
-  border-radius: var(--radius-lg);
-  padding: 12px 28px;
+  font-size: 2rem;
+  margin-bottom: 24px;
+  color: var(--color-text);
 }
 
 .errorBox {
-  background: var(--color-error);
-  color: white;
-  padding: 16px;
+  padding: 14px 18px;
+  background: #fee2e2;
+  color: #991b1b;
   border-radius: var(--radius-md);
-  text-align: center;
   margin-bottom: 24px;
+}
+
+.emptyCart {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-light);
+}
+
+.ordersList {
+  display: flex;
+  flex-direction: column;
 }
 
 .resultCard {
@@ -75,12 +48,14 @@
   padding: 24px 30px;
   background: var(--color-bg-alt);
   border-bottom: 1px solid var(--color-border-light);
+  gap: 16px;
 }
 
 .orderId {
   font-size: 1.4rem;
   color: var(--color-text);
   margin-bottom: 4px;
+  font-family: monospace;
 }
 
 .orderDate {
@@ -88,8 +63,30 @@
   color: var(--color-text-light);
 }
 
+.typeTagDelivery {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.typeTagPickup {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: #fdf2f8;
+  color: #be185d;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .timeline {
-  padding: 40px 30px;
+  padding: 36px 30px;
   border-bottom: 1px dashed var(--color-border);
 }
 
@@ -102,7 +99,7 @@
 .step {
   display: flex;
   gap: 20px;
-  min-height: 80px;
+  min-height: 76px;
 }
 
 .step:last-child {
@@ -141,24 +138,37 @@
 }
 
 .stepContent {
-  padding-top: 10px;
+  padding-top: 8px;
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .stepContent h4 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--color-text-light);
   transition: color 0.3s;
+  margin: 0;
+}
+
+.currentStepBadge {
+  font-size: 0.75rem;
+  background: var(--color-primary);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
 }
 
 /* Status variants */
 .completed .stepIcon {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  background: #10b981;
+  border-color: #10b981;
   color: white;
 }
 .completed .stepLine {
-  background: var(--color-primary);
+  background: #10b981;
 }
 .completed .stepContent h4 {
   color: var(--color-text);
@@ -167,49 +177,170 @@
 .active .stepIcon {
   background: var(--color-primary-lighter);
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(160, 113, 79, 0.15);
+  box-shadow: 0 0 0 4px rgba(160, 113, 79, 0.18);
 }
 .active .stepContent h4 {
   color: var(--color-primary);
   font-weight: 700;
 }
 
-.failedState {
+/* Special Status Cards (Rejected, Cancelled, Refunded) */
+.specialStatusCard {
   text-align: center;
-  padding: 20px 0;
-}
-.failedIcon {
-  font-size: 3rem;
-  margin-bottom: 16px;
-}
-.failedState h3 {
-  color: var(--color-error);
-  font-size: 1.4rem;
-  margin-bottom: 8px;
-}
-.failedState p {
-  color: var(--color-text-light);
+  padding: 10px 0;
 }
 
+.rejectedBanner {
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.cancelledBanner {
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.refundedBanner {
+  background: #f5f3ff;
+  border: 1.5px solid #ddd6fe;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.failedIcon {
+  font-size: 2.8rem;
+  margin-bottom: 12px;
+}
+
+.rejectedBanner h3 {
+  color: #dc2626;
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+}
+
+.cancelledBanner h3 {
+  color: #b91c1c;
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+}
+
+.refundedBanner h3 {
+  color: #6d28d9;
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+}
+
+.reasonBox {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin: 16px auto;
+  max-width: 500px;
+  text-align: left;
+}
+
+.reasonBox strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.reasonBox p {
+  color: var(--color-text);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.contactHint {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+  margin: 14px 0 10px;
+}
+
+.btnWhatsApp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #25d366;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-top: 6px;
+}
+
+.btnWhatsApp:hover {
+  background: #20ba5a;
+  transform: translateY(-1px);
+}
+
+/* Active Order Cancel Help Box */
+.cancelHelpBox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: #fffbeb;
+  border-bottom: 1px solid #fef3c7;
+  font-size: 0.85rem;
+  color: #92400e;
+}
+
+.cancelLink {
+  color: #047857;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* Items List */
 .itemsList {
-  padding: 30px;
+  padding: 24px 30px;
   background: var(--color-bg-lighter);
 }
+
 .itemsList h3 {
-  font-size: 1.1rem;
-  margin-bottom: 16px;
+  font-size: 1.05rem;
+  margin-bottom: 14px;
+  color: var(--color-text);
 }
+
 .items {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
+
 .itemRow {
   background: white;
   padding: 12px 16px;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-light);
   font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+}
+
+.summaryTotalRow {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-primary);
 }
 
 @keyframes slideUp {
@@ -222,5 +353,10 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+  .cancelHelpBox {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 }

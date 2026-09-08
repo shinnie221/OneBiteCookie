@@ -41,11 +41,30 @@ export async function GET(request) {
       orders.push({ id: doc.id, ...doc.data() });
     });
 
-    // Also get order counts and total spent for each customer
+    // Attach order details, phone, and stats to each customer
     for (let customer of customers) {
-      const customerOrders = orders.filter(o => o.customer_id === customer.id);
+      const customerOrders = orders
+        .filter(o => o.customer_id === customer.id)
+        .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      
       customer.orderCount = customerOrders.length;
       customer.totalSpent = customerOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+      
+      // Get phone from most recent order (if available)
+      const latestOrderWithPhone = customerOrders.find(o => o.phone);
+      customer.phone = customer.phone || (latestOrderWithPhone ? latestOrderWithPhone.phone : '');
+      
+      // Attach order history (limited info for the list)
+      customer.orders = customerOrders.map(o => ({
+        id: o.id,
+        order_id: o.order_id,
+        total: o.total,
+        order_status: o.order_status,
+        payment_status: o.payment_status,
+        order_type: o.order_type,
+        items: o.items,
+        created_at: o.created_at
+      }));
     }
 
     return NextResponse.json({ customers });
@@ -54,3 +73,4 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });
   }
 }
+

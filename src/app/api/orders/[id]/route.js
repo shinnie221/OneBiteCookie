@@ -89,19 +89,27 @@ export async function PUT(request, { params }) {
 
     const existing = orderDoc;
 
-    const orderStatus = body.order_status ?? existing.order_status;
-    const paymentStatus = body.payment_status ?? existing.payment_status;
+    const updates = {};
 
-    await updateDoc(docRef, {
-      order_status: orderStatus,
-      payment_status: paymentStatus
-    });
+    if (body.order_status !== undefined) {
+      updates.order_status = body.order_status;
+    }
+    if (body.payment_status !== undefined) {
+      updates.payment_status = body.payment_status;
+    }
+    if (body.reject_reason !== undefined) {
+      updates.reject_reason = body.reject_reason;
+    }
+    if (body.staff_note !== undefined) {
+      updates.staff_note = body.staff_note;
+    }
+
+    await updateDoc(docRef, updates);
 
     const updatedOrder = {
       id: orderId,
       ...existing,
-      order_status: orderStatus,
-      payment_status: paymentStatus
+      ...updates
     };
 
     return NextResponse.json({ message: 'Order updated', order: updatedOrder });
