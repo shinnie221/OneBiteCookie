@@ -10,14 +10,14 @@ import styles from './page.module.css';
 export default function VouchersPage() {
   const { authFetch } = useAuth();
   const toast = useToast();
-  
+
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVoucher, setEditingVoucher] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
-  
+
   const defaultForm = {
     code: '',
     discount_type: 'percentage',
@@ -26,7 +26,7 @@ export default function VouchersPage() {
     expiry_date: '',
     active: true
   };
-  
+
   const [formData, setFormData] = useState(defaultForm);
 
   useEffect(() => {
@@ -78,26 +78,26 @@ export default function VouchersPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setActionLoading(true);
-    
+
     try {
-      const url = editingVoucher 
-        ? `/api/vouchers/${editingVoucher.id}` 
+      const url = editingVoucher
+        ? `/api/vouchers/${editingVoucher.id}`
         : '/api/vouchers';
-      
+
       const method = editingVoucher ? 'PUT' : 'POST';
-      
+
       // format data
       const payload = { ...formData };
       if (!payload.expiry_date) payload.expiry_date = null;
-      
+
       const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
+
       const data = await res.json();
-      
+
       if (res.ok) {
         toast.success(editingVoucher ? 'Voucher updated' : 'Voucher created');
         setIsModalOpen(false);
@@ -114,7 +114,7 @@ export default function VouchersPage() {
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this voucher?')) return;
-    
+
     try {
       const res = await authFetch(`/api/vouchers/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -135,7 +135,7 @@ export default function VouchersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: voucher.active === 1 ? false : true })
       });
-      
+
       if (res.ok) {
         toast.success(`Voucher ${voucher.active === 1 ? 'deactivated' : 'activated'}`);
         fetchVouchers();
@@ -154,7 +154,7 @@ export default function VouchersPage() {
   return (
     <div>
       <div className={styles.header}>
-        <h1 className={styles.title}>Vouchers & Discounts</h1>
+        <h1 className={styles.title}>Vouchers</h1>
         <button onClick={openAddModal} className="btn btnPrimary">+ Create Voucher</button>
       </div>
 
@@ -182,12 +182,12 @@ export default function VouchersPage() {
                 ) : (
                   vouchers.map(voucher => {
                     const expired = isExpired(voucher.expiry_date);
-                    
+
                     return (
                       <tr key={voucher.id} className={!voucher.active || expired ? styles.inactiveRow : ''}>
                         <td className={styles.codeCell}>{voucher.code}</td>
                         <td className={styles.discountCell}>
-                          {voucher.discount_type === 'percentage' 
+                          {voucher.discount_type === 'percentage'
                             ? `${voucher.discount_value}% OFF`
                             : `RM${voucher.discount_value.toFixed(2)} OFF`}
                         </td>
@@ -201,7 +201,7 @@ export default function VouchersPage() {
                           ) : 'No Expiry'}
                         </td>
                         <td>
-                          <button 
+                          <button
                             className={`${styles.statusToggle} ${voucher.active ? styles.statusActive : styles.statusInactive}`}
                             onClick={() => toggleStatus(voucher)}
                             title="Click to toggle status"
@@ -225,22 +225,22 @@ export default function VouchersPage() {
         )}
       </div>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => !actionLoading && setIsModalOpen(false)} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => !actionLoading && setIsModalOpen(false)}
         title={editingVoucher ? 'Edit Voucher' : 'Create Voucher'}
       >
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className="formGroup mb2">
             <label htmlFor="code">Voucher Code *</label>
-            <input 
-              type="text" 
-              id="code" 
-              name="code" 
-              value={formData.code} 
-              onChange={handleInputChange} 
+            <input
+              type="text"
+              id="code"
+              name="code"
+              value={formData.code}
+              onChange={handleInputChange}
               placeholder="e.g. WELCOME10"
-              required 
+              required
               style={{ textTransform: 'uppercase' }}
             />
           </div>
@@ -248,31 +248,31 @@ export default function VouchersPage() {
           <div className={styles.grid2}>
             <div className="formGroup mb2">
               <label htmlFor="discount_type">Discount Type *</label>
-              <select 
-                id="discount_type" 
-                name="discount_type" 
-                value={formData.discount_type} 
+              <select
+                id="discount_type"
+                name="discount_type"
+                value={formData.discount_type}
                 onChange={handleInputChange}
               >
                 <option value="percentage">Percentage (%)</option>
                 <option value="fixed">Fixed Amount (RM)</option>
               </select>
             </div>
-            
+
             <div className="formGroup mb2">
               <label htmlFor="discount_value">
-                Discount Value * 
+                Discount Value *
                 {formData.discount_type === 'percentage' ? ' (%)' : ' (RM)'}
               </label>
-              <input 
-                type="number" 
-                id="discount_value" 
-                name="discount_value" 
-                min="0.1" 
-                step="any" 
-                value={formData.discount_value} 
-                onChange={handleInputChange} 
-                required 
+              <input
+                type="number"
+                id="discount_value"
+                name="discount_value"
+                min="0.1"
+                step="any"
+                value={formData.discount_value}
+                onChange={handleInputChange}
+                required
               />
             </div>
           </div>
@@ -280,55 +280,55 @@ export default function VouchersPage() {
           <div className={styles.grid2}>
             <div className="formGroup mb3">
               <label htmlFor="min_order">Minimum Order (RM) *</label>
-              <input 
-                type="number" 
-                id="min_order" 
-                name="min_order" 
-                min="0" 
-                step="any" 
-                value={formData.min_order} 
-                onChange={handleInputChange} 
-                required 
+              <input
+                type="number"
+                id="min_order"
+                name="min_order"
+                min="0"
+                step="any"
+                value={formData.min_order}
+                onChange={handleInputChange}
+                required
               />
             </div>
-            
+
             <div className="formGroup mb3">
               <label htmlFor="expiry_date">Expiry Date (Optional)</label>
-              <input 
-                type="date" 
-                id="expiry_date" 
-                name="expiry_date" 
-                value={formData.expiry_date} 
-                onChange={handleInputChange} 
+              <input
+                type="date"
+                id="expiry_date"
+                name="expiry_date"
+                value={formData.expiry_date}
+                onChange={handleInputChange}
               />
             </div>
           </div>
 
           <div className="formGroup mb3">
             <label className={styles.checkboxLabel}>
-              <input 
-                type="checkbox" 
-                name="active" 
-                checked={formData.active} 
-                onChange={handleInputChange} 
+              <input
+                type="checkbox"
+                name="active"
+                checked={formData.active}
+                onChange={handleInputChange}
               />
               <span>Voucher is active and can be used by customers</span>
             </label>
           </div>
 
           <div className="flex gap1">
-            <button 
-              type="button" 
-              className="btn btnSecondary" 
+            <button
+              type="button"
+              className="btn btnSecondary"
               style={{ flex: 1 }}
               onClick={() => setIsModalOpen(false)}
               disabled={actionLoading}
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="btn btnPrimary" 
+            <button
+              type="submit"
+              className="btn btnPrimary"
               style={{ flex: 2 }}
               disabled={actionLoading}
             >

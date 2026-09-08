@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
@@ -13,31 +13,56 @@ import styles from './page.module.css';
 export default function CartPage() {
   const router = useRouter();
   const { items, updateQuantity, removeItem, clearCart, setVoucher, removeVoucher, voucher, discount, subtotal, total, totalQuantity } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, authFetch } = useAuth();
   const toast = useToast();
   
   const [voucherCode, setVoucherCode] = useState('');
   const [applyingVoucher, setApplyingVoucher] = useState(false);
+  const [publicVouchers, setPublicVouchers] = useState([]);
+  const [loadingVouchers, setLoadingVouchers] = useState(false);
 
-  const handleApplyVoucher = async () => {
-    if (!voucherCode.trim()) return;
+  // Fetch available visible vouchers on mount and when authentication changes
+  useEffect(() => {
+    fetchPublicVouchers();
+  }, [isAuthenticated]);
+
+  const fetchPublicVouchers = async () => {
+    setLoadingVouchers(true);
+    try {
+      const fetchFn = isAuthenticated ? authFetch : fetch;
+      const res = await fetchFn('/api/vouchers/public');
+      const data = await res.json();
+      if (res.ok && data.vouchers) {
+        setPublicVouchers(data.vouchers);
+      }
+    } catch (error) {
+      console.error('Failed to load available vouchers:', error);
+    } finally {
+      setLoadingVouchers(false);
+    }
+  };
+
+  const applyVoucherCode = async (codeToApply) => {
+    const code = (codeToApply || voucherCode).trim();
+    if (!code) return;
     
     setApplyingVoucher(true);
     try {
-      const res = await fetch('/api/vouchers/validate', {
+      const fetchFn = isAuthenticated ? authFetch : fetch;
+      const res = await fetchFn('/api/vouchers/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: voucherCode, subtotal })
+        body: JSON.stringify({ code, subtotal })
       });
       
       const data = await res.json();
       
       if (res.ok && data.valid) {
         setVoucher(data.voucher, data.voucher.discount_amount);
-        toast.success(`Voucher applied! Saved RM${data.voucher.discount_amount.toFixed(2)}`);
+        toast.success(`Voucher "${data.voucher.code}" applied! Saved RM${data.voucher.discount_amount.toFixed(2)}`);
         setVoucherCode('');
       } else {
-        toast.error(data.error || 'Invalid voucher');
+        toast.error(data.error || 'Invalid or inapplicable voucher');
       }
     } catch (error) {
       toast.error('Error applying voucher');
@@ -134,7 +159,12 @@ export default function CartPage() {
               
               {voucher && (
                 <div className={`${styles.summaryRow} ${styles.discountRow}`}>
-                  <span>Discount ({voucher.code}): <button onClick={handleRemoveVoucher} className={styles.removeVoucherBtn}>Remove</button></span>
+                  <span>
+                    Discount ({voucher.code}):{' '}
+                    <button onClick={handleRemoveVoucher} className={styles.removeVoucherBtn}>
+                      Remove
+                    </button>
+                  </span>
                   <span>-RM{discount.toFixed(2)}</span>
                 </div>
               )}
@@ -144,26 +174,82 @@ export default function CartPage() {
                 <span>RM{total.toFixed(2)}</span>
               </div>
               
-              {!voucher && (
-                <div className={styles.voucherSection}>
-                  <p className={styles.voucherLabel}>Have a voucher code?</p>
-                  <div className={styles.voucherInput}>
-                    <input 
-                      type="text" 
-                      placeholder="Enter code" 
-                      value={voucherCode} 
-                      onChange={(e) => setVoucherCode(e.target.value)}
-                    />
-                    <button 
-                      className="btn btnSecondary" 
-                      onClick={handleApplyVoucher}
-                      disabled={applyingVoucher || !voucherCode.trim()}
-                    >
-                      {applyingVoucher ? '...' : 'Apply'}
-                    </button>
+              {/* Voucher Section */}
+              <div className={styles.voucherSection}>
+                
+                {/* 1. Visible Public Vouchers (Only show if no voucher currently applied) */}
+                {!voucher && publicVouchers.length > 0 && (
+                  <div className={styles.publicVouchersContainer}>
+                    <p className={styles.voucherLabel}>🎟️ Available Vouchers for You</p>
+                    <div className={styles.voucherCardsList}>
+                      {publicVouchers.map((v) => {
+                        const canApply = subtotal >= v.min_order;
+                        const diff = (v.min_order - subtotal).toFixed(2);
+                        const isSingleUse = v.usage_limit === 'once_total' || v.usage_limit === 'once_per_customer';
+                        
+                        return (
+                          <div key={v.id} className={styles.voucherCard}>
+                            <div className={styles.voucherCardLeft}>
+                              <div className={styles.voucherCardBadge}>{v.code}</div>
+                              <div className={styles.voucherCardDiscount}>
+                                {v.discount_type === 'percentage'
+                                  ? `${v.discount_value}% OFF`
+                                  : `RM${Number(v.discount_value).toFixed(2)} OFF`}
+                              </div>
+                              <div className={styles.voucherCardTerms}>
+                                {v.min_order > 0 ? `Min spend RM${Number(v.min_order).toFixed(2)}` : 'No minimum spend'}
+                                {isSingleUse && ' • Single-use'}
+                              </div>
+                            </div>
+                            
+                            <div className={styles.voucherCardRight}>
+                              {canApply ? (
+                                <button
+                                  type="button"
+                                  className={styles.applyCardBtn}
+                                  onClick={() => applyVoucherCode(v.code)}
+                                  disabled={applyingVoucher}
+                                >
+                                  Apply
+                                </button>
+                              ) : (
+                                <span className={styles.minSpendHint}>
+                                  +RM{diff} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {/* 2. Manual Voucher Code Input (for secret / invisible / custom codes) */}
+                {!voucher && (
+                  <div className={styles.manualCodeBlock}>
+                    <p className={styles.voucherSubLabel}>
+                      {publicVouchers.length > 0 ? 'Have a secret or other promo code?' : 'Have a voucher code?'}
+                    </p>
+                    <div className={styles.voucherInput}>
+                      <input 
+                        type="text" 
+                        placeholder="Enter voucher code" 
+                        value={voucherCode} 
+                        onChange={(e) => setVoucherCode(e.target.value)}
+                      />
+                      <button 
+                        className="btn btnSecondary" 
+                        onClick={() => applyVoucherCode()}
+                        disabled={applyingVoucher || !voucherCode.trim()}
+                      >
+                        {applyingVoucher ? '...' : 'Apply'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+              </div>
               
               {isAuthenticated ? (
                 <Link href="/checkout" className={`btn btnPrimary ${styles.checkoutBtn}`}>

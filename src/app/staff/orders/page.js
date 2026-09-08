@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import OrderStatusBadge from '@/components/OrderStatusBadge/OrderStatusBadge';
 import Modal from '@/components/Modal/Modal';
+import ManualOrderModal from '@/components/ManualOrderModal/ManualOrderModal';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import styles from './page.module.css';
 
@@ -18,6 +19,7 @@ export default function OrdersPage() {
   
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [fullScreenshotUrl, setFullScreenshotUrl] = useState(null);
 
@@ -141,6 +143,13 @@ export default function OrdersPage() {
     }
   };
 
+  // Callback when a manual order is created via modal
+  const handleManualOrderCreated = (newOrder) => {
+    setOrders(prev => [newOrder, ...prev]);
+    setSelectedOrder(newOrder);
+    setIsModalOpen(true);
+  };
+
   return (
     <div>
       <div className={styles.header}>
@@ -148,23 +157,32 @@ export default function OrdersPage() {
           <h1 className={styles.title}>Order Management</h1>
           <p className={styles.subtitle}>Process orders seamlessly through each stage of preparation and fulfillment.</p>
         </div>
-        <div className={styles.filters}>
-          <select 
-            value={filter} 
-            onChange={(e) => setFilter(e.target.value)}
-            className={styles.filterSelect}
+        <div className={styles.headerRight}>
+          <button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="btn btnPrimary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontWeight: 700 }}
           >
-            <option value="all">All Orders</option>
-            <option value="pending_verification">⏳ Pending Verification</option>
-            <option value="preparing">🧑‍🍳 Preparing</option>
-            <option value="ready_pickup">🛍️ Ready for Pickup</option>
-            <option value="out_delivery">🚚 Out for Delivery</option>
-            <option value="completed">✅ Completed</option>
-            <option value="rejected">❌ Denied / Rejected</option>
-            <option value="cancelled">🚫 Cancelled</option>
-            <option value="refunded">💳 Refunded</option>
-          </select>
-          <button onClick={fetchOrders} className="btn btnSecondary">↻ Refresh</button>
+            <span>➕</span> Key In Order
+          </button>
+          <div className={styles.filters}>
+            <select 
+              value={filter} 
+              onChange={(e) => setFilter(e.target.value)}
+              className={styles.filterSelect}
+            >
+              <option value="all">All Orders</option>
+              <option value="pending_verification">⏳ Pending Verification</option>
+              <option value="preparing">🧑‍🍳 Preparing</option>
+              <option value="ready_pickup">🛍️ Ready for Pickup</option>
+              <option value="out_delivery">🚚 Out for Delivery</option>
+              <option value="completed">✅ Completed</option>
+              <option value="rejected">❌ Denied / Rejected</option>
+              <option value="cancelled">🚫 Cancelled</option>
+              <option value="refunded">💳 Refunded</option>
+            </select>
+            <button onClick={fetchOrders} className="btn btnSecondary">↻ Refresh</button>
+          </div>
         </div>
       </div>
 
@@ -195,7 +213,12 @@ export default function OrdersPage() {
                 ) : (
                   orders.map(order => (
                     <tr key={order.id} className={order.order_status === 'pending_verification' ? styles.highlightRow : ''}>
-                      <td className={styles.orderIdCell}>{order.order_id}</td>
+                      <td className={styles.orderIdCell}>
+                        <div>{order.order_id}</div>
+                        {order.is_manual_order && (
+                          <span className={styles.manualTag}>Walk-In / Manual</span>
+                        )}
+                      </td>
                       <td>{new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                       <td>
                         <div className={styles.customerName}>{order.customer_name}</div>
@@ -552,6 +575,13 @@ export default function OrdersPage() {
           <img src={fullScreenshotUrl} style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', borderRadius: '8px' }} alt="Full Screenshot" />
         </div>
       )}
+
+      {/* Manual Order Creation Modal */}
+      <ManualOrderModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onOrderCreated={handleManualOrderCreated}
+      />
     </div>
   );
 }

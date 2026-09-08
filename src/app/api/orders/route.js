@@ -86,8 +86,23 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { customer_name, phone, email, order_type, address, items, voucher_code, payment_screenshot } = body;
+    const isStaffOrAdmin = user.role === 'staff' || user.role === 'admin';
+    const { 
+      customer_name, 
+      phone, 
+      email, 
+      order_type, 
+      address, 
+      items, 
+      voucher_code, 
+      payment_screenshot,
+      payment_method,
+      payment_status,
+      order_status,
+      staff_note,
+      manual_discount,
+      customer_id
+    } = body;
 
     if (!customer_name || !phone || !items || items.length === 0) {
       return NextResponse.json({ error: 'Customer name, phone, and items are required' }, { status: 400 });
@@ -101,41 +116,62 @@ export async function POST(request) {
       const productSnapshot = await getDoc(productRef);
       
       if (!productSnapshot.exists()) {
-        return NextResponse.json({ error: `Product "${item.product_name}" is no longer available` }, { status: 400 });
+        return NextResponse.json({ error: `Product "${item.product_name || 'Item'}" is no longer available` }, { status: 400 });
       }
       
       const product = productSnapshot.data();
       
       if (product.available === false || product.available === 0) {
-        return NextResponse.json({ error: `Product "${item.product_name}" is no longer available` }, { status: 400 });
+        return NextResponse.json({ error: `Product "${product.name}" is marked as unavailable` }, { status: 400 });
       }
       
       if (product.stock < item.quantity) {
         return NextResponse.json({ error: `Insufficient stock for "${product.name}". Only ${product.stock} available.` }, { status: 400 });
       }
       
-      const itemSubtotal = product.price * item.quantity;
+      const price = Number(item.price) || Number(product.price);
+      const itemSubtotal = price * item.quantity;
       subtotal += itemSubtotal;
       
       resolvedItems.push({
         product_id: item.product_id,
         product_name: product.name,
         quantity: item.quantity,
-        price: product.price,
+        price: price,
         subtotal: itemSubtotal
       });
     }
 
     let discount = 0;
-    if (voucher_code) {
+    let matchedVoucherDocRef = null;
+    let matchedVoucherData = null;
+
+    if (manual_discount && isStaffOrAdmin) {
+      discount = Math.min(Number(manual_discount) || 0, subtotal);
+    } else if (voucher_code) {
       const today = new Date().toISOString().split('T')[0];
       const q = query(collection(db, 'vouchers'), where('code', '==', voucher_code.toUpperCase()));
       const voucherSnapshot = await getDocs(q);
       
       if (!voucherSnapshot.empty) {
-        const voucher = voucherSnapshot.docs[0].data();
+        const vDoc = voucherSnapshot.docs[0];
+        const voucher = vDoc.data();
         const active = voucher.active === 1 || voucher.active === true;
         const notExpired = !voucher.expiry_date || voucher.expiry_date >= today;
+        const usageLimit = voucher.usage_limit || 'unlimited';
+
+        // Check single-use total
+        if (usageLimit === 'once_total' && (voucher.times_used || 0) >= 1) {
+          return NextResponse.json({ error: 'This single-use voucher has already been redeemed' }, { status: 400 });
+        }
+
+        // Check once per customer
+        if (usageLimit === 'once_per_customer' && !isStaffOrAdmin) {
+          const usedBy = Array.isArray(voucher.used_by) ? voucher.used_by : [];
+          if (usedBy.includes(user.id) || (user.email && usedBy.includes(user.email))) {
+            return NextResponse.json({ error: 'You have already used this voucher before' }, { status: 400 });
+          }
+        }
         
         if (active && notExpired && subtotal >= voucher.min_order) {
           if (voucher.discount_type === 'percentage') {
@@ -144,6 +180,8 @@ export async function POST(request) {
             discount = voucher.discount_value;
           }
           discount = Math.min(discount, subtotal);
+          matchedVoucherDocRef = vDoc.ref;
+          matchedVoucherData = voucher;
         }
       }
     }
@@ -152,9 +190,36 @@ export async function POST(request) {
     const orderId = generateOrderId();
     const createdAt = new Date().toISOString();
 
+    // Determine customer_id
+    let finalCustomerId = isStaffOrAdmin ? 'manual_entry' : user.id;
+    if (isStaffOrAdmin) {
+      if (customer_id) {
+        finalCustomerId = customer_id;
+      } else if (email) {
+        try {
+          const userQ = query(collection(db, 'users'), where('email', '==', email.toLowerCase()));
+          const userSnap = await getDocs(userQ);
+          if (!userSnap.empty) {
+            finalCustomerId = userSnap.docs[0].id;
+          }
+        } catch (e) {
+          console.error('Customer lookup error:', e);
+        }
+      }
+    }
+
+    // Determine initial payment and order status
+    let finalPaymentStatus = 'pending';
+    let finalOrderStatus = 'pending_verification';
+
+    if (isStaffOrAdmin) {
+      finalPaymentStatus = payment_status || 'verified';
+      finalOrderStatus = order_status || 'preparing';
+    }
+
     const newOrder = {
       order_id: orderId,
-      customer_id: user.id,
+      customer_id: finalCustomerId,
       customer_name,
       phone,
       email: email || '',
@@ -163,15 +228,46 @@ export async function POST(request) {
       subtotal,
       discount,
       total,
-      voucher_code: voucher_code || null,
+      voucher_code: voucher_code || (manual_discount ? 'Manual Discount' : null),
       payment_screenshot: payment_screenshot || null,
-      payment_status: 'pending',
-      order_status: 'pending_verification',
+      payment_method: payment_method || (isStaffOrAdmin ? 'cash' : (payment_screenshot ? 'qr_transfer' : 'manual')),
+      payment_status: finalPaymentStatus,
+      order_status: finalOrderStatus,
+      staff_note: staff_note || (isStaffOrAdmin ? `Manually keyed in by ${user.name || user.email || 'staff'}` : null),
+      is_manual_order: isStaffOrAdmin ? true : false,
       items: resolvedItems,
       created_at: createdAt
     };
 
     const docRef = await addDoc(collection(db, 'orders'), newOrder);
+
+    // Update voucher usage if applied
+    if (matchedVoucherDocRef && matchedVoucherData) {
+      try {
+        const currentTimesUsed = (matchedVoucherData.times_used || 0) + 1;
+        const currentUsedBy = Array.isArray(matchedVoucherData.used_by) ? [...matchedVoucherData.used_by] : [];
+        if (user.id && !currentUsedBy.includes(user.id)) {
+          currentUsedBy.push(user.id);
+        }
+        if (user.email && !currentUsedBy.includes(user.email)) {
+          currentUsedBy.push(user.email);
+        }
+
+        const vUpdates = {
+          times_used: currentTimesUsed,
+          used_by: currentUsedBy
+        };
+
+        // If single use total, deactivate it once used
+        if (matchedVoucherData.usage_limit === 'once_total') {
+          vUpdates.active = 0;
+        }
+
+        await updateDoc(matchedVoucherDocRef, vUpdates);
+      } catch (err) {
+        console.error('Error updating voucher usage:', err);
+      }
+    }
 
     // Deduct stock
     for (const item of resolvedItems) {
@@ -179,12 +275,12 @@ export async function POST(request) {
       const snap = await getDoc(productRef);
       if (snap.exists()) {
         const prod = snap.data();
-        await updateDoc(productRef, { stock: prod.stock - item.quantity });
+        await updateDoc(productRef, { stock: Math.max(0, prod.stock - item.quantity) });
       }
     }
 
     return NextResponse.json({
-      message: 'Order placed successfully',
+      message: 'Order created successfully',
       order: { id: docRef.id, ...newOrder }
     }, { status: 201 });
   } catch (error) {
