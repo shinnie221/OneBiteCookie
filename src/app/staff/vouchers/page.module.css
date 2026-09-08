@@ -1,0 +1,233 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 20px;
+}
+
+.title {
+  font-size: 1.8rem;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-light);
+}
+
+.inactiveRow {
+  opacity: 0.55;
+  background-color: #fafafa;
+}
+
+.inactiveRow:hover {
+  opacity: 1;
+}
+
+.codeCell {
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  color: var(--color-primary);
+}
+
+.discountCell {
+  font-weight: 700;
+  color: var(--color-success);
+}
+
+/* Visibility Badges */
+.badgeVisible {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #ecfdf5;
+  color: #065f46;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid #a7f3d0;
+}
+
+.badgeHidden {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #f8fafc;
+  color: #64748b;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+}
+
+/* Usage Limit Badges */
+.badgeSingleUse {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #fff7ed;
+  color: #c2410c;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid #ffedd5;
+}
+
+.badgeOnceUser {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid #dbeafe;
+}
+
+.badgeUnlimited {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #f3f4f6;
+  color: #4b5563;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid #e5e7eb;
+}
+
+.statusToggle {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.statusActive {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.statusActive:hover {
+  background: #a7f3d0;
+}
+
+.statusInactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.statusInactive:hover {
+  background: #fecaca;
+}
+
+.textError {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+/* Modal form */
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Config Blocks */
+.configBlock {
+  background: #fdfaf6;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.configHeader {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 10px;
+}
+
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.radioLabel input {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+}
+
+.radioLabel strong {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.radioLabel p {
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+
+.checkboxLabel span {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}

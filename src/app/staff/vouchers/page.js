@@ -10,23 +10,25 @@ import styles from './page.module.css';
 export default function VouchersPage() {
   const { authFetch } = useAuth();
   const toast = useToast();
-
+  
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVoucher, setEditingVoucher] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
-
+  
   const defaultForm = {
     code: '',
     discount_type: 'percentage',
     discount_value: 10,
     min_order: 0,
     expiry_date: '',
-    active: true
+    active: true,
+    is_public: true, // Visible in Cart page
+    usage_limit: 'unlimited', // 'unlimited' | 'once_total' | 'once_per_customer'
   };
-
+  
   const [formData, setFormData] = useState(defaultForm);
 
   useEffect(() => {
@@ -39,7 +41,9 @@ export default function VouchersPage() {
       const res = await authFetch('/api/vouchers');
       const data = await res.json();
       if (res.ok) {
-        setVouchers(data.vouchers);
+        setVouchers(data.vouchers || []);
+      } else {
+        toast.error(data.error || 'Failed to load vouchers');
       }
     } catch (error) {
       toast.error('Failed to load vouchers');
@@ -62,7 +66,9 @@ export default function VouchersPage() {
       discount_value: voucher.discount_value,
       min_order: voucher.min_order,
       expiry_date: voucher.expiry_date || '',
-      active: voucher.active === 1
+      active: voucher.active === 1 || voucher.active === true,
+      is_public: voucher.is_public !== false,
+      usage_limit: voucher.usage_limit || 'unlimited',
     });
     setIsModalOpen(true);
   };
@@ -78,26 +84,26 @@ export default function VouchersPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setActionLoading(true);
-
+    
     try {
-      const url = editingVoucher
-        ? `/api/vouchers/${editingVoucher.id}`
+      const url = editingVoucher 
+        ? `/api/vouchers/${editingVoucher.id}` 
         : '/api/vouchers';
-
+      
       const method = editingVoucher ? 'PUT' : 'POST';
-
+      
       // format data
       const payload = { ...formData };
       if (!payload.expiry_date) payload.expiry_date = null;
-
+      
       const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-
+      
       const data = await res.json();
-
+      
       if (res.ok) {
         toast.success(editingVoucher ? 'Voucher updated' : 'Voucher created');
         setIsModalOpen(false);
@@ -114,7 +120,7 @@ export default function VouchersPage() {
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this voucher?')) return;
-
+    
     try {
       const res = await authFetch(`/api/vouchers/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -135,7 +141,7 @@ export default function VouchersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: voucher.active === 1 ? false : true })
       });
-
+      
       if (res.ok) {
         toast.success(`Voucher ${voucher.active === 1 ? 'deactivated' : 'activated'}`);
         fetchVouchers();
@@ -154,8 +160,13 @@ export default function VouchersPage() {
   return (
     <div>
       <div className={styles.header}>
-        <h1 className={styles.title}>Vouchers</h1>
-        <button onClick={openAddModal} className="btn btnPrimary">+ Create Voucher</button>
+        <div>
+          <h1 className={styles.title}>Vouchers & Discounts</h1>
+          <p className={styles.subtitle}>Create public vouchers visible in the cart or secret promotional codes.</p>
+        </div>
+        <button onClick={openAddModal} className="btn btnPrimary" style={{ fontWeight: 600 }}>
+          + Create Voucher
+        </button>
       </div>
 
       <div className="card">
@@ -169,6 +180,8 @@ export default function VouchersPage() {
                   <th>Code</th>
                   <th>Discount</th>
                   <th>Min Order</th>
+                  <th>Cart Visibility</th>
+                  <th>Usage Limit</th>
                   <th>Expiry Date</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -177,21 +190,57 @@ export default function VouchersPage() {
               <tbody>
                 {vouchers.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="textCenter">No vouchers found</td>
+                    <td colSpan="8" className="textCenter" style={{ padding: '30px', color: 'var(--color-text-light)' }}>
+                      No vouchers found
+                    </td>
                   </tr>
                 ) : (
                   vouchers.map(voucher => {
                     const expired = isExpired(voucher.expiry_date);
-
+                    const isPublic = voucher.is_public !== false;
+                    const usageLimit = voucher.usage_limit || 'unlimited';
+                    const timesUsed = voucher.times_used || 0;
+                    
                     return (
                       <tr key={voucher.id} className={!voucher.active || expired ? styles.inactiveRow : ''}>
                         <td className={styles.codeCell}>{voucher.code}</td>
                         <td className={styles.discountCell}>
-                          {voucher.discount_type === 'percentage'
+                          {voucher.discount_type === 'percentage' 
                             ? `${voucher.discount_value}% OFF`
-                            : `RM${voucher.discount_value.toFixed(2)} OFF`}
+                            : `RM${Number(voucher.discount_value).toFixed(2)} OFF`}
                         </td>
-                        <td>RM{voucher.min_order.toFixed(2)}</td>
+                        <td>RM{Number(voucher.min_order || 0).toFixed(2)}</td>
+                        
+                        {/* Cart Visibility */}
+                        <td>
+                          {isPublic ? (
+                            <span className={styles.badgeVisible} title="Customers can see and click this in the cart page">
+                              👁️ Visible in Cart
+                            </span>
+                          ) : (
+                            <span className={styles.badgeHidden} title="Hidden from cart. Customers must type code manually">
+                              🔒 Secret / Hidden
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Usage Limit */}
+                        <td>
+                          {usageLimit === 'once_total' ? (
+                            <span className={styles.badgeSingleUse} title="Can only be used once total">
+                              ⚡ Single-Use ({timesUsed}/1)
+                            </span>
+                          ) : usageLimit === 'once_per_customer' ? (
+                            <span className={styles.badgeOnceUser} title="Each customer can use it once">
+                              👤 Once / Customer ({timesUsed} used)
+                            </span>
+                          ) : (
+                            <span className={styles.badgeUnlimited} title="Unlimited uses">
+                              ♾️ Unlimited ({timesUsed} used)
+                            </span>
+                          )}
+                        </td>
+
                         <td>
                           {voucher.expiry_date ? (
                             <span className={expired ? styles.textError : ''}>
@@ -201,7 +250,7 @@ export default function VouchersPage() {
                           ) : 'No Expiry'}
                         </td>
                         <td>
-                          <button
+                          <button 
                             className={`${styles.statusToggle} ${voucher.active ? styles.statusActive : styles.statusInactive}`}
                             onClick={() => toggleStatus(voucher)}
                             title="Click to toggle status"
@@ -225,114 +274,197 @@ export default function VouchersPage() {
         )}
       </div>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => !actionLoading && setIsModalOpen(false)}
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => !actionLoading && setIsModalOpen(false)} 
         title={editingVoucher ? 'Edit Voucher' : 'Create Voucher'}
+        maxWidth="680px"
       >
         <form onSubmit={handleSubmit} className={styles.form}>
+          
           <div className="formGroup mb2">
             <label htmlFor="code">Voucher Code *</label>
-            <input
-              type="text"
-              id="code"
-              name="code"
-              value={formData.code}
-              onChange={handleInputChange}
-              placeholder="e.g. WELCOME10"
-              required
-              style={{ textTransform: 'uppercase' }}
+            <input 
+              type="text" 
+              id="code" 
+              name="code" 
+              value={formData.code} 
+              onChange={handleInputChange} 
+              placeholder="e.g. WELCOME10, ONETIME50"
+              required 
+              style={{ textTransform: 'uppercase', fontWeight: 600, letterSpacing: '1px' }}
             />
           </div>
 
           <div className={styles.grid2}>
             <div className="formGroup mb2">
               <label htmlFor="discount_type">Discount Type *</label>
-              <select
-                id="discount_type"
-                name="discount_type"
-                value={formData.discount_type}
+              <select 
+                id="discount_type" 
+                name="discount_type" 
+                value={formData.discount_type} 
                 onChange={handleInputChange}
               >
                 <option value="percentage">Percentage (%)</option>
                 <option value="fixed">Fixed Amount (RM)</option>
               </select>
             </div>
-
+            
             <div className="formGroup mb2">
               <label htmlFor="discount_value">
-                Discount Value *
+                Discount Value * 
                 {formData.discount_type === 'percentage' ? ' (%)' : ' (RM)'}
               </label>
-              <input
-                type="number"
-                id="discount_value"
-                name="discount_value"
-                min="0.1"
-                step="any"
-                value={formData.discount_value}
-                onChange={handleInputChange}
-                required
+              <input 
+                type="number" 
+                id="discount_value" 
+                name="discount_value" 
+                min="0.1" 
+                step="any" 
+                value={formData.discount_value} 
+                onChange={handleInputChange} 
+                required 
               />
             </div>
           </div>
 
           <div className={styles.grid2}>
-            <div className="formGroup mb3">
+            <div className="formGroup mb2">
               <label htmlFor="min_order">Minimum Order (RM) *</label>
-              <input
-                type="number"
-                id="min_order"
-                name="min_order"
-                min="0"
-                step="any"
-                value={formData.min_order}
-                onChange={handleInputChange}
-                required
+              <input 
+                type="number" 
+                id="min_order" 
+                name="min_order" 
+                min="0" 
+                step="any" 
+                value={formData.min_order} 
+                onChange={handleInputChange} 
+                required 
               />
             </div>
-
-            <div className="formGroup mb3">
+            
+            <div className="formGroup mb2">
               <label htmlFor="expiry_date">Expiry Date (Optional)</label>
-              <input
-                type="date"
-                id="expiry_date"
-                name="expiry_date"
-                value={formData.expiry_date}
-                onChange={handleInputChange}
+              <input 
+                type="date" 
+                id="expiry_date" 
+                name="expiry_date" 
+                value={formData.expiry_date} 
+                onChange={handleInputChange} 
               />
             </div>
           </div>
 
+          {/* Cart Visibility Toggle */}
+          <div className={styles.configBlock}>
+            <label className={styles.configHeader}>🛒 Cart Visibility</label>
+            <div className={styles.radioGroup}>
+              <label className={styles.radioLabel}>
+                <input 
+                  type="radio" 
+                  name="is_public" 
+                  checked={formData.is_public === true} 
+                  onChange={() => setFormData(prev => ({ ...prev, is_public: true }))} 
+                />
+                <div>
+                  <strong>👁️ Visible in Cart Page (Public)</strong>
+                  <p>Customers can see this voucher in the cart and click to apply it directly.</p>
+                </div>
+              </label>
+
+              <label className={styles.radioLabel}>
+                <input 
+                  type="radio" 
+                  name="is_public" 
+                  checked={formData.is_public === false} 
+                  onChange={() => setFormData(prev => ({ ...prev, is_public: false }))} 
+                />
+                <div>
+                  <strong>🔒 Invisible / Secret Voucher (Hidden)</strong>
+                  <p>Hidden from cart page list. Customers must manually type the code to apply it.</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {/* Usage Limit Toggle */}
+          <div className={styles.configBlock}>
+            <label className={styles.configHeader}>⚡ Usage Limit</label>
+            <div className={styles.radioGroup}>
+              <label className={styles.radioLabel}>
+                <input 
+                  type="radio" 
+                  name="usage_limit" 
+                  value="unlimited" 
+                  checked={formData.usage_limit === 'unlimited'} 
+                  onChange={handleInputChange} 
+                />
+                <div>
+                  <strong>♾️ Unlimited Uses</strong>
+                  <p>Any customer can use this voucher multiple times while active.</p>
+                </div>
+              </label>
+
+              <label className={styles.radioLabel}>
+                <input 
+                  type="radio" 
+                  name="usage_limit" 
+                  value="once_total" 
+                  checked={formData.usage_limit === 'once_total'} 
+                  onChange={handleInputChange} 
+                />
+                <div>
+                  <strong>⚡ Single-Use Only (1 Time Total)</strong>
+                  <p>Can only be used once. Expires immediately after the first successful redemption.</p>
+                </div>
+              </label>
+
+              <label className={styles.radioLabel}>
+                <input 
+                  type="radio" 
+                  name="usage_limit" 
+                  value="once_per_customer" 
+                  checked={formData.usage_limit === 'once_per_customer'} 
+                  onChange={handleInputChange} 
+                />
+                <div>
+                  <strong>👤 Once Per Customer</strong>
+                  <p>Each registered customer can only redeem this voucher one time.</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {/* Active Status */}
           <div className="formGroup mb3">
             <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                name="active"
-                checked={formData.active}
-                onChange={handleInputChange}
+              <input 
+                type="checkbox" 
+                name="active" 
+                checked={formData.active} 
+                onChange={handleInputChange} 
               />
-              <span>Voucher is active and can be used by customers</span>
+              <span>Voucher is active and ready to be used</span>
             </label>
           </div>
 
           <div className="flex gap1">
-            <button
-              type="button"
-              className="btn btnSecondary"
+            <button 
+              type="button" 
+              className="btn btnSecondary" 
               style={{ flex: 1 }}
               onClick={() => setIsModalOpen(false)}
               disabled={actionLoading}
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="btn btnPrimary"
-              style={{ flex: 2 }}
+            <button 
+              type="submit" 
+              className="btn btnPrimary" 
+              style={{ flex: 2, fontWeight: 700 }}
               disabled={actionLoading}
             >
-              {actionLoading ? 'Saving...' : 'Save Voucher'}
+              {actionLoading ? 'Saving...' : (editingVoucher ? 'Update Voucher' : 'Create Voucher')}
             </button>
           </div>
         </form>
