@@ -87,6 +87,7 @@ export async function POST(request) {
     }
 
     const isStaffOrAdmin = user.role === 'staff' || user.role === 'admin';
+    const body = await request.json();
     const { 
       customer_name, 
       phone, 
