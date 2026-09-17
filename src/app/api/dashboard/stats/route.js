@@ -34,15 +34,6 @@ export async function GET(request) {
     const acceptedStatuses = ['accepted', 'preparing', 'ready_pickup', 'out_delivery'];
     const invalidStatuses = ['rejected', 'cancelled', 'refunded'];
 
-    // Status priority for sorting dashboard current orders
-    const statusPriority = {
-      'pending_verification': 0,
-      'accepted': 1,
-      'preparing': 1,
-      'ready_pickup': 2,
-      'out_delivery': 2,
-    };
-
     for (const order of allOrders) {
       const orderDate = order.created_at ? order.created_at.split('T')[0] : '';
       const orderTotal = order.total || 0;
@@ -68,16 +59,8 @@ export async function GET(request) {
     const activeStatuses = ['pending_verification', 'accepted', 'preparing', 'ready_pickup', 'out_delivery'];
     let currentOrders = allOrders.filter(o => activeStatuses.includes(o.order_status));
     
-    // Sort by time first (ascending — oldest first), then by status priority
+    // Current orders: sequence of ordering from oldest to latest (FIFO)
     currentOrders.sort((a, b) => {
-      const priorityA = statusPriority[a.order_status] ?? 99;
-      const priorityB = statusPriority[b.order_status] ?? 99;
-      
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB;
-      }
-      
-      // Same priority — sort by time ascending (oldest first / earliest order first)
       const dateA = new Date(a.created_at || 0).getTime();
       const dateB = new Date(b.created_at || 0).getTime();
       return dateA - dateB;
