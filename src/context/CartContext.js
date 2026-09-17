@@ -31,7 +31,6 @@ export function CartProvider({ children }) {
     setItems(prev => {
       const existing = prev.find(i => i.product_id === product.id);
       if (existing) {
-        if (existing.quantity >= product.stock) return prev;
         return prev.map(i =>
           i.product_id === product.id
             ? { ...i, quantity: i.quantity + 1 }
@@ -43,7 +42,6 @@ export function CartProvider({ children }) {
         product_name: product.name,
         price: product.price,
         image: product.image,
-        stock: product.stock,
         quantity: 1
       }];
     });
@@ -55,7 +53,7 @@ export function CartProvider({ children }) {
     } else {
       setItems(prev => prev.map(i =>
         i.product_id === productId
-          ? { ...i, quantity: Math.min(newQuantity, i.stock) }
+          ? { ...i, quantity: newQuantity }
           : i
       ));
     }

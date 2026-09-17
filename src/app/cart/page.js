@@ -125,13 +125,7 @@ export default function CartPage() {
                         <span className={styles.qty}>{item.quantity}</span>
                         <button 
                           className={styles.qtyBtn} 
-                          onClick={() => {
-                            if (item.quantity >= item.stock) {
-                              toast.warning(`Only ${item.stock} available in stock`);
-                              return;
-                            }
-                            updateQuantity(item.product_id, item.quantity + 1);
-                          }}
+                          onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
                         >+</button>
                       </div>
                     </div>

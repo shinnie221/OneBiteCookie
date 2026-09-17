@@ -49,10 +49,9 @@ export async function GET(request) {
       
       customer.orderCount = customerOrders.length;
       
-      // Exclude cancelled, refunded, and rejected orders from total spent
-      const excludedStatuses = ['cancelled', 'refunded', 'rejected'];
+      // Only calculate orders that are marked as completed into total spent
       customer.totalSpent = customerOrders
-        .filter(order => !excludedStatuses.includes(order.order_status))
+        .filter(order => order.order_status === 'completed')
         .reduce((sum, order) => sum + (order.total || 0), 0);
       
       // Get phone from most recent order (if available)

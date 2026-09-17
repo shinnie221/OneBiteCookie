@@ -14,8 +14,9 @@ export default function ProductCard({ product }) {
   
   const cartItem = items.find(i => i.product_id === product.id);
   const cartQuantity = cartItem ? cartItem.quantity : 0;
-  const isOutOfStock = product.stock <= 0;
-  const isFull = cartQuantity >= product.stock;
+  // Available or unavailable only (no stock quantity numbers shown to customers)
+  const isAvailable = product.available !== false && product.available !== 0 && (product.stock === undefined || product.stock > 0);
+  const isUnavailable = !isAvailable;
 
   const handleAdd = () => {
     if (!isAuthenticated) {
@@ -24,20 +25,16 @@ export default function ProductCard({ product }) {
       return;
     }
 
-    if (isOutOfStock) {
-      toast.error('This cookie is sold out!');
-      return;
-    }
-    if (isFull) {
-      toast.warning(`Only ${product.stock} available in stock`);
+    if (isUnavailable) {
+      toast.error('This cookie is currently unavailable');
       return;
     }
     addItem(product);
   };
 
   const handleIncrease = () => {
-    if (isFull) {
-      toast.warning(`Only ${product.stock} available in stock`);
+    if (isUnavailable) {
+      toast.error('This cookie is currently unavailable');
       return;
     }
     addItem(product);
@@ -53,17 +50,14 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <div className={`${styles.card} ${isOutOfStock ? styles.outOfStock : ''}`}>
+    <div className={`${styles.card} ${isUnavailable ? styles.outOfStock : ''}`}>
       <div className={styles.imageWrapper}>
         {product.image ? (
           <img src={product.image} alt={product.name} className={styles.image} />
         ) : (
           <div className={styles.placeholder}>🍪</div>
         )}
-        {isOutOfStock && <div className={styles.soldOutBadge}>Sold Out</div>}
-        {!isOutOfStock && product.stock <= 5 && (
-          <div className={styles.lowStockBadge}>Only {product.stock} left</div>
-        )}
+        {isUnavailable && <div className={styles.soldOutBadge}>Unavailable</div>}
       </div>
       
       <div className={styles.info}>
@@ -79,26 +73,27 @@ export default function ProductCard({ product }) {
                 className={styles.qtyBtn} 
                 onClick={handleDecrease}
                 type="button"
+                aria-label="Decrease quantity"
               >
                 −
               </button>
               <span className={styles.qtyValue}>{cartQuantity}</span>
               <button 
-                className={`${styles.qtyBtn} ${isFull ? styles.qtyBtnDisabled : ''}`} 
+                className={styles.qtyBtn} 
                 onClick={handleIncrease}
-                disabled={isFull}
                 type="button"
+                aria-label="Increase quantity"
               >
                 +
               </button>
             </div>
           ) : (
             <button 
-              className={`${styles.addBtn} ${isOutOfStock ? styles.disabled : ''}`}
+              className={`${styles.addBtn} ${isUnavailable ? styles.disabled : ''}`}
               onClick={handleAdd}
-              disabled={isOutOfStock}
+              disabled={isUnavailable}
             >
-              {isOutOfStock ? 'Sold Out' : 'Add to Cart'}
+              {isUnavailable ? 'Unavailable' : 'Add to Cart'}
             </button>
           )}
         </div>

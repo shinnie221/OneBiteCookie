@@ -123,11 +123,7 @@ export async function POST(request) {
       const product = productSnapshot.data();
       
       if (product.available === false || product.available === 0) {
-        return NextResponse.json({ error: `Product "${product.name}" is marked as unavailable` }, { status: 400 });
-      }
-      
-      if (product.stock < item.quantity) {
-        return NextResponse.json({ error: `Insufficient stock for "${product.name}". Only ${product.stock} available.` }, { status: 400 });
+        return NextResponse.json({ error: `Product "${product.name}" is currently unavailable` }, { status: 400 });
       }
       
       const price = Number(item.price) || Number(product.price);
