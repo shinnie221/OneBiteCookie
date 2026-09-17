@@ -154,6 +154,52 @@
   flex: 1;
 }
 
+/* WhatsApp Contact Banner */
+.whatsappBanner {
+  padding: 20px 30px;
+  background: #f0fdf4;
+  border-top: 1px solid #bbf7d0;
+  border-bottom: 1px solid #bbf7d0;
+}
+
+.whatsappContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.whatsappIcon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.whatsappText {
+  font-size: 0.9rem;
+  color: #166534;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.whatsappLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #15803d;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  padding: 6px 14px;
+  background: #dcfce7;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.whatsappLink:hover {
+  background: #bbf7d0;
+  color: #14532d;
+}
+
 .notFound {
   text-align: center;
   padding: 80px 20px;

@@ -135,3 +135,58 @@
 .addBtn.disabled:hover {
   transform: none;
 }
+
+/* Quantity Control (inline −/+) */
+.quantityControl {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--color-bg-alt);
+  border: 1.5px solid var(--color-primary);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.qtyBtn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.qtyBtn:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: white;
+}
+
+.qtyBtn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.qtyBtnDisabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.qtyBtnDisabled:hover {
+  background: transparent !important;
+  color: var(--color-primary) !important;
+}
+
+.qtyValue {
+  min-width: 28px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  user-select: none;
+}

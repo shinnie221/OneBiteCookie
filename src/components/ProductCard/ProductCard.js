@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import styles from './ProductCard.module.css';
 
 export default function ProductCard({ product }) {
-  const { addItem, items } = useCart();
+  const { addItem, updateQuantity, removeItem, items } = useCart();
   const { isAuthenticated } = useAuth();
   const toast = useToast();
   const router = useRouter();
@@ -36,6 +36,23 @@ export default function ProductCard({ product }) {
     toast.success(`${product.name} added to cart!`);
   };
 
+  const handleIncrease = () => {
+    if (isFull) {
+      toast.warning(`Only ${product.stock} available in stock`);
+      return;
+    }
+    addItem(product);
+  };
+
+  const handleDecrease = () => {
+    if (cartQuantity <= 1) {
+      removeItem(product.id);
+      toast.info(`${product.name} removed from cart`);
+    } else {
+      updateQuantity(product.id, cartQuantity - 1);
+    }
+  };
+
   return (
     <div className={`${styles.card} ${isOutOfStock ? styles.outOfStock : ''}`}>
       <div className={styles.imageWrapper}>
@@ -56,13 +73,35 @@ export default function ProductCard({ product }) {
         
         <div className={styles.bottom}>
           <span className={styles.price}>RM{product.price.toFixed(2)}</span>
-          <button 
-            className={`${styles.addBtn} ${isFull || isOutOfStock ? styles.disabled : ''}`}
-            onClick={handleAdd}
-            disabled={isOutOfStock}
-          >
-            {isOutOfStock ? 'Sold Out' : isFull ? 'Max Qty' : cartQuantity > 0 ? `Add More (${cartQuantity})` : 'Add to Cart'}
-          </button>
+          
+          {cartQuantity > 0 ? (
+            <div className={styles.quantityControl}>
+              <button 
+                className={styles.qtyBtn} 
+                onClick={handleDecrease}
+                type="button"
+              >
+                −
+              </button>
+              <span className={styles.qtyValue}>{cartQuantity}</span>
+              <button 
+                className={`${styles.qtyBtn} ${isFull ? styles.qtyBtnDisabled : ''}`} 
+                onClick={handleIncrease}
+                disabled={isFull}
+                type="button"
+              >
+                +
+              </button>
+            </div>
+          ) : (
+            <button 
+              className={`${styles.addBtn} ${isOutOfStock ? styles.disabled : ''}`}
+              onClick={handleAdd}
+              disabled={isOutOfStock}
+            >
+              {isOutOfStock ? 'Sold Out' : 'Add to Cart'}
+            </button>
+          )}
         </div>
       </div>
     </div>

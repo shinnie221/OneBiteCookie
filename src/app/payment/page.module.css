@@ -152,6 +152,34 @@
   border: 1px solid var(--color-border);
   margin-bottom: 24px;
   background: var(--color-bg-alt);
+  position: relative;
+}
+
+.removePreviewBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.removePreviewBtn:hover {
+  background: rgba(220, 38, 38, 0.85);
+  border-color: white;
+  transform: scale(1.1);
 }
 
 .previewImage {

@@ -17,6 +17,10 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   
+  // Date filter
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -30,6 +34,10 @@ export default function OrdersPage() {
   const [showSpecialActionForm, setShowSpecialActionForm] = useState(null); // 'cancel' | 'refund' | null
   const [specialActionNote, setSpecialActionNote] = useState('');
 
+  // Edit mode states
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({});
+
   useEffect(() => {
     fetchOrders();
   }, [filter]);
@@ -37,7 +45,11 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const url = filter === 'all' ? '/api/orders' : `/api/orders?status=${filter}`;
+      let url = filter === 'all' ? '/api/orders' : `/api/orders?status=${filter}`;
+      
+      if (dateFrom) url += `${url.includes('?') ? '&' : '?'}dateFrom=${dateFrom}`;
+      if (dateTo) url += `${url.includes('?') ? '&' : '?'}dateTo=${dateTo}`;
+      
       const res = await authFetch(url);
       const data = await res.json();
       if (res.ok) {
@@ -50,12 +62,24 @@ export default function OrdersPage() {
     }
   };
 
+  const handleDateFilter = () => {
+    fetchOrders();
+  };
+
+  const clearDateFilter = () => {
+    setDateFrom('');
+    setDateTo('');
+    // Trigger refetch after clearing
+    setTimeout(() => fetchOrders(), 0);
+  };
+
   const openOrderModal = (order) => {
     setSelectedOrder(order);
     setShowDenyForm(false);
     setDenyReason('');
     setShowSpecialActionForm(null);
     setSpecialActionNote('');
+    setIsEditing(false);
     setIsModalOpen(true);
   };
 
@@ -150,6 +174,49 @@ export default function OrdersPage() {
     setIsModalOpen(true);
   };
 
+  // Edit handlers
+  const startEditing = () => {
+    setEditData({
+      customer_name: selectedOrder.customer_name || '',
+      phone: selectedOrder.phone || '',
+      email: selectedOrder.email || '',
+      order_type: selectedOrder.order_type || 'pickup',
+      address: selectedOrder.address || '',
+      staff_note: selectedOrder.staff_note || '',
+    });
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEditData({});
+  };
+
+  const saveEditing = async () => {
+    setActionLoading(true);
+    try {
+      const res = await authFetch(`/api/orders/${selectedOrder.order_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editData)
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Order updated successfully');
+        setSelectedOrder(data.order);
+        setOrders(prev => prev.map(o => o.order_id === selectedOrder.order_id ? data.order : o));
+        setIsEditing(false);
+      } else {
+        toast.error(data.error || 'Failed to update order');
+      }
+    } catch {
+      toast.error('Error updating order');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   return (
     <div>
       <div className={styles.header}>
@@ -184,6 +251,26 @@ export default function OrdersPage() {
             <button onClick={fetchOrders} className="btn btnSecondary">↻ Refresh</button>
           </div>
         </div>
+      </div>
+
+      {/* Date Filter */}
+      <div className={styles.dateFilterBar}>
+        <div className={styles.dateFilterGroup}>
+          <label>From:</label>
+          <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+        </div>
+        <div className={styles.dateFilterGroup}>
+          <label>To:</label>
+          <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+        </div>
+        <button className="btn btnPrimary" onClick={handleDateFilter} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+          Filter
+        </button>
+        {(dateFrom || dateTo) && (
+          <button className="btn btnSecondary" onClick={clearDateFilter} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+            Clear Dates
+          </button>
+        )}
       </div>
 
       <div className="card">
@@ -258,7 +345,132 @@ export default function OrdersPage() {
         {selectedOrder && (
           <div className={styles.modalContent}>
             
-            {/* Step-by-Step Order Flow Control Card */}
+            {/* 1. Customer Info + Payment Proof (TOP) */}
+            <div className={styles.grid2}>
+              {/* Customer Info */}
+              <div className={styles.infoBlock}>
+                <div className={styles.sectionHeader}>
+                  Customer Details
+                  {!isEditing && (
+                    <button className={styles.editBtn} onClick={startEditing}>✏️ Edit</button>
+                  )}
+                </div>
+                {isEditing ? (
+                  <div className={styles.editForm}>
+                    <div className={styles.editField}>
+                      <label>Name</label>
+                      <input type="text" value={editData.customer_name} onChange={e => setEditData({ ...editData, customer_name: e.target.value })} />
+                    </div>
+                    <div className={styles.editField}>
+                      <label>Phone</label>
+                      <input type="tel" value={editData.phone} onChange={e => setEditData({ ...editData, phone: e.target.value })} />
+                    </div>
+                    <div className={styles.editField}>
+                      <label>Email</label>
+                      <input type="email" value={editData.email} onChange={e => setEditData({ ...editData, email: e.target.value })} />
+                    </div>
+                    <div className={styles.editField}>
+                      <label>Order Type</label>
+                      <select value={editData.order_type} onChange={e => setEditData({ ...editData, order_type: e.target.value })}>
+                        <option value="pickup">Store Pickup</option>
+                        <option value="delivery">Delivery</option>
+                      </select>
+                    </div>
+                    {editData.order_type === 'delivery' && (
+                      <div className={styles.editField}>
+                        <label>Address</label>
+                        <textarea rows="2" value={editData.address} onChange={e => setEditData({ ...editData, address: e.target.value })} />
+                      </div>
+                    )}
+                    <div className={styles.editField}>
+                      <label>Staff Note</label>
+                      <textarea rows="2" value={editData.staff_note} onChange={e => setEditData({ ...editData, staff_note: e.target.value })} />
+                    </div>
+                    <div className={styles.editActions}>
+                      <button className={styles.btnSaveEdit} onClick={saveEditing} disabled={actionLoading}>
+                        {actionLoading ? 'Saving...' : 'Save Changes'}
+                      </button>
+                      <button className="btn btnSecondary" onClick={cancelEditing} disabled={actionLoading}>Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p><strong>Name:</strong> {selectedOrder.customer_name}</p>
+                    <p><strong>Phone:</strong> {selectedOrder.phone}</p>
+                    {selectedOrder.email && <p><strong>Email:</strong> {selectedOrder.email}</p>}
+                    <p><strong>Fulfillment:</strong> {selectedOrder.order_type === 'delivery' ? 'Delivery' : 'Store Pickup'}</p>
+                    {selectedOrder.order_type === 'delivery' && (
+                      <p><strong>Delivery Address:</strong> {selectedOrder.address}</p>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Payment Proof */}
+              <div className={styles.infoBlock}>
+                <div className={styles.sectionHeader}>Payment Receipt Proof</div>
+                {selectedOrder.payment_screenshot ? (
+                  <div className={styles.screenshotBox}>
+                    <img 
+                      src={selectedOrder.payment_screenshot} 
+                      alt="Payment Proof" 
+                      className={styles.screenshot} 
+                      style={{ cursor: 'zoom-in' }}
+                      onClick={() => setFullScreenshotUrl(selectedOrder.payment_screenshot)}
+                      title="Click to zoom in"
+                    />
+                    <div className={styles.screenshotHint}>Click image to view full size</div>
+                  </div>
+                ) : (
+                  <p className={styles.noData}>No payment screenshot provided.</p>
+                )}
+              </div>
+            </div>
+
+            {/* 2. Payment Summary (Items -> Subtotal -> Discount -> Total) */}
+            <div className={styles.infoBlock}>
+              <div className={styles.sectionHeader}>Payment Summary</div>
+              <table className={styles.itemsTable}>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th className="textRight">Qty</th>
+                    <th className="textRight">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedOrder.items && selectedOrder.items.map((item, idx) => (
+                    <tr key={item.id || idx}>
+                      <td>{item.product_name}</td>
+                      <td className="textRight">{item.quantity}</td>
+                      <td className="textRight">RM{item.subtotal.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className={styles.paymentSummaryTotals}>
+                <div className={styles.summaryRow}>
+                  <span>Subtotal</span>
+                  <span>RM{selectedOrder.subtotal?.toFixed(2) || '0.00'}</span>
+                </div>
+                {selectedOrder.discount > 0 && (
+                  <div className={`${styles.summaryRow} ${styles.textSuccess}`}>
+                    <span>Discount ({selectedOrder.voucher_code || 'Voucher'})</span>
+                    <span>-RM{selectedOrder.discount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
+                  <span>Total Paid</span>
+                  <span>RM{selectedOrder.total.toFixed(2)}</span>
+                </div>
+                <div className={styles.paymentStatusLine}>
+                  <strong>Payment Status:</strong> {selectedOrder.payment_status || 'pending'}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Current Order Status + Actions (BOTTOM) */}
             <div className={styles.flowSection}>
               <div className={styles.flowHeader}>
                 <div>
@@ -276,7 +488,7 @@ export default function OrdersPage() {
               {selectedOrder.order_status === 'pending_verification' && (
                 <div className={styles.flowActionBox}>
                   <div className={styles.flowStepNotice}>
-                    <strong>Action Required:</strong> Review customer payment proof below. Accept to automatically start preparing, or deny with a message.
+                    <strong>Action Required:</strong> Review customer payment proof above. Accept to automatically start preparing, or deny with a message.
                   </div>
                   
                   {!showDenyForm ? (
@@ -489,78 +701,6 @@ export default function OrdersPage() {
                 )}
               </div>
             )}
-
-            <div className={styles.grid2}>
-              {/* Customer Info */}
-              <div className={styles.infoBlock}>
-                <div className={styles.sectionHeader}>Customer Details</div>
-                <p><strong>Name:</strong> {selectedOrder.customer_name}</p>
-                <p><strong>Phone:</strong> {selectedOrder.phone}</p>
-                {selectedOrder.email && <p><strong>Email:</strong> {selectedOrder.email}</p>}
-                <p><strong>Fulfillment:</strong> {selectedOrder.order_type === 'delivery' ? 'Delivery' : 'Store Pickup'}</p>
-                {selectedOrder.order_type === 'delivery' && (
-                  <p><strong>Delivery Address:</strong> {selectedOrder.address}</p>
-                )}
-              </div>
-
-              {/* Payment Info */}
-              <div className={styles.infoBlock}>
-                <div className={styles.sectionHeader}>Payment Summary</div>
-                <p><strong>Subtotal:</strong> RM{selectedOrder.subtotal?.toFixed(2) || '0.00'}</p>
-                {selectedOrder.discount > 0 && (
-                  <p className={styles.textSuccess}>
-                    <strong>Discount ({selectedOrder.voucher_code || 'Voucher'}):</strong> -RM{selectedOrder.discount.toFixed(2)}
-                  </p>
-                )}
-                <p className={styles.grandTotal}><strong>Total:</strong> RM{selectedOrder.total.toFixed(2)}</p>
-                <p style={{ marginTop: '8px', fontSize: '0.85rem', color: 'var(--color-text-light)' }}>
-                  <strong>Payment Status:</strong> {selectedOrder.payment_status || 'pending'}
-                </p>
-              </div>
-            </div>
-
-            {/* Payment Proof */}
-            <div className={styles.infoBlock}>
-              <div className={styles.sectionHeader}>Payment Receipt Proof</div>
-              {selectedOrder.payment_screenshot ? (
-                <div className={styles.screenshotBox}>
-                  <img 
-                    src={selectedOrder.payment_screenshot} 
-                    alt="Payment Proof" 
-                    className={styles.screenshot} 
-                    style={{ cursor: 'zoom-in' }}
-                    onClick={() => setFullScreenshotUrl(selectedOrder.payment_screenshot)}
-                    title="Click to zoom in"
-                  />
-                  <div className={styles.screenshotHint}>Click image to view full size</div>
-                </div>
-              ) : (
-                <p className={styles.noData}>No payment screenshot provided.</p>
-              )}
-            </div>
-
-            {/* Order Items */}
-            <div className={styles.infoBlock}>
-              <div className={styles.sectionHeader}>Items Ordered</div>
-              <table className={styles.itemsTable}>
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th className="textRight">Qty</th>
-                    <th className="textRight">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedOrder.items && selectedOrder.items.map((item, idx) => (
-                    <tr key={item.id || idx}>
-                      <td>{item.product_name}</td>
-                      <td className="textRight">{item.quantity}</td>
-                      <td className="textRight">RM{item.subtotal.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
 
           </div>
         )}

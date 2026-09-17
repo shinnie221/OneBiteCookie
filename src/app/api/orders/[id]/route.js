@@ -103,6 +103,22 @@ export async function PUT(request, { params }) {
     if (body.staff_note !== undefined) {
       updates.staff_note = body.staff_note;
     }
+    // Editable fields
+    if (body.customer_name !== undefined) {
+      updates.customer_name = body.customer_name;
+    }
+    if (body.phone !== undefined) {
+      updates.phone = body.phone;
+    }
+    if (body.email !== undefined) {
+      updates.email = body.email;
+    }
+    if (body.order_type !== undefined) {
+      updates.order_type = body.order_type;
+    }
+    if (body.address !== undefined) {
+      updates.address = body.address;
+    }
 
     await updateDoc(docRef, updates);
 

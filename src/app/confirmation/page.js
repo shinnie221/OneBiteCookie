@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar/Navbar';
 import Footer from '@/components/Footer/Footer';
 import OrderStatusBadge from '@/components/OrderStatusBadge/OrderStatusBadge';
@@ -12,28 +13,53 @@ import styles from './page.module.css';
 function ConfirmationContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('id');
+  const { isAuthenticated, authFetch, loading: authLoading } = useAuth();
   
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
+    if (authLoading) return;
+    
     if (!orderId) {
       setLoading(false);
       return;
     }
     
-    fetch(`/api/orders/${orderId}`)
-      .then(res => res.json())
-      .then(data => {
+    const fetchOrder = async () => {
+      try {
+        const fetchFn = isAuthenticated ? authFetch : fetch;
+        const res = await fetchFn(`/api/orders/${orderId}`);
+        const data = await res.json();
         if (data.order) {
           setOrder(data.order);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error('Fetch order attempt failed:', err);
+      }
+      
+      // Retry once after a brief delay (order may still be writing to DB)
+      setTimeout(async () => {
+        try {
+          const fetchFn = isAuthenticated ? authFetch : fetch;
+          const res = await fetchFn(`/api/orders/${orderId}`);
+          const data = await res.json();
+          if (data.order) {
+            setOrder(data.order);
+          }
+        } catch (err) {
+          console.error('Retry fetch failed:', err);
         }
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [orderId]);
+      }, 1500);
+    };
+    
+    fetchOrder();
+  }, [orderId, isAuthenticated, authLoading, authFetch]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return <LoadingSpinner text="Loading order details..." />;
   }
 
@@ -46,6 +72,8 @@ function ConfirmationContent() {
       </div>
     );
   }
+
+  const whatsappUrl = `https://wa.me/601110897061?text=${encodeURIComponent(`Hi OneBite, I just placed order #${order.order_id} and need assistance.`)}`;
 
   return (
     <div className={styles.confirmationCard}>
@@ -107,6 +135,26 @@ function ConfirmationContent() {
           <div className={styles.finalTotal}>
             <span>Total Paid</span>
             <span>RM{order.total.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* WhatsApp Contact Banner */}
+      <div className={styles.whatsappBanner}>
+        <div className={styles.whatsappContent}>
+          <span className={styles.whatsappIcon}>💬</span>
+          <div>
+            <p className={styles.whatsappText}>
+              After payment, if you encounter any issues or have questions, feel free to contact us:
+            </p>
+            <a 
+              href={whatsappUrl}
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className={styles.whatsappLink}
+            >
+              WhatsApp: 011-10897061
+            </a>
           </div>
         </div>
       </div>

@@ -32,7 +32,16 @@ export async function GET(request) {
     let totalSales = 0;
 
     const acceptedStatuses = ['accepted', 'preparing', 'ready_pickup', 'out_delivery'];
-    const invalidStatuses = ['rejected', 'cancelled'];
+    const invalidStatuses = ['rejected', 'cancelled', 'refunded'];
+
+    // Status priority for sorting dashboard current orders
+    const statusPriority = {
+      'pending_verification': 0,
+      'accepted': 1,
+      'preparing': 1,
+      'ready_pickup': 2,
+      'out_delivery': 2,
+    };
 
     for (const order of allOrders) {
       const orderDate = order.created_at ? order.created_at.split('T')[0] : '';
@@ -55,13 +64,24 @@ export async function GET(request) {
       }
     }
 
-    // Recent orders (last 10)
-    allOrders.sort((a, b) => {
+    // Current orders: only orders that haven't completed / been cancelled / rejected / refunded
+    const activeStatuses = ['pending_verification', 'accepted', 'preparing', 'ready_pickup', 'out_delivery'];
+    let currentOrders = allOrders.filter(o => activeStatuses.includes(o.order_status));
+    
+    // Sort by time first (ascending — oldest first), then by status priority
+    currentOrders.sort((a, b) => {
+      const priorityA = statusPriority[a.order_status] ?? 99;
+      const priorityB = statusPriority[b.order_status] ?? 99;
+      
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      
+      // Same priority — sort by time ascending (oldest first / earliest order first)
       const dateA = new Date(a.created_at || 0).getTime();
       const dateB = new Date(b.created_at || 0).getTime();
-      return dateB - dateA;
+      return dateA - dateB;
     });
-    const recentOrders = allOrders.slice(0, 10);
 
     // Low stock products
     let lowStockProducts = allProducts.filter(p => p.stock <= 10 && (p.available === 1 || p.available === true));
@@ -75,7 +95,7 @@ export async function GET(request) {
         acceptedOrders,
         completedOrders,
         totalSales,
-        recentOrders,
+        recentOrders: currentOrders,
         lowStockProducts
       }
     });

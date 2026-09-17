@@ -561,6 +561,164 @@
   font-size: 0.9rem;
 }
 
+/* Date Filter Bar */
+.dateFilterBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  background: white;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+  flex-wrap: wrap;
+}
+
+.dateFilterGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dateFilterGroup label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.dateFilterGroup input[type="date"] {
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  outline: none;
+}
+
+/* Payment Summary Totals */
+.paymentSummaryTotals {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 2px dashed var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.summaryTotal {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.paymentStatusLine {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+}
+
+/* Edit Button & Form */
+.sectionHeader {
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-light);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.editBtn {
+  background: none;
+  border: 1px solid var(--color-border);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--color-text);
+}
+
+.editBtn:hover {
+  background: var(--color-primary-lighter);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.editField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.editField label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.editField input,
+.editField select,
+.editField textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.editField input:focus,
+.editField select:focus,
+.editField textarea:focus {
+  border-color: var(--color-primary);
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btnSaveEdit {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnSaveEdit:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.btnSaveEdit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 600px) {
   .header {
     flex-direction: column;
@@ -575,5 +733,9 @@
   }
   .btnAccept, .btnDeny, .btnPreparingDone, .btnComplete {
     width: 100%;
+  }
+  .dateFilterBar {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

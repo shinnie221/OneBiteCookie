@@ -153,3 +153,206 @@
   .statsGrid { grid-template-columns: 1fr; }
   .header { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
+
+/* Pending row highlight */
+.pendingRow {
+  background-color: rgba(254, 243, 199, 0.4);
+  transition: background-color 0.2s;
+}
+
+.pendingRow:hover {
+  background-color: rgba(254, 243, 199, 0.7);
+}
+
+.clickHint {
+  display: block;
+  font-size: 0.7rem;
+  color: #92400e;
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+/* Quick Action Overlay */
+.quickActionOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.quickActionCard {
+  background: white;
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.quickActionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg-alt);
+}
+
+.quickActionHeader h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.quickActionClose {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  cursor: pointer;
+  border-radius: 8px;
+  color: var(--color-text-light);
+  transition: all 0.15s;
+}
+
+.quickActionClose:hover {
+  background: var(--color-border-light);
+  color: var(--color-text);
+}
+
+.quickActionBody {
+  padding: 20px 24px 24px;
+}
+
+.quickActionInfo {
+  background: var(--color-bg-alt);
+  padding: 14px;
+  border-radius: var(--radius-md);
+  margin-bottom: 18px;
+}
+
+.quickActionInfo p {
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.quickActionInfo p:last-child {
+  margin-bottom: 0;
+}
+
+.quickActionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btnQuickAccept {
+  width: 100%;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnQuickAccept:hover:not(:disabled) {
+  background: #059669;
+}
+
+.btnQuickDeny {
+  width: 100%;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1.5px solid #fca5a5;
+  border-radius: var(--radius-md);
+  padding: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnQuickDeny:hover:not(:disabled) {
+  background: #fecaca;
+}
+
+.btnQuickView {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all 0.2s;
+}
+
+.btnQuickView:hover {
+  background: var(--color-bg-alt);
+}
+
+/* Quick Deny Form */
+.quickDenyForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quickDenyForm label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #991b1b;
+}
+
+.quickDenyForm textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #fca5a5;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  outline: none;
+}
+
+.quickDenyForm textarea:focus {
+  border-color: #dc2626;
+}
+
+.quickDenyActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btnQuickConfirmDeny {
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnQuickConfirmDeny:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btnQuickConfirmDeny:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -24,6 +24,7 @@ export default function PaymentPage() {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
+  const fileInputRef = useRef(null);
   const hasRedirected = useRef(false);
 
   useEffect(() => {
@@ -72,6 +73,15 @@ export default function PaymentPage() {
     const reader = new FileReader();
     reader.onload = (e) => setPreviewUrl(e.target.result);
     reader.readAsDataURL(selected);
+  };
+
+  const handleRemoveFile = () => {
+    setFile(null);
+    setPreviewUrl(null);
+    setConfirmed(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -181,6 +191,7 @@ export default function PaymentPage() {
                     accept="image/*" 
                     onChange={handleFileChange} 
                     className={styles.fileInput}
+                    ref={fileInputRef}
                   />
                   <label htmlFor="payment_proof" className={styles.fileLabel}>
                     <span className={styles.uploadIcon}>📸</span>
@@ -192,6 +203,14 @@ export default function PaymentPage() {
                 
                 {previewUrl && (
                   <div className={styles.previewBox}>
+                    <button 
+                      type="button"
+                      className={styles.removePreviewBtn}
+                      onClick={handleRemoveFile}
+                      title="Remove screenshot"
+                    >
+                      ✕
+                    </button>
                     <img src={previewUrl} alt="Payment Preview" className={styles.previewImage} />
                   </div>
                 )}

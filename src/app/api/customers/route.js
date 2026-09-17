@@ -48,7 +48,12 @@ export async function GET(request) {
         .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
       
       customer.orderCount = customerOrders.length;
-      customer.totalSpent = customerOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+      
+      // Exclude cancelled, refunded, and rejected orders from total spent
+      const excludedStatuses = ['cancelled', 'refunded', 'rejected'];
+      customer.totalSpent = customerOrders
+        .filter(order => !excludedStatuses.includes(order.order_status))
+        .reduce((sum, order) => sum + (order.total || 0), 0);
       
       // Get phone from most recent order (if available)
       const latestOrderWithPhone = customerOrders.find(o => o.phone);
