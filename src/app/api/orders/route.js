@@ -1,6 +1,7 @@
 import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
+import { sendOrderNotificationEmail } from '@/lib/email';
 import { NextResponse } from 'next/server';
 
 function generateOrderId() {
@@ -46,6 +47,12 @@ export async function GET(request) {
       if (status === 'accepted') {
         const acceptedStatuses = ['accepted', 'preparing', 'ready_pickup', 'out_delivery'];
         orders = orders.filter(o => acceptedStatuses.includes(o.order_status));
+      } else if (status === 'ready_or_delivery' || status === 'ready_pickup_delivery') {
+        const readyStatuses = ['ready_pickup', 'out_delivery'];
+        orders = orders.filter(o => readyStatuses.includes(o.order_status));
+      } else if (status === 'denied_cancelled_refunded' || status === 'inactive') {
+        const inactiveStatuses = ['rejected', 'cancelled', 'refunded'];
+        orders = orders.filter(o => inactiveStatuses.includes(o.order_status));
       } else {
         orders = orders.filter(o => o.order_status === status);
       }
@@ -195,20 +202,37 @@ export async function POST(request) {
     const orderId = generateOrderId();
     const createdAt = new Date().toISOString();
 
-    // Determine customer_id
+    // Determine customer_id & auto-create profile if non-existent
     let finalCustomerId = isStaffOrAdmin ? 'manual_entry' : user.id;
+    let isNewCustomerCreated = false;
+
     if (isStaffOrAdmin) {
-      if (customer_id) {
+      if (customer_id && customer_id !== 'manual_entry') {
         finalCustomerId = customer_id;
-      } else if (email) {
+      } else if (email && email.trim()) {
         try {
-          const userQ = query(collection(db, 'users'), where('email', '==', email.toLowerCase()));
+          const cleanEmail = email.trim().toLowerCase();
+          const userQ = query(collection(db, 'users'), where('email', '==', cleanEmail));
           const userSnap = await getDocs(userQ);
           if (!userSnap.empty) {
+            // Customer exists in profile -> link to their order history
             finalCustomerId = userSnap.docs[0].id;
+          } else {
+            // Customer does NOT exist -> automatically create a profile for them
+            const newCustomerDoc = await addDoc(collection(db, 'users'), {
+              name: customer_name.trim(),
+              email: cleanEmail,
+              phone: phone.trim() || '',
+              role: 'customer',
+              createdAt: createdAt,
+              created_at: createdAt,
+              autoCreated: true
+            });
+            finalCustomerId = newCustomerDoc.id;
+            isNewCustomerCreated = true;
           }
         } catch (e) {
-          console.error('Customer lookup error:', e);
+          console.error('Customer lookup/create error:', e);
         }
       }
     }
@@ -235,7 +259,7 @@ export async function POST(request) {
       total,
       voucher_code: voucher_code || (manual_discount ? 'Manual Discount' : null),
       payment_screenshot: payment_screenshot || null,
-      payment_method: payment_method || (isStaffOrAdmin ? 'cash' : (payment_screenshot ? 'qr_transfer' : 'manual')),
+      payment_method: payment_method || (isStaffOrAdmin ? 'qr_pay' : (payment_screenshot ? 'qr_transfer' : 'manual')),
       payment_status: finalPaymentStatus,
       order_status: finalOrderStatus,
       staff_note: staff_note || (isStaffOrAdmin ? `Manually keyed in by ${user.name || user.email || 'staff'}` : null),
@@ -245,6 +269,18 @@ export async function POST(request) {
     };
 
     const docRef = await addDoc(collection(db, 'orders'), newOrder);
+
+    // Send email notification to customer
+    if (email && email.includes('@')) {
+      sendOrderNotificationEmail({
+        to: email.trim(),
+        customerName: customer_name,
+        orderId: orderId,
+        orderTotal: total,
+        items: resolvedItems,
+        isNewCustomer: isNewCustomerCreated
+      }).catch(e => console.error('Email notification error:', e));
+    }
 
     // Update voucher usage if applied
     if (matchedVoucherDocRef && matchedVoucherData) {

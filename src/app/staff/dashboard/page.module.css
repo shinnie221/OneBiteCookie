@@ -154,7 +154,7 @@
   .header { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
 
-/* Pending row highlight */
+/* Pending and clickable row highlights */
 .pendingRow {
   background-color: rgba(254, 243, 199, 0.4);
   transition: background-color 0.2s;
@@ -164,10 +164,18 @@
   background-color: rgba(254, 243, 199, 0.7);
 }
 
+.clickableRow {
+  transition: background-color 0.2s;
+}
+
+.clickableRow:hover {
+  background-color: rgba(245, 237, 227, 0.5);
+}
+
 .clickHint {
   display: block;
   font-size: 0.7rem;
-  color: #92400e;
+  color: var(--color-primary);
   font-weight: 600;
   margin-top: 3px;
 }
@@ -267,6 +275,42 @@
 }
 
 .btnQuickAccept:hover:not(:disabled) {
+  background: #059669;
+}
+
+.btnQuickPickup,
+.btnQuickDelivery {
+  width: 100%;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnQuickPickup:hover:not(:disabled),
+.btnQuickDelivery:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.btnQuickComplete {
+  width: 100%;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnQuickComplete:hover:not(:disabled) {
   background: #059669;
 }
 

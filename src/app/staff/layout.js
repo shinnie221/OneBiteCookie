@@ -91,10 +91,6 @@ export default function StaffLayout({ children }) {
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <a href="/" target="_blank" className={styles.navItem}>
-            <span className={styles.navIcon}>🌐</span>
-            View Store
-          </a>
           <button className={`${styles.navItem} ${styles.logoutBtn}`} onClick={handleLogout}>
             <span className={styles.navIcon}>🚪</span>
             Logout

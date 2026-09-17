@@ -41,35 +41,37 @@ export default function DashboardPage() {
     }
   };
 
-  const handlePendingClick = (order) => {
+  const handleOrderClick = (order) => {
     setActionOrder(order);
     setActionOrderId(order.order_id);
     setShowDenyForm(false);
     setDenyReason('');
   };
 
-  const handleAccept = async () => {
+  const handleUpdateStatus = async (newOrderStatus, extraFields = {}) => {
     setActionLoading(true);
     try {
       const res = await authFetch(`/api/orders/${actionOrder.order_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payment_status: 'verified', order_status: 'preparing' })
+        body: JSON.stringify({ order_status: newOrderStatus, ...extraFields })
       });
       if (res.ok) {
-        toast.success('Order accepted & preparing');
+        toast.success(`Order status updated to ${newOrderStatus.replace(/_/g, ' ')}`);
         setActionOrderId(null);
         setActionOrder(null);
         fetchStats();
       } else {
-        toast.error('Failed to accept order');
+        toast.error('Failed to update order status');
       }
     } catch {
-      toast.error('Error accepting order');
+      toast.error('Error updating order status');
     } finally {
       setActionLoading(false);
     }
   };
+
+  const handleAccept = () => handleUpdateStatus('preparing', { payment_status: 'verified' });
 
   const handleDeny = async () => {
     if (!denyReason.trim()) {
@@ -173,13 +175,9 @@ export default function DashboardPage() {
                     stats.recentOrders.map(order => (
                       <tr 
                         key={order.id}
-                        className={order.order_status === 'pending_verification' ? styles.pendingRow : ''}
-                        style={order.order_status === 'pending_verification' ? { cursor: 'pointer' } : {}}
-                        onClick={() => {
-                          if (order.order_status === 'pending_verification') {
-                            handlePendingClick(order);
-                          }
-                        }}
+                        className={order.order_status === 'pending_verification' ? styles.pendingRow : styles.clickableRow}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleOrderClick(order)}
                       >
                         <td>{order.order_id}</td>
                         <td>{order.customer_name}</td>
@@ -187,9 +185,9 @@ export default function DashboardPage() {
                         <td>RM{order.total.toFixed(2)}</td>
                         <td>
                           <OrderStatusBadge status={order.order_status} />
-                          {order.order_status === 'pending_verification' && (
-                            <span className={styles.clickHint}>Click to process</span>
-                          )}
+                          <span className={styles.clickHint}>
+                            {order.order_status === 'pending_verification' ? 'Click to verify' : 'Click to update status'}
+                          </span>
                         </td>
                       </tr>
                     ))
@@ -246,39 +244,84 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Action Modal for Pending Orders */}
-      {actionOrderId && (
+      {/* Quick Action Modal for Active Orders */}
+      {actionOrderId && actionOrder && (
         <div className={styles.quickActionOverlay} onClick={() => { setActionOrderId(null); setShowDenyForm(false); }}>
           <div className={styles.quickActionCard} onClick={e => e.stopPropagation()}>
             <div className={styles.quickActionHeader}>
-              <h3>Process Order #{actionOrder?.order_id}</h3>
+              <h3>Manage Order #{actionOrder?.order_id}</h3>
               <button className={styles.quickActionClose} onClick={() => { setActionOrderId(null); setShowDenyForm(false); }}>✕</button>
             </div>
             
             <div className={styles.quickActionBody}>
               <div className={styles.quickActionInfo}>
                 <p><strong>Customer:</strong> {actionOrder?.customer_name}</p>
-                <p><strong>Phone:</strong> {actionOrder?.phone}</p>
+                <p><strong>Phone:</strong> {actionOrder?.phone || '-'}</p>
                 <p><strong>Total:</strong> RM{actionOrder?.total?.toFixed(2)}</p>
                 <p><strong>Type:</strong> {actionOrder?.order_type === 'delivery' ? '🚚 Delivery' : '🛍️ Pickup'}</p>
+                <p><strong>Current Status:</strong> <OrderStatusBadge status={actionOrder?.order_status} /></p>
               </div>
 
               {!showDenyForm ? (
                 <div className={styles.quickActionButtons}>
-                  <button 
-                    className={styles.btnQuickAccept}
-                    onClick={handleAccept}
-                    disabled={actionLoading}
-                  >
-                    {actionLoading ? '...' : '✓ Accept & Start Preparing'}
-                  </button>
-                  <button 
-                    className={styles.btnQuickDeny}
-                    onClick={() => setShowDenyForm(true)}
-                    disabled={actionLoading}
-                  >
-                    ✕ Deny Order
-                  </button>
+                  {actionOrder?.order_status === 'pending_verification' && (
+                    <>
+                      <button 
+                        className={styles.btnQuickAccept}
+                        onClick={handleAccept}
+                        disabled={actionLoading}
+                      >
+                        {actionLoading ? '...' : '✓ Accept & Start Preparing'}
+                      </button>
+                      <button 
+                        className={styles.btnQuickDeny}
+                        onClick={() => setShowDenyForm(true)}
+                        disabled={actionLoading}
+                      >
+                        ✕ Deny Order
+                      </button>
+                    </>
+                  )}
+
+                  {(actionOrder?.order_status === 'preparing' || actionOrder?.order_status === 'accepted') && (
+                    <>
+                      {actionOrder?.order_type === 'delivery' ? (
+                        <button 
+                          className={styles.btnQuickDelivery}
+                          onClick={() => handleUpdateStatus('out_delivery')}
+                          disabled={actionLoading}
+                        >
+                          {actionLoading ? '...' : '🚚 Mark Out for Delivery'}
+                        </button>
+                      ) : (
+                        <button 
+                          className={styles.btnQuickPickup}
+                          onClick={() => handleUpdateStatus('ready_pickup')}
+                          disabled={actionLoading}
+                        >
+                          {actionLoading ? '...' : '🛍️ Mark Ready for Pickup'}
+                        </button>
+                      )}
+                      <button 
+                        className={styles.btnQuickComplete}
+                        onClick={() => handleUpdateStatus('completed')}
+                        disabled={actionLoading}
+                      >
+                        {actionLoading ? '...' : '✓ Mark as Completed'}
+                      </button>
+                    </>
+                  )}
+
+                  {(actionOrder?.order_status === 'ready_pickup' || actionOrder?.order_status === 'out_delivery') && (
+                    <button 
+                      className={styles.btnQuickComplete}
+                      onClick={() => handleUpdateStatus('completed')}
+                      disabled={actionLoading}
+                    >
+                      {actionLoading ? '...' : '✓ Mark as Completed'}
+                    </button>
+                  )}
+
                   <Link 
                     href="/staff/orders"
                     className={styles.btnQuickView}

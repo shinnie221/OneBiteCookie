@@ -186,26 +186,6 @@ export default function QrPaymentPage() {
             </div>
           </form>
         </div>
-
-        <div className={styles.sideCol}>
-          <div className="card">
-            <div className={styles.cardHeader}>
-              <h2>Payment Workflow</h2>
-            </div>
-            <div className={styles.cardBody}>
-              <ol className={styles.workflowList}>
-                <li>Customer adds cookies to cart</li>
-                <li>Customer proceeds to checkout</li>
-                <li>System displays the QR code uploaded here</li>
-                <li>Customer scans and pays via their banking app</li>
-                <li>Customer uploads the transaction receipt</li>
-                <li>Order appears in Dashboard as "Pending Verification"</li>
-                <li>Staff manually verifies receipt and accepts order</li>
-                <li>Stock is automatically deducted</li>
-              </ol>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

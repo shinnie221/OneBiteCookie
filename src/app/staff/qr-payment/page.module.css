@@ -5,9 +5,8 @@
 }
 
 .layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
+  display: block;
+  max-width: 820px;
 }
 
 .cardHeader {

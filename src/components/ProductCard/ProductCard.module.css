@@ -282,3 +282,90 @@
   color: var(--color-text);
   user-select: none;
 }
+
+@media (max-width: 540px) {
+  .info {
+    padding: 12px 10px;
+    gap: 4px;
+  }
+
+  .name {
+    font-size: 0.95rem;
+  }
+
+  .description {
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .bottom {
+    margin-top: 6px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .price {
+    font-size: 1.05rem;
+  }
+
+  .addBtn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    border-radius: 8px;
+  }
+
+  .quantityControl {
+    border-radius: 8px;
+  }
+
+  .qtyBtn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.95rem;
+  }
+
+  .qtyValue {
+    min-width: 22px;
+    font-size: 0.85rem;
+  }
+
+  .navBtn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.9rem;
+  }
+
+  .prevBtn {
+    left: 4px;
+  }
+
+  .nextBtn {
+    right: 4px;
+  }
+
+  .dotsIndicator {
+    padding: 2px 5px;
+    gap: 3px;
+    bottom: 5px;
+  }
+
+  .dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  .imageCounter {
+    font-size: 0.6rem;
+    padding: 1px 5px;
+    top: 6px;
+    left: 6px;
+  }
+
+  .soldOutBadge {
+    padding: 2px 8px;
+    font-size: 0.65rem;
+    top: 6px;
+    right: 6px;
+  }
+}
+

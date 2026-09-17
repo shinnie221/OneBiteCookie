@@ -26,8 +26,8 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
   // Cart items: [{ product_id, product_name, price, quantity }]
   const [orderItems, setOrderItems] = useState([]);
 
-  // Payment & Status
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  // Payment & Status (Only QR Pay allowed for manual key in)
+  const [paymentMethod, setPaymentMethod] = useState('qr_pay');
   const [paymentStatus, setPaymentStatus] = useState('verified');
   const [orderStatus, setOrderStatus] = useState('preparing');
   const [manualDiscount, setManualDiscount] = useState('');
@@ -129,7 +129,7 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
     setOrderType('pickup');
     setAddress('');
     setOrderItems([]);
-    setPaymentMethod('cash');
+    setPaymentMethod('qr_pay');
     setPaymentStatus('verified');
     setOrderStatus('preparing');
     setManualDiscount('');
@@ -311,11 +311,9 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
                   <select
                     className={styles.select}
                     value={paymentMethod}
-                    onChange={(e) => handlePaymentMethodChange(e.target.value)}
+                    disabled
                   >
-                    <option value="qr_pay">📱 DuitNow / QR Pay</option>
-                    <option value="card">💳 Card / Bank Transfer</option>
-                    <option value="unpaid">⏳ Pay on Pickup / Later</option>
+                    <option value="qr_pay">📱 DuitNow / QR Pay Only</option>
                   </select>
                 </div>
 

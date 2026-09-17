@@ -241,12 +241,9 @@ export default function OrdersPage() {
               <option value="all">All Orders</option>
               <option value="pending_verification">⏳ Pending Verification</option>
               <option value="preparing">🧑‍🍳 Preparing</option>
-              <option value="ready_pickup">🛍️ Ready for Pickup</option>
-              <option value="out_delivery">🚚 Out for Delivery</option>
+              <option value="ready_or_delivery">🛍️ Ready for Pickup / 🚚 Out for Delivery</option>
               <option value="completed">✅ Completed</option>
-              <option value="rejected">❌ Denied / Rejected</option>
-              <option value="cancelled">🚫 Cancelled</option>
-              <option value="refunded">💳 Refunded</option>
+              <option value="denied_cancelled_refunded">❌ Denied / Cancelled / Refunded</option>
             </select>
             <button onClick={fetchOrders} className="btn btnSecondary">↻ Refresh</button>
           </div>
