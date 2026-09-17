@@ -10,6 +10,53 @@ import Footer from '@/components/Footer/Footer';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import styles from './page.module.css';
 
+function compressImage(file, maxDimension = 1000, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    if (file.type && !file.type.startsWith('image/') && !file.name.match(/\.(jpg|jpeg|png|webp|heic|heif)$/i)) {
+      return reject(new Error('Please select a valid image file'));
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read image file'));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Failed to load image preview'));
+      img.onload = () => {
+        try {
+          let { width, height } = img;
+          if (width > height) {
+            if (width > maxDimension) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            }
+          } else {
+            if (height > maxDimension) {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Compress to JPEG
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
+        } catch (err) {
+          // Fallback to raw data url if canvas operation fails
+          resolve(e.target.result);
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function PaymentPage() {
   const router = useRouter();
   const { items, total, voucher, clearCart } = useCart();
@@ -20,6 +67,7 @@ export default function PaymentPage() {
   const [qrCode, setQrCode] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -53,26 +101,34 @@ export default function PaymentPage() {
       .catch(() => setLoading(false));
   }, [items, router, toast]);
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const selected = e.target.files[0];
     if (!selected) return;
     
-    if (!selected.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+    if (selected.type && !selected.type.startsWith('image/') && !selected.name.match(/\.(jpg|jpeg|png|webp|heic|heif)$/i)) {
+      toast.error('Please upload an image file (PNG, JPG, JPEG, WebP)');
       return;
     }
     
-    if (selected.size > 5 * 1024 * 1024) {
-      toast.error('File size should be less than 5MB');
+    if (selected.size > 20 * 1024 * 1024) {
+      toast.error('Image size is too large (max 20MB)');
       return;
     }
 
+    setCompressing(true);
     setFile(selected);
     
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (e) => setPreviewUrl(e.target.result);
-    reader.readAsDataURL(selected);
+    try {
+      const compressedDataUrl = await compressImage(selected);
+      setPreviewUrl(compressedDataUrl);
+    } catch (err) {
+      console.error('Image processing error:', err);
+      toast.error('Could not process this image. Please try another.');
+      setFile(null);
+      setPreviewUrl(null);
+    } finally {
+      setCompressing(false);
+    }
   };
 
   const handleRemoveFile = () => {
@@ -196,7 +252,9 @@ export default function PaymentPage() {
                   <label htmlFor="payment_proof" className={styles.fileLabel}>
                     <span className={styles.uploadIcon}>📸</span>
                     <span className={styles.uploadText}>
-                      {file ? file.name : 'Tap to select or take a screenshot'}
+                      {compressing 
+                        ? 'Optimizing photo...' 
+                        : (file ? file.name : 'Tap to select or take a screenshot')}
                     </span>
                   </label>
                 </div>
@@ -230,9 +288,9 @@ export default function PaymentPage() {
               <button 
                 type="submit" 
                 className={`btn btnPrimary ${styles.submitBtn}`}
-                disabled={submitting || !file || !confirmed}
+                disabled={submitting || compressing || !file || !confirmed}
               >
-                {submitting ? 'Submitting Order...' : 'Submit Order'}
+                {submitting ? 'Submitting Order...' : compressing ? 'Optimizing photo...' : 'Submit Order'}
               </button>
             </form>
           </div>

@@ -33,7 +33,6 @@ export default function ProductCard({ product }) {
       return;
     }
     addItem(product);
-    toast.success(`${product.name} added to cart!`);
   };
 
   const handleIncrease = () => {

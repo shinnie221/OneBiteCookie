@@ -33,10 +33,41 @@ export default function Navbar() {
           {isAuthenticated && user?.role === 'customer' && (
             <Link href="/orders" className={styles.navLink} onClick={() => setMobileOpen(false)}>Order History</Link>
           )}
+
+          {isAuthenticated && user?.role !== 'customer' && (
+            <Link href="/staff/dashboard" className={styles.navLink} onClick={() => setMobileOpen(false)}>Staff Dashboard</Link>
+          )}
+
+          <div className={styles.mobileAuthSection}>
+            {isAuthenticated ? (
+              <div className={styles.mobileUserInfo}>
+                <span className={styles.mobileGreeting}>👤 {user?.name || 'Customer'}</span>
+                <button 
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleLogout();
+                  }} 
+                  className={styles.mobileLogoutBtn}
+                >
+                  Log Out
+                </button>
+              </div>
+            ) : (
+              <div className={styles.mobileAuthButtons}>
+                <Link 
+                  href="/login" 
+                  className={styles.mobileLoginBtn}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Sign In / Sign Up
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className={styles.actions}>
-          <Link href="/cart" className={styles.cartBtn}>
+          <Link href="/cart" className={styles.cartBtn} aria-label="Cart">
             🛒
             {totalQuantity > 0 && (
               <span className={styles.badge}>{totalQuantity}</span>
@@ -52,10 +83,14 @@ export default function Navbar() {
               )}
             </>
           ) : (
-            <Link href="/login" className={styles.loginBtn}>Login</Link>
+            <Link href="/login" className={styles.loginBtn}>Sign In</Link>
           )}
 
-          <button className={styles.hamburger} onClick={() => setMobileOpen(!mobileOpen)}>
+          <button 
+            className={styles.hamburger} 
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle navigation menu"
+          >
             {mobileOpen ? '✕' : '☰'}
           </button>
         </div>
