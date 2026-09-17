@@ -16,9 +16,13 @@
   gap: 12px;
 }
 
+.imageThumbWrapper {
+  position: relative;
+}
+
 .imageThumb {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 8px;
   background: var(--color-bg-alt);
   display: flex;
@@ -26,6 +30,7 @@
   justify-content: center;
   overflow: hidden;
   font-size: 1.5rem;
+  border: 1px solid var(--color-border-light);
 }
 
 .imageThumb img {
@@ -34,37 +39,72 @@
   object-fit: cover;
 }
 
+.photoCountBadge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+}
+
 .productName {
   font-weight: 600;
   font-size: 0.95rem;
 }
 
-.stockBadge {
-  display: inline-flex;
-  padding: 4px 10px;
-  background: var(--color-bg-alt);
-  border-radius: 20px;
-  font-weight: 700;
-  font-family: monospace;
-  font-size: 0.95rem;
+.productDesc {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.lowStock {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.statusBadge {
+/* Status Button in Table */
+.statusBtnActive {
   display: inline-flex;
-  padding: 4px 10px;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  text-transform: uppercase;
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.statusActive { background: #d1fae5; color: #065f46; }
-.statusInactive { background: #fee2e2; color: #991b1b; }
+.statusBtnActive:hover {
+  background: #a7f3d0;
+  transform: translateY(-1px);
+}
+
+.statusBtnInactive {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.statusBtnInactive:hover {
+  background: #fca5a5;
+  transform: translateY(-1px);
+}
 
 /* Modal Form Styles */
 .form {
@@ -72,74 +112,172 @@
   flex-direction: column;
 }
 
-.imageUploadSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.sectionLabel {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.sectionHint {
+  font-size: 0.82rem;
+  color: var(--color-text-light);
+  margin-bottom: 12px;
+}
+
+/* Multi-Image Gallery in Modal */
+.gallerySection {
   margin-bottom: 24px;
-}
-
-.imagePreview {
-  width: 160px;
-  height: 160px;
+  padding: 16px;
+  background: var(--color-bg-alt);
   border-radius: var(--radius-md);
-  border: 2px dashed var(--color-primary);
-  background: var(--color-primary-lighter);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: 1px solid var(--color-border-light);
+}
+
+.imagesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.imageTile {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
   overflow: hidden;
-  cursor: pointer;
-  transition: all 0.2s;
+  border: 2px solid var(--color-border);
+  background: white;
+  box-shadow: var(--shadow-sm);
 }
 
-.imagePreview:hover {
-  background: var(--color-primary-light);
+.imageTile.coverTile {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-lighter);
 }
 
-.imagePreview img {
+.imageTile img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.uploadPrompt {
+.coverBadge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: var(--color-primary);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.removeImageBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.removeImageBtn:hover {
+  background: #ef4444;
+  transform: scale(1.1);
+}
+
+.makeCoverBtn {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.makeCoverBtn:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.addImageTile {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 2px dashed var(--color-primary);
+  background: var(--color-primary-lighter);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  cursor: pointer;
+  gap: 4px;
   color: var(--color-primary-dark);
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 
-.uploadIcon {
-  font-size: 2rem;
+.addImageTile:hover {
+  background: var(--color-primary-light);
+  transform: translateY(-1px);
+}
+
+.addImageIcon {
+  font-size: 1.5rem;
 }
 
 .hiddenInput {
   display: none;
 }
 
-.grid2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+.priceGroup {
+  margin-bottom: 20px;
 }
 
 .checkboxLabel {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
+  padding: 12px 16px;
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+  margin-bottom: 24px;
 }
 
 .checkboxLabel input {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   accent-color: var(--color-primary);
+  cursor: pointer;
 }
 
 .checkboxLabel span {
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-text);
 }

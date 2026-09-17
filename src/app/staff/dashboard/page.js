@@ -203,21 +203,23 @@ export default function DashboardPage() {
         <div className={styles.sideCol}>
           <div className={`card ${styles.alertsCard}`}>
             <div className={styles.cardHeader}>
-              <h2>Inventory Alerts</h2>
+              <h2>Product Status</h2>
               <Link href="/staff/products" className={styles.viewAll}>Manage</Link>
             </div>
             
             <div className={styles.alertsList}>
-              {stats.lowStockProducts.length === 0 ? (
-                <div className={styles.emptyAlerts}>All products have sufficient stock.</div>
+              {(!stats.unavailableProducts || stats.unavailableProducts.length === 0) ? (
+                <div className={styles.emptyAlerts} style={{ color: '#059669', background: '#ecfdf5', padding: '12px 16px', borderRadius: '8px' }}>
+                  ✅ All cookies are currently Available.
+                </div>
               ) : (
-                stats.lowStockProducts.map(product => (
+                stats.unavailableProducts.map(product => (
                   <div key={product.id} className={styles.alertItem}>
-                    <div className={styles.alertIcon}>⚠️</div>
+                    <div className={styles.alertIcon}>🚫</div>
                     <div className={styles.alertContent}>
                       <h4>{product.name}</h4>
-                      <p className={product.stock === 0 ? styles.textError : styles.textWarning}>
-                        {product.stock === 0 ? 'Out of stock' : `Only ${product.stock} left`}
+                      <p className={styles.textError}>
+                        Currently Unavailable
                       </p>
                     </div>
                   </div>

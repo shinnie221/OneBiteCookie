@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -11,6 +12,23 @@ export default function ProductCard({ product }) {
   const { isAuthenticated } = useAuth();
   const toast = useToast();
   const router = useRouter();
+
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+
+  const images = Array.isArray(product.images) && product.images.length > 0 
+    ? product.images 
+    : (product.image ? [product.image] : []);
+  const hasMultipleImages = images.length > 1;
+
+  const handlePrevImage = (e) => {
+    e.stopPropagation();
+    setCurrentImgIndex(prev => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = (e) => {
+    e.stopPropagation();
+    setCurrentImgIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
+  };
   
   const cartItem = items.find(i => i.product_id === product.id);
   const cartQuantity = cartItem ? cartItem.quantity : 0;
@@ -52,11 +70,52 @@ export default function ProductCard({ product }) {
   return (
     <div className={`${styles.card} ${isUnavailable ? styles.outOfStock : ''}`}>
       <div className={styles.imageWrapper}>
-        {product.image ? (
-          <img src={product.image} alt={product.name} className={styles.image} />
+        {images.length > 0 ? (
+          <img 
+            src={images[currentImgIndex]} 
+            alt={`${product.name} (Photo ${currentImgIndex + 1})`} 
+            className={styles.image} 
+          />
         ) : (
           <div className={styles.placeholder}>🍪</div>
         )}
+
+        {hasMultipleImages && (
+          <>
+            <button 
+              type="button" 
+              className={`${styles.navBtn} ${styles.prevBtn}`}
+              onClick={handlePrevImage}
+              aria-label="Previous photo"
+            >
+              ‹
+            </button>
+            <button 
+              type="button" 
+              className={`${styles.navBtn} ${styles.nextBtn}`}
+              onClick={handleNextImage}
+              aria-label="Next photo"
+            >
+              ›
+            </button>
+            <div className={styles.dotsIndicator}>
+              {images.map((_, idx) => (
+                <span 
+                  key={idx} 
+                  className={`${styles.dot} ${idx === currentImgIndex ? styles.activeDot : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentImgIndex(idx);
+                  }}
+                />
+              ))}
+            </div>
+            <span className={styles.imageCounter}>
+              {currentImgIndex + 1}/{images.length}
+            </span>
+          </>
+        )}
+
         {isUnavailable && <div className={styles.soldOutBadge}>Unavailable</div>}
       </div>
       

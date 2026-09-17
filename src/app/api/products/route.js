@@ -27,19 +27,24 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, description, price, stock, available, image } = await request.json();
+    const { name, description, price, available, image, images } = await request.json();
     
     if (!name || price == null) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
     }
     
+    const imageList = Array.isArray(images) && images.length > 0 
+      ? images 
+      : (image ? [image] : []);
+    const primaryImage = imageList[0] || image || null;
+
     const newProduct = {
       name,
       description: description || '',
-      price,
-      stock: stock || 0,
-      available: available ? true : false,
-      image: image || null,
+      price: Number(price),
+      available: available !== false && available !== 0,
+      image: primaryImage,
+      images: imageList,
       createdAt: new Date().toISOString()
     };
     

@@ -83,9 +83,8 @@ export async function GET(request) {
       return dateA - dateB;
     });
 
-    // Low stock products
-    let lowStockProducts = allProducts.filter(p => p.stock <= 10 && (p.available === 1 || p.available === true));
-    lowStockProducts.sort((a, b) => a.stock - b.stock);
+    // Unavailable products (cookies turned off for ordering)
+    let unavailableProducts = allProducts.filter(p => p.available === false || p.available === 0);
 
     return NextResponse.json({
       stats: {
@@ -96,7 +95,8 @@ export async function GET(request) {
         completedOrders,
         totalSales,
         recentOrders: currentOrders,
-        lowStockProducts
+        unavailableProducts,
+        lowStockProducts: unavailableProducts // compatibility fallback
       }
     });
   } catch (error) {

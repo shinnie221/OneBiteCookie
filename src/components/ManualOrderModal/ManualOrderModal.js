@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import Modal from '@/components/Modal/Modal';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 import styles from './ManualOrderModal.module.css';
 
 export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
   const toast = useToast();
+  const { authFetch } = useAuth();
 
   // Products from catalog
   const [products, setProducts] = useState([]);
@@ -21,7 +23,7 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
   const [orderType, setOrderType] = useState('pickup');
   const [address, setAddress] = useState('');
 
-  // Cart items: [{ product_id, product_name, price, quantity, max_stock }]
+  // Cart items: [{ product_id, product_name, price, quantity }]
   const [orderItems, setOrderItems] = useState([]);
 
   // Payment & Status
@@ -55,10 +57,10 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
     }
   };
 
-  // Add product to cart
+  // Add product to cart (available vs unavailable check only)
   const handleAddItem = (prod) => {
-    if (prod.stock <= 0) {
-      toast.error(`"${prod.name}" is out of stock`);
+    if (prod.available === false || prod.available === 0) {
+      toast.error(`"${prod.name}" is currently unavailable`);
       return;
     }
 
@@ -66,10 +68,6 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
       const existingIndex = prev.findIndex((item) => item.product_id === prod.id);
       if (existingIndex > -1) {
         const item = prev[existingIndex];
-        if (item.quantity >= prod.stock) {
-          toast.error(`Cannot exceed available stock of ${prod.stock}`);
-          return prev;
-        }
         const updated = [...prev];
         updated[existingIndex] = {
           ...item,
@@ -84,7 +82,6 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
             product_name: prod.name,
             price: Number(prod.price),
             quantity: 1,
-            max_stock: prod.stock,
           },
         ];
       }
@@ -99,10 +96,6 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
     setOrderItems((prev) =>
       prev.map((item) => {
         if (item.product_id === productId) {
-          if (newQty > item.max_stock) {
-            toast.error(`Only ${item.max_stock} available in stock`);
-            return item;
-          }
           return { ...item, quantity: newQty };
         }
         return item;
@@ -165,7 +158,7 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/orders', {
+      const res = await authFetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -410,19 +403,19 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
                     <p className={styles.emptyNotice}>No products found</p>
                   ) : (
                     filteredProducts.map((prod) => {
-                      const isOutOfStock = prod.stock <= 0 || prod.available === false;
+                      const isUnavailable = prod.available === false || prod.available === 0;
                       return (
                         <button
                           key={prod.id}
                           type="button"
-                          disabled={isOutOfStock}
-                          className={`${styles.productPill} ${isOutOfStock ? styles.pillDisabled : ''}`}
+                          disabled={isUnavailable}
+                          className={`${styles.productPill} ${isUnavailable ? styles.pillDisabled : ''}`}
                           onClick={() => handleAddItem(prod)}
                         >
                           <div className={styles.pillInfo}>
                             <span className={styles.pillName}>{prod.name}</span>
                             <span className={styles.pillStock}>
-                              {isOutOfStock ? 'Out of Stock' : `${prod.stock} in stock`}
+                              {isUnavailable ? 'Unavailable' : 'Available'}
                             </span>
                           </div>
                           <span className={styles.pillPrice}>RM{Number(prod.price).toFixed(2)}</span>

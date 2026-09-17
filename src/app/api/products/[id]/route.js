@@ -24,12 +24,18 @@ export async function PUT(request, { params }) {
 
     const name = body.name ?? existing.name;
     const description = body.description ?? existing.description;
-    const price = body.price ?? existing.price;
-    const stock = body.stock ?? existing.stock;
-    const available = body.available !== undefined ? !!body.available : existing.available;
-    const image = body.image !== undefined ? body.image : existing.image;
+    const price = body.price !== undefined ? Number(body.price) : existing.price;
+    const available = body.available !== undefined ? (body.available !== false && body.available !== 0) : existing.available;
 
-    const updatedData = { name, description, price, stock, available, image };
+    let images = existing.images || (existing.image ? [existing.image] : []);
+    if (body.images !== undefined && Array.isArray(body.images)) {
+      images = body.images;
+    } else if (body.image !== undefined) {
+      images = body.image ? [body.image] : [];
+    }
+    const image = images[0] || body.image || null;
+
+    const updatedData = { name, description, price, available, image, images };
     
     await updateDoc(docRef, updatedData);
 
