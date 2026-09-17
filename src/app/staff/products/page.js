@@ -44,7 +44,7 @@ export default function ProductsPage() {
         setProducts(data.products || []);
       }
     } catch (error) {
-      toast.error('Failed to load products');
+      toast.error('加载曲奇商品失败');
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,7 @@ export default function ProductsPage() {
     const newItems = [];
     for (const file of files) {
       if (file.size > 8 * 1024 * 1024) {
-        toast.warning(`${file.name} is too large (>8MB)`);
+        toast.warning(`图片 ${file.name} 过大（不能超过 8MB）`);
         continue;
       }
       newItems.push({
@@ -102,49 +102,55 @@ export default function ProductsPage() {
     }
 
     setImageList(prev => [...prev, ...newItems]);
+    // Reset input so user can pick the same file again if desired
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleRemoveImage = (index) => {
-    setImageList(prev => prev.filter((_, idx) => idx !== index));
+  const handleRemoveImage = (indexToRemove) => {
+    setImageList(prev => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
-  const handleSetCover = (index) => {
+  const handleSetCover = (indexToCover) => {
     setImageList(prev => {
-      const selected = prev[index];
-      const remaining = prev.filter((_, idx) => idx !== index);
-      return [selected, ...remaining];
+      const selected = prev[indexToCover];
+      const rest = prev.filter((_, idx) => idx !== indexToCover);
+      return [selected, ...rest];
     });
   };
 
   // Toggle available/unavailable directly from table
   const handleToggleAvailable = async (product) => {
-    const newStatus = !(product.available !== false && product.available !== 0);
+    const currentStatus = product.available !== false && product.available !== 0;
+    const newStatus = !currentStatus;
+    
     try {
       const res = await authFetch(`/api/products/${product.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ available: newStatus })
       });
+      
       if (res.ok) {
-        setProducts(prev => prev.map(p => p.id === product.id ? { ...p, available: newStatus } : p));
-        toast.success(`"${product.name}" set to ${newStatus ? 'Available' : 'Unavailable'}`);
+        toast.success('商品上架状态已更新');
+        setProducts(prev => prev.map(p => 
+          p.id === product.id ? { ...p, available: newStatus } : p
+        ));
       } else {
-        toast.error('Failed to update status');
+        toast.error('更新状态失败');
       }
-    } catch (e) {
-      toast.error('Error updating status');
+    } catch (error) {
+      toast.error('操作出错');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) {
-      toast.error('Product name is required');
+      toast.error('请输入曲奇名称');
       return;
     }
     if (formData.price == null || formData.price < 0) {
-      toast.error('Please enter a valid price');
+      toast.error('请输入有效的价格');
       return;
     }
 
@@ -160,7 +166,7 @@ export default function ProductsPage() {
             finalImageUrls.push(uploadedUrl);
           } catch (uploadError) {
             console.error('ImgBB upload error:', uploadError);
-            toast.error(`Could not upload ${item.file.name}`);
+            toast.error(`无法上传图片 ${item.file.name}`);
           }
         } else if (item.url) {
           finalImageUrls.push(item.url);
@@ -191,32 +197,32 @@ export default function ProductsPage() {
       const data = await res.json();
       
       if (res.ok) {
-        toast.success(editingProduct ? 'Product updated' : 'Product created');
+        toast.success(editingProduct ? '曲奇商品已更新' : '曲奇商品已创建');
         setIsModalOpen(false);
         fetchProducts();
       } else {
-        toast.error(data.error || 'Failed to save product');
+        toast.error(data.error || '保存商品失败');
       }
     } catch (error) {
-      toast.error('An error occurred');
+      toast.error('操作出错');
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm('确定要删除此曲奇商品吗？')) return;
     
     try {
       const res = await authFetch(`/api/products/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        toast.success('Product deleted');
+        toast.success('商品已成功删除');
         fetchProducts();
       } else {
-        toast.error('Failed to delete product');
+        toast.error('删除商品失败');
       }
     } catch (error) {
-      toast.error('An error occurred');
+      toast.error('操作出错');
     }
   };
 
@@ -224,12 +230,12 @@ export default function ProductsPage() {
     <div>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Products Management</h1>
+          <h1 className={styles.title}>曲奇菜单管理</h1>
           <p style={{ color: 'var(--color-text-light)', fontSize: '0.9rem', marginTop: '4px' }}>
-            Manage cookie catalog, photos, and availability status
+            管理曲奇口味目录、展示照片、价格及上架售卖状态
           </p>
         </div>
-        <button onClick={openAddModal} className="btn btnPrimary">+ Add Cookie</button>
+        <button onClick={openAddModal} className="btn btnPrimary">+ 新增曲奇口味</button>
       </div>
 
       <div className="card">
@@ -240,16 +246,16 @@ export default function ProductsPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Product</th>
-                  <th>Price</th>
-                  <th>Status (Click to toggle)</th>
-                  <th>Actions</th>
+                  <th>曲奇商品</th>
+                  <th>单价</th>
+                  <th>售卖状态 (点击切换)</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody>
                 {products.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="textCenter">No products found</td>
+                    <td colSpan="4" className="textCenter">暂无曲奇商品</td>
                   </tr>
                 ) : (
                   products.map(product => {
@@ -272,7 +278,7 @@ export default function ProductsPage() {
                                 )}
                               </div>
                               {imgCount > 1 && (
-                                <span className={styles.photoCountBadge} title={`${imgCount} photos`}>
+                                <span className={styles.photoCountBadge} title={`${imgCount} 张照片`}>
                                   📸 {imgCount}
                                 </span>
                               )}
@@ -291,15 +297,15 @@ export default function ProductsPage() {
                             type="button"
                             onClick={() => handleToggleAvailable(product)}
                             className={isAvailable ? styles.statusBtnActive : styles.statusBtnInactive}
-                            title="Click to toggle availability"
+                            title="点击切换上架状态"
                           >
-                            {isAvailable ? '● Available' : '○ Unavailable'}
+                            {isAvailable ? '● 上架售卖中' : '○ 已下架 / 售罄'}
                           </button>
                         </td>
                         <td>
                           <div className="flex gap1">
-                            <button onClick={() => openEditModal(product)} className="btn btnSecondary" style={{ padding: '6px 12px' }}>Edit</button>
-                            <button onClick={() => handleDelete(product.id)} className="btn btnDanger" style={{ padding: '6px 12px' }}>Delete</button>
+                            <button onClick={() => openEditModal(product)} className="btn btnSecondary" style={{ padding: '6px 12px' }}>编辑</button>
+                            <button onClick={() => handleDelete(product.id)} className="btn btnDanger" style={{ padding: '6px 12px' }}>删除</button>
                           </div>
                         </td>
                       </tr>
@@ -315,33 +321,33 @@ export default function ProductsPage() {
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => !actionLoading && setIsModalOpen(false)} 
-        title={editingProduct ? 'Edit Cookie' : 'Add New Cookie'}
+        title={editingProduct ? '编辑曲奇口味' : '新增曲奇口味'}
         maxWidth="680px"
       >
         <form onSubmit={handleSubmit} className={styles.form}>
 
           {/* Multiple Photos Gallery */}
           <div className={styles.gallerySection}>
-            <div className={styles.sectionLabel}>📸 Product Photos ({imageList.length})</div>
+            <div className={styles.sectionLabel}>📸 曲奇展示照片 ({imageList.length})</div>
             <div className={styles.sectionHint}>
-              You can upload more than one photo for this cookie. The first photo is the cover.
+              可为此款曲奇上传多张照片。排在第一张的照片将作为主封面展示。
             </div>
 
             <div className={styles.imagesGrid}>
               {imageList.map((imgItem, idx) => (
                 <div key={idx} className={`${styles.imageTile} ${idx === 0 ? styles.coverTile : ''}`}>
-                  <img src={imgItem.url} alt={`Photo ${idx + 1}`} />
+                  <img src={imgItem.url} alt={`照片 ${idx + 1}`} />
                   
                   {idx === 0 ? (
-                    <span className={styles.coverBadge}>★ Cover</span>
+                    <span className={styles.coverBadge}>★ 主封面</span>
                   ) : (
                     <button 
                       type="button" 
                       className={styles.makeCoverBtn}
                       onClick={() => handleSetCover(idx)}
-                      title="Make this the cover photo"
+                      title="设为主封面照片"
                     >
-                      Make Cover
+                      设为封面
                     </button>
                   )}
 
@@ -349,7 +355,7 @@ export default function ProductsPage() {
                     type="button" 
                     className={styles.removeImageBtn}
                     onClick={() => handleRemoveImage(idx)}
-                    title="Remove photo"
+                    title="移除此照片"
                   >
                     ✕
                   </button>
@@ -360,10 +366,10 @@ export default function ProductsPage() {
               <div 
                 className={styles.addImageTile}
                 onClick={() => fileInputRef.current?.click()}
-                title="Click to select image files"
+                title="点击选择图片文件"
               >
                 <span className={styles.addImageIcon}>+</span>
-                <span>Add Photo</span>
+                <span>添加照片</span>
               </div>
             </div>
 
@@ -378,33 +384,33 @@ export default function ProductsPage() {
           </div>
 
           <div className="formGroup mb2">
-            <label htmlFor="name">Cookie Name *</label>
+            <label htmlFor="name">曲奇口味名称 *</label>
             <input 
               type="text" 
               id="name" 
               name="name" 
               value={formData.name} 
               onChange={handleInputChange} 
-              placeholder="e.g. Pistachio Matcha Cookie"
+              placeholder="例如：开心果抹茶大曲奇"
               required 
             />
           </div>
 
           <div className="formGroup mb2">
-            <label htmlFor="description">Description</label>
+            <label htmlFor="description">风味描述与配料介绍</label>
             <textarea 
               id="description" 
               name="description" 
               rows="3" 
               value={formData.description} 
               onChange={handleInputChange}
-              placeholder="Describe flavors, fillings, and texture..."
+              placeholder="描述风味特色、夹心原料及口感等..."
             ></textarea>
           </div>
 
           <div className={styles.priceGroup}>
             <div className="formGroup">
-              <label htmlFor="price">Price (RM) *</label>
+              <label htmlFor="price">单价售价 (RM) *</label>
               <input 
                 type="number" 
                 id="price" 
@@ -427,7 +433,7 @@ export default function ProductsPage() {
                 checked={formData.available} 
                 onChange={handleInputChange} 
               />
-              <span>Cookie is Available for customers to order</span>
+              <span>曲奇当前上架可供顾客订购</span>
             </label>
           </div>
 
@@ -439,7 +445,7 @@ export default function ProductsPage() {
               onClick={() => setIsModalOpen(false)}
               disabled={actionLoading}
             >
-              Cancel
+              取消
             </button>
             <button 
               type="submit" 
@@ -447,7 +453,7 @@ export default function ProductsPage() {
               style={{ flex: 1 }}
               disabled={actionLoading}
             >
-              {actionLoading ? 'Saving...' : (editingProduct ? 'Update Cookie' : 'Create Cookie')}
+              {actionLoading ? '保存中...' : (editingProduct ? '更新曲奇' : '确认新增')}
             </button>
           </div>
         </form>

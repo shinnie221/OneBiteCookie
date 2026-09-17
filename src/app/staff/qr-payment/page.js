@@ -33,7 +33,7 @@ export default function QrPaymentPage() {
         setSettings(data.settings);
       }
     } catch (error) {
-      toast.error('Failed to load settings');
+      toast.error('无法加载设置信息');
     } finally {
       setLoading(false);
     }
@@ -52,7 +52,7 @@ export default function QrPaymentPage() {
     if (!file) return;
     
     if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image must be less than 2MB');
+      toast.error('图片大小不能超过 2MB');
       return;
     }
     
@@ -75,40 +75,40 @@ export default function QrPaymentPage() {
       });
       
       if (res.ok) {
-        toast.success('Settings saved successfully');
+        toast.success('设置已成功保存');
       } else {
-        toast.error('Failed to save settings');
+        toast.error('保存设置失败');
       }
     } catch (error) {
-      toast.error('An error occurred while saving');
+      toast.error('保存设置时发生错误');
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
-    return <LoadingSpinner text="Loading settings..." />;
+    return <LoadingSpinner text="正在加载设置..." />;
   }
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Payment & Store Settings</h1>
+      <h1 className={styles.title}>收款二维码与店铺配置</h1>
 
       <div className={styles.layout}>
         <div className={styles.mainCol}>
           <form onSubmit={handleSubmit} className="card">
             <div className={styles.cardHeader}>
-              <h2>Bank QR Code Setup</h2>
-              <p>This QR code is displayed to customers during checkout.</p>
+              <h2>DuitNow / 银行收款码配置</h2>
+              <p>顾客在官网结算结账时将展示此收款二维码进行转账付款。</p>
             </div>
             
             <div className={styles.cardBody}>
               <div className={styles.qrSetup}>
                 <div className={styles.qrPreview}>
                   {settings.qr_code ? (
-                    <img src={settings.qr_code} alt="Bank QR Code" />
+                    <img src={settings.qr_code} alt="银行收款码" />
                   ) : (
-                    <div className={styles.placeholder}>No QR Code Uploaded</div>
+                    <div className={styles.placeholder}>未上传收款码</div>
                   )}
                 </div>
                 
@@ -125,15 +125,15 @@ export default function QrPaymentPage() {
                     className="btn btnOutline"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    Upload New QR Code
+                    上传新收款二维码
                   </button>
-                  <p className={styles.helpText}>Supported formats: JPG, PNG. Max size: 2MB.</p>
+                  <p className={styles.helpText}>支持格式：JPG、PNG。文件大小不超过 2MB。</p>
                 </div>
               </div>
             </div>
             
             <div className={styles.cardHeader} style={{ marginTop: '20px' }}>
-              <h2>Store Options</h2>
+              <h2>配送与客服联系方式</h2>
             </div>
             
             <div className={styles.cardBody}>
@@ -148,15 +148,15 @@ export default function QrPaymentPage() {
                   />
                   <div className={styles.toggleSwitch}></div>
                   <div className={styles.toggleText}>
-                    <strong>Enable Delivery Option</strong>
-                    <p>Allow customers to select delivery at checkout</p>
+                    <strong>开启送货上门服务</strong>
+                    <p>允许顾客在结算时选择送货上门（关闭时仅允许来店自取）</p>
                   </div>
                 </label>
               </div>
 
               <div className={styles.grid2}>
                 <div className="formGroup mb2">
-                  <label htmlFor="shop_phone">Support Phone Number</label>
+                  <label htmlFor="shop_phone">店铺客服电话 / WhatsApp</label>
                   <input 
                     type="text" 
                     id="shop_phone"
@@ -167,7 +167,7 @@ export default function QrPaymentPage() {
                 </div>
                 
                 <div className="formGroup mb2">
-                  <label htmlFor="shop_email">Support Email</label>
+                  <label htmlFor="shop_email">店铺客服邮箱</label>
                   <input 
                     type="email" 
                     id="shop_email"
@@ -181,7 +181,7 @@ export default function QrPaymentPage() {
             
             <div className={styles.cardFooter}>
               <button type="submit" className="btn btnPrimary" disabled={saving}>
-                {saving ? 'Saving...' : 'Save Settings'}
+                {saving ? '保存中...' : '保存设置'}
               </button>
             </div>
           </form>

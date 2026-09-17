@@ -105,7 +105,7 @@ export default function VouchersPage() {
     e.preventDefault();
 
     if (formData.target_type === 'specific_customer' && !formData.customer_email.trim()) {
-      toast.error('Please select or enter the recipient customer email');
+      toast.error('请选择或输入接收优惠券的顾客邮箱');
       return;
     }
 
@@ -135,32 +135,32 @@ export default function VouchersPage() {
       const data = await res.json();
 
       if (res.ok) {
-        toast.success(editingVoucher ? 'Voucher updated' : 'Voucher created');
+        toast.success(editingVoucher ? '优惠券已更新' : '优惠券已成功创建');
         setIsModalOpen(false);
         fetchVouchers();
       } else {
-        toast.error(data.error || 'Failed to save voucher');
+        toast.error(data.error || '保存优惠券失败');
       }
     } catch (error) {
-      toast.error('An error occurred');
+      toast.error('操作出错');
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this voucher?')) return;
+    if (!confirm('确定要删除此优惠券吗？')) return;
 
     try {
       const res = await authFetch(`/api/vouchers/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        toast.success('Voucher deleted');
+        toast.success('优惠券已成功删除');
         fetchVouchers();
       } else {
-        toast.error('Failed to delete voucher');
+        toast.error('删除优惠券失败');
       }
     } catch (error) {
-      toast.error('An error occurred');
+      toast.error('操作出错');
     }
   };
 
@@ -173,11 +173,11 @@ export default function VouchersPage() {
       });
 
       if (res.ok) {
-        toast.success(`Voucher ${voucher.active === 1 ? 'deactivated' : 'activated'}`);
+        toast.success(voucher.active === 1 ? '优惠券已停用' : '优惠券已启用');
         fetchVouchers();
       }
     } catch (error) {
-      toast.error('Failed to update status');
+      toast.error('更新状态失败');
     }
   };
 
@@ -191,11 +191,11 @@ export default function VouchersPage() {
     <div>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Vouchers & Discounts</h1>
-          <p className={styles.subtitle}>Create public vouchers for all customers, or give exclusive single-use vouchers directly to specific customers.</p>
+          <h1 className={styles.title}>优惠券与促销代码管理</h1>
+          <p className={styles.subtitle}>创建公开通用的全员优惠券，或为特定顾客发放专属一次性优惠补偿。</p>
         </div>
         <button onClick={openAddModal} className="btn btnPrimary" style={{ fontWeight: 600 }}>
-          + Create Voucher
+          + 创建新优惠券
         </button>
       </div>
 
@@ -207,22 +207,22 @@ export default function VouchersPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Code</th>
-                  <th>Discount</th>
-                  <th>Recipient / Target</th>
-                  <th>Min Order</th>
-                  <th>Cart Visibility</th>
-                  <th>Usage Limit</th>
-                  <th>Expiry Date</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th>优惠码</th>
+                  <th>折扣力度</th>
+                  <th>发放对象</th>
+                  <th>最低消费</th>
+                  <th>购物车展示</th>
+                  <th>使用次数规则</th>
+                  <th>有效截止日期</th>
+                  <th>状态</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody>
                 {vouchers.length === 0 ? (
                   <tr>
                     <td colSpan="9" className="textCenter" style={{ padding: '30px', color: 'var(--color-text-light)' }}>
-                      No vouchers found
+                      暂无优惠券记录
                     </td>
                   </tr>
                 ) : (
@@ -238,8 +238,8 @@ export default function VouchersPage() {
                         <td className={styles.codeCell}>{voucher.code}</td>
                         <td className={styles.discountCell}>
                           {voucher.discount_type === 'percentage'
-                            ? `${voucher.discount_value}% OFF`
-                            : `RM${Number(voucher.discount_value).toFixed(2)} OFF`}
+                            ? `${voucher.discount_value}% 优惠`
+                            : `RM${Number(voucher.discount_value).toFixed(2)} 立减`}
                         </td>
 
                         {/* Recipient / Target */}
@@ -247,13 +247,13 @@ export default function VouchersPage() {
                           {isSpecific ? (
                             <span
                               className={styles.badgeTargetCustomer}
-                              title={`Exclusive to: ${voucher.customer_name ? `${voucher.customer_name} (${voucher.customer_email})` : voucher.customer_email}`}
+                              title={`专属顾客: ${voucher.customer_name ? `${voucher.customer_name} (${voucher.customer_email})` : voucher.customer_email}`}
                             >
                               👤 {voucher.customer_name || voucher.customer_email}
                             </span>
                           ) : (
-                            <span className={styles.badgeTargetAll} title="Available to all customers">
-                              🌐 All Customers
+                            <span className={styles.badgeTargetAll} title="全部顾客均可使用">
+                              🌐 全体顾客
                             </span>
                           )}
                         </td>
@@ -263,12 +263,12 @@ export default function VouchersPage() {
                         {/* Cart Visibility */}
                         <td>
                           {isPublic ? (
-                            <span className={styles.badgeVisible} title={isSpecific ? "Only this customer can see it in their cart" : "All customers can see it in their cart"}>
-                              👁️ Visible in Cart {isSpecific && '(Exclusive)'}
+                            <span className={styles.badgeVisible} title={isSpecific ? "仅该顾客登录后在购物车可见" : "所有顾客在购物车均可见"}>
+                              👁️ 购物车可见 {isSpecific && '(专属)'}
                             </span>
                           ) : (
-                            <span className={styles.badgeHidden} title="Hidden from cart. Customer must type code manually">
-                              🔒 Secret / Hidden
+                            <span className={styles.badgeHidden} title="购物车不展示卡片，顾客需手动输入优惠码">
+                              🔒 暗号隐藏
                             </span>
                           )}
                         </td>
@@ -276,16 +276,16 @@ export default function VouchersPage() {
                         {/* Usage Limit */}
                         <td>
                           {usageLimit === 'once_total' ? (
-                            <span className={styles.badgeSingleUse} title="Can only be used once total">
-                              ⚡ Single-Use ({timesUsed}/1)
+                            <span className={styles.badgeSingleUse} title="全店仅限使用 1 次">
+                              ⚡ 限用 1 次 ({timesUsed}/1)
                             </span>
                           ) : usageLimit === 'once_per_customer' ? (
-                            <span className={styles.badgeOnceUser} title="Each customer can use it once">
-                              👤 Once / Customer ({timesUsed} used)
+                            <span className={styles.badgeOnceUser} title="每位顾客仅限使用 1 次">
+                              👤 每人 1 次 (已用 {timesUsed} 次)
                             </span>
                           ) : (
-                            <span className={styles.badgeUnlimited} title="Unlimited uses">
-                              ♾️ Unlimited ({timesUsed} used)
+                            <span className={styles.badgeUnlimited} title="无限次反复使用">
+                              ♾️ 无限次 (已用 {timesUsed} 次)
                             </span>
                           )}
                         </td>
@@ -294,23 +294,23 @@ export default function VouchersPage() {
                           {voucher.expiry_date ? (
                             <span className={expired ? styles.textError : ''}>
                               {new Date(voucher.expiry_date).toLocaleDateString()}
-                              {expired && ' (Expired)'}
+                              {expired && ' (已过期)'}
                             </span>
-                          ) : 'No Expiry'}
+                          ) : '长期有效'}
                         </td>
                         <td>
                           <button
                             className={`${styles.statusToggle} ${voucher.active ? styles.statusActive : styles.statusInactive}`}
                             onClick={() => toggleStatus(voucher)}
-                            title="Click to toggle status"
+                            title="点击切换启用状态"
                           >
-                            {voucher.active ? 'Active' : 'Inactive'}
+                            {voucher.active ? '已启用' : '已停用'}
                           </button>
                         </td>
                         <td>
                           <div className="flex gap1">
-                            <button onClick={() => openEditModal(voucher)} className="btn btnSecondary" style={{ padding: '6px 12px' }}>Edit</button>
-                            <button onClick={() => handleDelete(voucher.id)} className="btn btnDanger" style={{ padding: '6px 12px' }}>Delete</button>
+                            <button onClick={() => openEditModal(voucher)} className="btn btnSecondary" style={{ padding: '6px 12px' }}>编辑</button>
+                            <button onClick={() => handleDelete(voucher.id)} className="btn btnDanger" style={{ padding: '6px 12px' }}>删除</button>
                           </div>
                         </td>
                       </tr>
@@ -326,20 +326,20 @@ export default function VouchersPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => !actionLoading && setIsModalOpen(false)}
-        title={editingVoucher ? 'Edit Voucher' : 'Create Voucher'}
+        title={editingVoucher ? '编辑优惠券' : '创建新优惠券'}
         maxWidth="680px"
       >
         <form onSubmit={handleSubmit} className={styles.form}>
 
           <div className="formGroup mb2">
-            <label htmlFor="code">Voucher Code *</label>
+            <label htmlFor="code">优惠券代码 (Voucher Code) *</label>
             <input
               type="text"
               id="code"
               name="code"
               value={formData.code}
               onChange={handleInputChange}
-              placeholder="e.g. SPECIAL-FOR-YOU, WELCOME10"
+              placeholder="例如：SPECIAL-FOR-YOU, WELCOME10"
               required
               style={{ textTransform: 'uppercase', fontWeight: 600, letterSpacing: '1px' }}
             />
@@ -347,21 +347,21 @@ export default function VouchersPage() {
 
           <div className={styles.grid2}>
             <div className="formGroup mb2">
-              <label htmlFor="discount_type">Discount Type *</label>
+              <label htmlFor="discount_type">折扣类型 *</label>
               <select
                 id="discount_type"
                 name="discount_type"
                 value={formData.discount_type}
                 onChange={handleInputChange}
               >
-                <option value="percentage">Percentage (%)</option>
-                <option value="fixed">Fixed Amount (RM)</option>
+                <option value="percentage">百分比折扣 (%)</option>
+                <option value="fixed">固定立减金额 (RM)</option>
               </select>
             </div>
 
             <div className="formGroup mb2">
               <label htmlFor="discount_value">
-                Discount Value *
+                折扣数值 *
                 {formData.discount_type === 'percentage' ? ' (%)' : ' (RM)'}
               </label>
               <input
@@ -379,7 +379,7 @@ export default function VouchersPage() {
 
           <div className={styles.grid2}>
             <div className="formGroup mb2">
-              <label htmlFor="min_order">Minimum Order (RM) *</label>
+              <label htmlFor="min_order">最低消费门槛 (RM) *</label>
               <input
                 type="number"
                 id="min_order"
@@ -393,7 +393,7 @@ export default function VouchersPage() {
             </div>
 
             <div className="formGroup mb2">
-              <label htmlFor="expiry_date">Expiry Date (Optional)</label>
+              <label htmlFor="expiry_date">有效截止日期 (选填，留空为长期有效)</label>
               <input
                 type="date"
                 id="expiry_date"
@@ -406,7 +406,7 @@ export default function VouchersPage() {
 
           {/* Target Recipient Section (Specific Customer vs All) */}
           <div className={styles.configBlock}>
-            <label className={styles.configHeader}>🎯 Target Recipient (发放对象)</label>
+            <label className={styles.configHeader}>🎯 发放对象</label>
             <div className={styles.radioGroup}>
               <label className={styles.radioLabel}>
                 <input
@@ -417,7 +417,7 @@ export default function VouchersPage() {
                   onChange={() => setFormData(prev => ({ ...prev, target_type: 'all', customer_email: '', customer_name: '' }))}
                 />
                 <div>
-                  <strong>🌐 All Customers (公开给所有顾客)</strong>
+                  <strong>🌐 全体顾客公开</strong>
                   <p>所有顾客都可使用。如果设置为可见，所有人都会在购物车中看到。</p>
                 </div>
               </label>
@@ -431,7 +431,7 @@ export default function VouchersPage() {
                   onChange={() => setFormData(prev => ({ ...prev, target_type: 'specific_customer' }))}
                 />
                 <div>
-                  <strong>👤 Specific Customer (专属给指定顾客 - 仅该顾客可见且可用)</strong>
+                  <strong>👤 指定专属顾客 (仅该顾客可见且可用)</strong>
                   <p>非常适合单次专属补偿/奖励。若设为可见，<strong>只有该顾客登录后能在购物车看到</strong>，其他人无法看到也无法抢用。</p>
                 </div>
               </label>
@@ -459,7 +459,7 @@ export default function VouchersPage() {
                     <option value="">-- 从已注册顾客中快捷选择 --</option>
                     {customers.map(c => (
                       <option key={c.id || c.email} value={c.email}>
-                        {c.name || 'Customer'} ({c.email}) {c.phone ? `- ${c.phone}` : ''}
+                        {c.name || '顾客'} ({c.email}) {c.phone ? `- ${c.phone}` : ''}
                       </option>
                     ))}
                   </select>
@@ -479,7 +479,7 @@ export default function VouchersPage() {
 
           {/* Cart Visibility Toggle */}
           <div className={styles.configBlock}>
-            <label className={styles.configHeader}>🛒 Cart Visibility (购物车展示)</label>
+            <label className={styles.configHeader}>🛒 购物车展示规则</label>
             <div className={styles.radioGroup}>
               <label className={styles.radioLabel}>
                 <input
@@ -489,7 +489,7 @@ export default function VouchersPage() {
                   onChange={() => setFormData(prev => ({ ...prev, is_public: true }))}
                 />
                 <div>
-                  <strong>👁️ Visible in Cart Page (在购物车展示)</strong>
+                  <strong>👁️ 在购物车直接展示卡片</strong>
                   <p>
                     {formData.target_type === 'specific_customer'
                       ? '⭐ 仅专属顾客登录后能在其购物车看到卡片，其他人看不到。'
@@ -506,7 +506,7 @@ export default function VouchersPage() {
                   onChange={() => setFormData(prev => ({ ...prev, is_public: false }))}
                 />
                 <div>
-                  <strong>🔒 Invisible / Secret Voucher (暗号隐藏)</strong>
+                  <strong>🔒 暗号隐藏 (不展示卡片，须手动输入优惠码)</strong>
                   <p>不在购物车列表中展示卡片，顾客必须在输入框手动输入优惠码。</p>
                 </div>
               </label>
@@ -515,7 +515,7 @@ export default function VouchersPage() {
 
           {/* Usage Limit Toggle */}
           <div className={styles.configBlock}>
-            <label className={styles.configHeader}>⚡ Usage Limit (使用次数规则)</label>
+            <label className={styles.configHeader}>⚡ 使用次数规则</label>
             <div className={styles.radioGroup}>
               <label className={styles.radioLabel}>
                 <input
@@ -526,7 +526,7 @@ export default function VouchersPage() {
                   onChange={handleInputChange}
                 />
                 <div>
-                  <strong>⚡ Single-Use Only (1 Time Total - 仅用 1 次)</strong>
+                  <strong>⚡ 全店仅限使用 1 次</strong>
                   <p>全店仅限使用 1 次，一旦下单成功立即核销失效（专属个人优惠券最常用）。</p>
                 </div>
               </label>
@@ -540,7 +540,7 @@ export default function VouchersPage() {
                   onChange={handleInputChange}
                 />
                 <div>
-                  <strong>👤 Once Per Customer (每位顾客仅限 1 次)</strong>
+                  <strong>👤 每位注册顾客仅限 1 次</strong>
                   <p>每位已注册顾客只能使用 1 次，适合全店新人优惠等。</p>
                 </div>
               </label>
@@ -554,7 +554,7 @@ export default function VouchersPage() {
                   onChange={handleInputChange}
                 />
                 <div>
-                  <strong>♾️ Unlimited Uses (无限次使用)</strong>
+                  <strong>♾️ 无限次反复使用</strong>
                   <p>有效期内任意顾客可反复使用。</p>
                 </div>
               </label>
@@ -570,7 +570,7 @@ export default function VouchersPage() {
                 checked={formData.active}
                 onChange={handleInputChange}
               />
-              <span>Voucher is active and ready to be used</span>
+              <span>优惠券当前处于启用状态，可正常核销</span>
             </label>
           </div>
 
@@ -582,7 +582,7 @@ export default function VouchersPage() {
               onClick={() => setIsModalOpen(false)}
               disabled={actionLoading}
             >
-              Cancel
+              取消
             </button>
             <button
               type="submit"
@@ -590,7 +590,7 @@ export default function VouchersPage() {
               style={{ flex: 2, fontWeight: 700 }}
               disabled={actionLoading}
             >
-              {actionLoading ? 'Saving...' : (editingVoucher ? 'Update Voucher' : 'Create Voucher')}
+              {actionLoading ? '保存中...' : (editingVoucher ? '更新优惠券' : '确认创建')}
             </button>
           </div>
         </form>

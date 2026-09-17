@@ -2,21 +2,24 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+import { businessDate } from '@/lib/business.mjs';
 
 export async function GET(request) {
   try {
     const user = verifyAuth(request);
-    if (!user) {
+    if (!user || !['staff', 'admin'].includes(user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
-    const today = new Date().toISOString().split('T')[0];
+
+    const today = businessDate();
 
     const ordersSnapshot = await getDocs(collection(db, 'orders'));
     let allOrders = [];
     ordersSnapshot.forEach(doc => {
       allOrders.push({ id: doc.id, ...doc.data() });
     });
+
+    allOrders = allOrders.filter(order => !order.is_manual_order);
 
     const productsSnapshot = await getDocs(collection(db, 'products'));
     let allProducts = [];
@@ -35,7 +38,7 @@ export async function GET(request) {
     const invalidStatuses = ['rejected', 'cancelled', 'refunded'];
 
     for (const order of allOrders) {
-      const orderDate = order.created_at ? order.created_at.split('T')[0] : '';
+      const orderDate = order.created_at ? businessDate(order.created_at) : '';
       const orderTotal = order.total || 0;
 
       if (orderDate === today) {
@@ -58,7 +61,7 @@ export async function GET(request) {
     // Current orders: only orders that haven't completed / been cancelled / rejected / refunded
     const activeStatuses = ['pending_verification', 'accepted', 'preparing', 'ready_pickup', 'out_delivery'];
     let currentOrders = allOrders.filter(o => activeStatuses.includes(o.order_status));
-    
+
     // Current orders: sequence of ordering from oldest to latest (FIFO)
     currentOrders.sort((a, b) => {
       const dateA = new Date(a.created_at || 0).getTime();

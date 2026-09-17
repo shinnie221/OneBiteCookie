@@ -6,15 +6,15 @@ import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import styles from './page.module.css';
 
 const statusLabels = {
-  pending_verification: 'Pending',
-  accepted: 'Accepted',
-  preparing: 'Preparing',
-  ready_pickup: 'Ready',
-  out_delivery: 'Out for Delivery',
-  completed: 'Completed',
-  rejected: 'Rejected',
-  cancelled: 'Cancelled',
-  refunded: 'Refunded',
+  pending_verification: '待核验',
+  accepted: '已接单',
+  preparing: '制作中',
+  ready_pickup: '待自取',
+  out_delivery: '配送中',
+  completed: '已完成',
+  rejected: '已拒绝',
+  cancelled: '已取消',
+  refunded: '已退款',
 };
 
 const statusColors = {
@@ -46,7 +46,7 @@ export default function CustomersPage() {
       const res = await authFetch('/api/customers');
       const data = await res.json();
       
-      if (!res.ok) throw new Error(data.error || 'Failed to load customers');
+      if (!res.ok) throw new Error(data.error || '无法加载顾客列表');
       
       setCustomers(data.customers || []);
     } catch (err) {
@@ -65,19 +65,19 @@ export default function CustomersPage() {
     );
   });
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <LoadingSpinner text="正在加载顾客信息..." />;
 
   return (
     <div>
       <div className={styles.headerRow}>
         <div>
-          <h1>Registered Customers</h1>
-          <p className={styles.subtitle}>{customers.length} customer{customers.length !== 1 ? 's' : ''} registered</p>
+          <h1>官网注册会员名录</h1>
+          <p className={styles.subtitle}>已注册 {customers.length} 位顾客会员</p>
         </div>
         <div className={styles.searchBox}>
           <input
             type="text"
-            placeholder="Search by name, email, or phone..."
+            placeholder="搜索姓名、邮箱或手机号码..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className={styles.searchInput}
@@ -94,7 +94,7 @@ export default function CustomersPage() {
       <div className={styles.customerList}>
         {filtered.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>No customers found.</p>
+            <p>未找到符合条件的顾客。</p>
           </div>
         ) : (
           filtered.map(customer => (
@@ -108,17 +108,17 @@ export default function CustomersPage() {
                   {(customer.name || '?')[0].toUpperCase()}
                 </div>
                 <div className={styles.customerInfo}>
-                  <div className={styles.customerName}>{customer.name || 'Unknown'}</div>
+                  <div className={styles.customerName}>{customer.name || '未知用户'}</div>
                   <div className={styles.customerEmail}>{customer.email}</div>
                 </div>
                 <div className={styles.customerStats}>
                   <div className={styles.stat}>
                     <span className={styles.statValue}>{customer.orderCount}</span>
-                    <span className={styles.statLabel}>Orders</span>
+                    <span className={styles.statLabel}>历史订单</span>
                   </div>
                   <div className={styles.stat}>
                     <span className={styles.statValue}>RM{customer.totalSpent ? customer.totalSpent.toFixed(2) : '0.00'}</span>
-                    <span className={styles.statLabel}>Spent</span>
+                    <span className={styles.statLabel}>累计消费</span>
                   </div>
                 </div>
                 <div className={`${styles.expandIcon} ${expandedId === customer.id ? styles.expanded : ''}`}>
@@ -130,31 +130,31 @@ export default function CustomersPage() {
                 <div className={styles.customerDetail}>
                   <div className={styles.detailGrid}>
                     <div className={styles.detailItem}>
-                      <span className={styles.detailLabel}>📧 Email</span>
+                      <span className={styles.detailLabel}>📧 电子邮箱</span>
                       <span className={styles.detailValue}>{customer.email || '—'}</span>
                     </div>
                     <div className={styles.detailItem}>
-                      <span className={styles.detailLabel}>📱 Phone</span>
-                      <span className={styles.detailValue}>{customer.phone || 'Not provided yet'}</span>
+                      <span className={styles.detailLabel}>📱 联系电话</span>
+                      <span className={styles.detailValue}>{customer.phone || '暂未填写'}</span>
                     </div>
                     <div className={styles.detailItem}>
-                      <span className={styles.detailLabel}>📅 Registered</span>
+                      <span className={styles.detailLabel}>📅 注册时间</span>
                       <span className={styles.detailValue}>
                         {customer.createdAt || customer.created_at
-                          ? new Date(customer.createdAt || customer.created_at).toLocaleDateString('en-MY', { year: 'numeric', month: 'short', day: 'numeric' })
+                          ? new Date(customer.createdAt || customer.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
                           : '—'}
                       </span>
                     </div>
                     <div className={styles.detailItem}>
-                      <span className={styles.detailLabel}>🔑 Login</span>
-                      <span className={styles.detailValue}>{customer.authProvider === 'google' ? 'Google' : 'Email'}</span>
+                      <span className={styles.detailLabel}>🔑 登录方式</span>
+                      <span className={styles.detailValue}>{customer.authProvider === 'google' ? 'Google 登录' : '邮箱密码'}</span>
                     </div>
                   </div>
 
                   <div className={styles.orderHistory}>
-                    <h3>Order History</h3>
+                    <h3>历史订单记录</h3>
                     {(!customer.orders || customer.orders.length === 0) ? (
-                      <p className={styles.noOrders}>No orders yet.</p>
+                      <p className={styles.noOrders}>暂无下单记录。</p>
                     ) : (
                       <div className={styles.orderList}>
                         {customer.orders.map(order => (
@@ -172,9 +172,9 @@ export default function CustomersPage() {
                               </span>
                             </div>
                             <div className={styles.orderMeta}>
-                              <span>{new Date(order.created_at).toLocaleDateString('en-MY', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                              <span>{new Date(order.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' })}</span>
                               <span>•</span>
-                              <span>{order.order_type === 'delivery' ? '🚚 Delivery' : '🏪 Pickup'}</span>
+                              <span>{order.order_type === 'delivery' ? '🚚 送货上门' : '🏪 到店自取'}</span>
                               <span>•</span>
                               <span style={{ fontWeight: 600 }}>RM{(order.total || 0).toFixed(2)}</span>
                             </div>

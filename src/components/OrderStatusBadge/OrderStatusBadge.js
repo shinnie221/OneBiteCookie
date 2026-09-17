@@ -1,23 +1,25 @@
 import styles from './OrderStatusBadge.module.css';
 
 const STATUS_MAP = {
-  pending_verification: { label: 'Pending Verification', variant: 'warning' },
-  accepted: { label: 'Accepted', variant: 'info' },
-  preparing: { label: 'Preparing', variant: 'info' },
-  ready_pickup: { label: 'Ready for Pickup', variant: 'success' },
-  out_delivery: { label: 'Out for Delivery', variant: 'success' },
-  completed: { label: 'Completed', variant: 'success' },
-  rejected: { label: 'Rejected', variant: 'error' },
-  cancelled: { label: 'Cancelled', variant: 'error' },
-  refunded: { label: 'Refunded', variant: 'neutral' },
+  pending_verification: { label: 'Pending Verification', zh: '待核验', variant: 'warning' },
+  accepted: { label: 'Accepted', zh: '已接单', variant: 'info' },
+  preparing: { label: 'Preparing', zh: '制作中', variant: 'info' },
+  ready_pickup: { label: 'Ready for Pickup', zh: '待自取', variant: 'success' },
+  out_delivery: { label: 'Out for Delivery', zh: '配送中', variant: 'success' },
+  completed: { label: 'Completed', zh: '已完成', variant: 'success' },
+  rejected: { label: 'Rejected', zh: '已拒绝', variant: 'error' },
+  cancelled: { label: 'Cancelled', zh: '已取消', variant: 'error' },
+  refunded: { label: 'Refunded', zh: '已退款', variant: 'neutral' },
 };
 
-export default function OrderStatusBadge({ status }) {
-  const config = STATUS_MAP[status] || { label: status, variant: 'default' };
+export default function OrderStatusBadge({ status, lang = 'zh' }) {
+  const config = STATUS_MAP[status] || { label: status, zh: status, variant: 'default' };
+  const displayText = lang === 'en' ? config.label : (config.zh || config.label);
   
   return (
     <span className={`${styles.badge} ${styles[config.variant]}`}>
-      {config.label}
+      {displayText}
     </span>
   );
 }
+

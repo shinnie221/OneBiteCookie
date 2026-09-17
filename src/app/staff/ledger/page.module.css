@@ -1,0 +1,371 @@
+.page {
+  display: grid;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header h1 {
+  margin: 6px 0;
+  font-size: 2rem;
+}
+
+.header p, .hint {
+  color: var(--color-text-light);
+  font-size: .9rem;
+}
+
+.eyebrow {
+  font-size: .75rem !important;
+  letter-spacing: .12em;
+  color: var(--color-primary) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Date control panel */
+.controlPanel {
+  background: white;
+  border: 1px solid var(--color-border-light);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: grid;
+  gap: 18px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.modeSwitcher {
+  display: flex;
+  gap: 8px;
+  background: #f1f5f9;
+  padding: 5px;
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.modeBtn {
+  flex: 1;
+  min-width: 110px;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: .9rem;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: all .15s ease;
+  text-align: center;
+}
+
+.modeBtn:hover {
+  color: var(--color-text);
+}
+
+.modeBtnActive {
+  background: white;
+  color: var(--color-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+}
+
+.dateToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.quickButtons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.quickBtn {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.quickBtn:hover {
+  background: var(--color-bg-alt);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.dateInputs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dateInputs label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .88rem;
+  font-weight: 600;
+}
+
+.dateInputs input, .dateInputs select {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: .9rem;
+  background: white;
+  color: var(--color-text);
+}
+
+.dateInputs input:focus-visible, .dateInputs select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.exportBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #15803d !important;
+  color: white !important;
+  border: 0 !important;
+  font-weight: 600;
+  padding: 10px 18px !important;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity .15s ease;
+}
+
+.exportBtn:hover {
+  opacity: .9;
+}
+
+/* KPI Summary Grid */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.kpiCard {
+  background: white;
+  border: 1px solid var(--color-border-light);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpiCard span {
+  font-size: .82rem;
+  color: var(--color-text-light);
+  font-weight: 500;
+}
+
+.kpiCard strong {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.kpiCard small {
+  font-size: .78rem;
+  color: var(--color-text-light);
+  margin-top: 2px;
+}
+
+.kpiPrimary {
+  border-left: 4px solid var(--color-primary);
+}
+
+.kpiPrimary strong {
+  color: var(--color-primary);
+}
+
+.kpiSuccess {
+  border-left: 4px solid #16a34a;
+}
+
+.kpiSuccess strong {
+  color: #16a34a;
+}
+
+.kpiWarning {
+  border-left: 4px solid #ea580c;
+}
+
+.kpiWarning strong {
+  color: #ea580c;
+}
+
+.kpiInfo {
+  border-left: 4px solid #2563eb;
+}
+
+.kpiInfo strong {
+  color: #2563eb;
+}
+
+/* View Tabs */
+.tabs {
+  display: flex;
+  gap: 10px;
+  border-bottom: 2px solid var(--color-border-light);
+  padding-bottom: 2px;
+  overflow-x: auto;
+}
+
+.tabBtn {
+  border: 0;
+  background: transparent;
+  padding: 12px 18px;
+  font-weight: 600;
+  font-size: .95rem;
+  color: var(--color-text-light);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  transition: all .15s ease;
+}
+
+.tabBtn:hover {
+  color: var(--color-text);
+}
+
+.tabBtnActive {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* Table and Ledger List */
+.tableCard {
+  background: white;
+  border: 1px solid var(--color-border-light);
+  border-radius: 16px;
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tableHeader h2 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.ledgerTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+  text-align: left;
+}
+
+.ledgerTable th {
+  background: #f8fafc;
+  color: var(--color-text-light);
+  padding: 12px 14px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.ledgerTable td {
+  padding: 14px;
+  border-bottom: 1px solid var(--color-border-light);
+  vertical-align: middle;
+}
+
+.ledgerTable tr:hover {
+  background: #fcfcfc;
+}
+
+.badgeOrder {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: .75rem;
+  font-weight: 600;
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badgeBooth {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: .75rem;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badgeWholesale {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: .75rem;
+  font-weight: 600;
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.emptyState {
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--color-text-light);
+}
+
+.errorBanner {
+  padding: 16px;
+  background: #fef2f2;
+  color: #991b1b;
+  border-radius: 10px;
+  border: 1px solid #fecaca;
+}
+
+@media (max-width: 1024px) {
+  .kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .kpiGrid {
+    grid-template-columns: 1fr;
+  }
+  .controlPanel {
+    padding: 16px;
+  }
+  .tableCard {
+    padding: 16px;
+  }
+}
