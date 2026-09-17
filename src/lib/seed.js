@@ -100,6 +100,56 @@ export async function seedDatabase() {
         shop_email: 'hello@onebite.com'
       });
     }
+
+    // 5. Seed default supplier if empty
+    const suppliersRef = collection(db, 'suppliers');
+    const suppliersSnapshot = await getDocs(suppliersRef);
+    if (suppliersSnapshot.empty) {
+      await addDoc(suppliersRef, {
+        name: '拾光精品咖啡馆 (合作店铺)',
+        contact: '012-8889999 (陈店长)',
+        notes: '每周二固定送货，定金50%+出货结清',
+        status: '合作中',
+        minOrderQty: 40,
+        standardSupplyPrice: 4.80,
+        bulkThresholdQty: 100,
+        bulkSupplyPrice: 4.40,
+        agreedMinRetailPrice: 7.90,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    }
+
+    // 6. Seed sample finance records if empty
+    const financeRef = collection(db, 'finance_records');
+    const financeSnapshot = await getDocs(financeRef);
+    if (financeSnapshot.empty) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      await addDoc(financeRef, {
+        date: todayStr,
+        transactionType: '支出',
+        category: '食材',
+        amount: 280.00,
+        orderType: 'General',
+        note: '顶级发酵黄油与法芙娜可可粉采购',
+        receiptUrl: '',
+        supplierName: '优质烘焙原料行',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+      await addDoc(financeRef, {
+        date: todayStr,
+        transactionType: '收入',
+        category: 'Supplier采购',
+        amount: 384.00,
+        orderType: 'General',
+        note: '供货给拾光咖啡馆 80 片经典曲奇',
+        receiptUrl: '',
+        supplierName: '拾光精品咖啡馆 (合作店铺)',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    }
   } catch (err) {
     console.error('Seed database error:', err);
   }
