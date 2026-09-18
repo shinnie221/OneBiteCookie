@@ -170,39 +170,50 @@
 }
 
 @media (max-width: 768px) {
-  /* Hero Section */
+  /* Hero Section - Centered in mobile view */
   .hero {
     flex-direction: column;
-    text-align: left;
-    align-items: flex-start;
-    padding: 36px 20px 24px;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px 28px;
     gap: 0;
   }
   .heroContent {
     max-width: 100%;
     width: 100%;
-    text-align: left;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto;
   }
   .heroBadge {
     display: inline-block;
     font-size: 0.82rem;
     padding: 6px 14px;
-    margin-bottom: 12px;
+    margin: 0 auto 14px;
+    text-align: center;
   }
-  /* Heading and paragraph font size the same */
-  .heroTitle {
-    font-size: 1.05rem;
+  /* The 3 headings share the exact same font size */
+  .heroTitle,
+  .sectionTitle {
+    font-size: 1.6rem;
     font-weight: 800;
-    line-height: 1.35;
-    margin-bottom: 10px;
-    text-align: left;
+    line-height: 1.25;
+    text-align: center;
+  }
+  .heroTitle {
+    margin: 0 auto 12px;
   }
   .heroSubtitle {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     font-weight: 400;
-    line-height: 1.55;
-    margin-bottom: 0;
-    text-align: left;
+    line-height: 1.6;
+    margin: 0 auto;
+    text-align: center;
+    max-width: 480px;
+    color: var(--color-text-light);
   }
   /* Cookie animation hidden in mobile view */
   .heroVisual {
@@ -210,7 +221,6 @@
   }
 
   .productGrid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  .sectionTitle { font-size: 1.8rem; }
 
   /* How It Works - 2 Rows in Mobile View */
   .howItWorks {
@@ -252,19 +262,24 @@
 
 @media (max-width: 480px) {
   .hero {
-    padding: 28px 16px 20px;
+    padding: 30px 16px 20px;
   }
   .heroBadge {
     font-size: 0.76rem;
     padding: 5px 12px;
-    margin-bottom: 10px;
+    margin: 0 auto 10px;
+  }
+  /* The 3 headings share the exact same font size on phones */
+  .heroTitle,
+  .sectionTitle {
+    font-size: 1.4rem;
+    line-height: 1.25;
   }
   .heroTitle {
-    font-size: 0.98rem;
-    margin-bottom: 8px;
+    margin: 0 auto 10px;
   }
   .heroSubtitle {
-    font-size: 0.98rem;
+    font-size: 0.88rem;
     line-height: 1.5;
   }
   .heroVisual {
