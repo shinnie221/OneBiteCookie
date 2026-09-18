@@ -5,6 +5,23 @@ import { useAuth } from '@/context/AuthContext';
 import { businessDate, money, normalizeBusinessRecord, normalizeBuyer } from '@/lib/business.mjs';
 import styles from './BusinessChannel.module.css';
 
+function formatDMY(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return '';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const [y, m, d] = parts;
+    return `${d}/${m}/${y}`;
+  }
+  return dateStr;
+}
+
+function getYesterday(baseDate = businessDate()) {
+  const [y, m, d] = baseDate.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() - 1);
+  return businessDate(dt);
+}
+
 const blankItem = booth => ({ name: '', quantity: booth ? 0 : 1, unitPrice: '', ...(booth ? { prepared: '', waste: 0 } : {}) });
 export default function BusinessChannel({ channel }) {
   const booth = channel === 'booth';
@@ -17,7 +34,10 @@ export default function BusinessChannel({ channel }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [tab, setTab] = useState('records');
-  const [month, setMonth] = useState(businessDate().slice(0, 7));
+  const [filterMode, setFilterMode] = useState('month');
+  const [filterDate, setFilterDate] = useState(businessDate());
+  const [filterMonth, setFilterMonth] = useState(businessDate().slice(0, 7));
+  const [searchQuery, setSearchQuery] = useState('');
   const [draft, setDraft] = useState(null);
   const [buyerDraft, setBuyerDraft] = useState(null);
   const load = useCallback(async () => {
@@ -41,8 +61,25 @@ export default function BusinessChannel({ channel }) {
     }).catch(() => { }); // Flavour names can still be entered if menu suggestions are unavailable.
     return () => { active = false; };
   }, [authFetch]);
-  const visible = records.filter(r => r.channel === channel && (!month || r.date.startsWith(month)));
+  const visible = records.filter(r => {
+    if (r.channel !== channel) return false;
+    if (filterMode === 'date' && filterDate) {
+      if (r.date !== filterDate) return false;
+    } else if (filterMode === 'month' && filterMonth) {
+      if (!r.date.startsWith(filterMonth)) return false;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      const matchTitle = (r.title || '').toLowerCase().includes(q);
+      const matchDate = (r.date || '').includes(q) || formatDMY(r.date).includes(q);
+      const matchFlavour = (r.items || []).some(it => (it.name || '').toLowerCase().includes(q));
+      if (!matchTitle && !matchDate && !matchFlavour) return false;
+    }
+    return true;
+  });
   const totals = visible.reduce((sum, r) => ({ sales: sum.sales + r.sales, expenses: sum.expenses + r.expenseTotal, outstanding: sum.outstanding + r.outstanding }), { sales: 0, expenses: 0, outstanding: 0 });
+  const totalPiecesSold = visible.reduce((sum, r) => sum + r.items.reduce((s, it) => s + (Number(it.quantity) || 0), 0), 0);
+  const totalPiecesPrepared = booth ? visible.reduce((sum, r) => sum + r.items.reduce((s, it) => s + (Number(it.prepared) || 0), 0), 0) : 0;
   const update = (key, value) => setDraft(prev => ({ ...prev, [key]: value }));
   const updateItem = (index, key, value) => setDraft(prev => ({ ...prev, items: prev.items.map((item, i) => i === index ? { ...item, [key]: value } : item) }));
   const start = () => {
@@ -80,7 +117,8 @@ export default function BusinessChannel({ channel }) {
         setBuyerDraft(null);
       } else {
         setRecords(prev => [...prev.filter(r => r.id !== source.id), data.record].sort((a, b) => b.date.localeCompare(a.date)));
-        setMonth(source.date.slice(0, 7));
+        setFilterDate(source.date);
+        setFilterMonth(source.date.slice(0, 7));
         setDraft(null);
       }
       setNotice(
@@ -241,7 +279,136 @@ export default function BusinessChannel({ channel }) {
       </div>
     </fieldset></form>}
     {!draft && !buyerDraft && <>
-      {tab === 'records' && <><div className={styles.toolbar}><label>月份<input type="month" value={month} onChange={e => setMonth(e.target.value)} /></label><button className="btn btnSecondary" onClick={() => setMonth('')}>全部日期</button><button className="btn btnSecondary" onClick={load}>刷新</button></div>
+      {tab === 'records' && <>
+        <div className={styles.controlPanel}>
+          <div className={styles.toolbarTopRow}>
+            <div className={styles.dateModeGroup} role="tablist" aria-label="日期筛选方式">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filterMode === 'date'}
+                className={`${styles.modeTab} ${filterMode === 'date' ? styles.modeTabActive : ''}`}
+                onClick={() => setFilterMode('date')}
+              >
+                📅 按具体日期 (DD/MM/YYYY)
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filterMode === 'month'}
+                className={`${styles.modeTab} ${filterMode === 'month' ? styles.modeTabActive : ''}`}
+                onClick={() => setFilterMode('month')}
+              >
+                🗓️ 按月份 (月度汇总)
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filterMode === 'all'}
+                className={`${styles.modeTab} ${filterMode === 'all' ? styles.modeTabActive : ''}`}
+                onClick={() => setFilterMode('all')}
+              >
+                📋 全部历史记录
+              </button>
+            </div>
+
+            <div className={styles.toolbarActionBtns}>
+              <button
+                type="button"
+                className={styles.quickDateBtn}
+                onClick={() => {
+                  setFilterMode('date');
+                  setFilterDate(businessDate());
+                }}
+              >
+                今天 ({formatDMY(businessDate())})
+              </button>
+              <button
+                type="button"
+                className={styles.quickDateBtn}
+                onClick={() => {
+                  setFilterMode('date');
+                  setFilterDate(getYesterday());
+                }}
+              >
+                昨天
+              </button>
+              <button
+                type="button"
+                className={styles.quickDateBtn}
+                onClick={() => {
+                  setFilterMode('month');
+                  setFilterMonth(businessDate().slice(0, 7));
+                }}
+              >
+                本月
+              </button>
+              <button
+                type="button"
+                className="btn btnSecondary"
+                onClick={load}
+                title="重新加载数据"
+              >
+                🔄 刷新
+              </button>
+            </div>
+          </div>
+
+          <div className={styles.toolbarBottomRow}>
+            {filterMode === 'date' ? (
+              <div className={styles.datePickerWrapper}>
+                <input
+                  type="date"
+                  className={styles.styledDateInput}
+                  value={filterDate}
+                  title="按具体日期筛选 (DD/MM/YYYY)"
+                  aria-label="按具体日期筛选"
+                  onChange={e => {
+                    setFilterDate(e.target.value);
+                    setFilterMode('date');
+                  }}
+                />
+              </div>
+            ) : filterMode === 'month' ? (
+              <div className={styles.datePickerWrapper}>
+                <input
+                  type="month"
+                  className={styles.styledDateInput}
+                  value={filterMonth}
+                  title="按月份筛选"
+                  aria-label="按月份筛选"
+                  onChange={e => {
+                    setFilterMonth(e.target.value);
+                    setFilterMode('month');
+                  }}
+                />
+              </div>
+            ) : (
+              <div className={styles.datePickerWrapper}>
+                <button
+                  type="button"
+                  className={styles.styledDateInput}
+                  style={{ cursor: 'pointer', textAlign: 'center', background: '#f8fafc', color: 'var(--color-text-light)' }}
+                  onClick={() => setFilterMode('date')}
+                  title="点击切换到按具体日期筛选"
+                >
+                  📅 全部历史记录
+                </button>
+              </div>
+            )}
+
+            <div className={styles.searchWrapper}>
+              <input
+                type="search"
+                className={styles.styledSearchInput}
+                placeholder={booth ? "🔍 搜索摆摊地点、曲奇口味或日期..." : "🔍 搜索批发商名称、曲奇口味或日期..."}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
         {booth && visible.some(r => r.status === 'preparing') && (
           <div className={styles.boothAlertBanner}>
             <div>
@@ -250,85 +417,225 @@ export default function BusinessChannel({ channel }) {
             </div>
           </div>
         )}
-        <div className={styles.totals}><span>总销售额<strong>{money(totals.sales)}</strong></span><span>已记支出<strong>{money(totals.expenses)}</strong></span><span>{booth ? '营收净额 (扣除支出)' : '待结清尾款'}<strong>{money(booth ? totals.sales - totals.expenses : totals.outstanding)}</strong></span></div>
-        <section className={styles.panel}><h2>{booth ? '摆摊历史记录' : '订单历史记录'}</h2>{loading ? <p>正在加载记录...</p> : !visible.length ? <p className={styles.empty}>{month ? `本月暂无${booth ? '摆摊记录' : '批发订单'}` : `暂无${booth ? '摆摊记录' : '批发订单'}`}。点击上方按钮添加第一条记录。</p> : <div className={styles.history}>{visible.map(record => {
-          const isPrep = booth && record.status === 'preparing';
-          const totalPrepared = record.items.reduce((sum, item) => sum + (Number(item.prepared) || 0), 0);
-          const totalSold = record.items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
-          const totalLeftover = record.items.reduce((sum, item) => sum + (Number(item.leftover) || 0), 0);
-          return (
-            <div className={styles.historyRow} key={record.id}>
-              <div>
-                <strong>
-                  {record.title}
-                  {booth && (
-                    isPrep
-                      ? <span className={styles.badgePreparing}>⏳ 摆摊中 · 待结单</span>
-                      : <span className={styles.badgeCompleted}>✅ 已结单</span>
-                  )}
-                </strong>
-                {isPrep ? (
-                  <>
-                    <p>{record.date} · 准备出摊共 {totalPrepared} 片 (待收摊结单)</p>
-                    <small>摆摊结束后，请点击“🏁 摆摊结束结单”录入售出数量及现场费用</small>
-                  </>
-                ) : (
-                  <>
-                    <p>{record.date} · {booth ? `${totalSold} 片 已售出` : `${record.items.reduce((sum, item) => sum + item.quantity, 0)} 片 已订购`}</p>
-                    {booth ? (
-                      <small>准备 {totalPrepared} 片 · 剩余 {totalLeftover} 片</small>
-                    ) : (
-                      <small>{record.outstanding > 0 ? `尚欠尾款 ${money(record.outstanding)}` : '已全额结清'}</small>
-                    )}
-                  </>
-                )}
-              </div>
-              <strong>{isPrep ? '待结单' : money(record.sales)}</strong>
-              <div className={styles.historyActions}>
-                {isPrep ? (
-                  <>
-                    <button
-                      type="button"
-                      className={`btn btnPrimary ${styles.finalizeBtn}`}
-                      onClick={() => {
-                        setError('');
-                        setNotice('');
-                        setDraft({ ...structuredClone(record), status: 'completed' });
-                      }}
-                    >
-                      🏁 摆摊结束结单
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btnSecondary"
-                      onClick={() => {
-                        setError('');
-                        setNotice('');
-                        setDraft(structuredClone(record));
-                      }}
-                    >
-                      修改出摊准备
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    className="btn btnSecondary"
-                    onClick={() => {
-                      setError('');
-                      setNotice('');
-                      setDraft(structuredClone(record));
-                    }}
-                  >
-                    查看 / 编辑
-                  </button>
-                )}
-              </div>
+
+        {/* Graphical KPI Summary Cards */}
+        <div className={styles.statsGrid}>
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <span className={styles.statLabel}>总销售额</span>
+              <span className={styles.statIcon}>💰</span>
             </div>
-          );
-        })}</div>}</section>
+            <strong className={styles.statValue}>{money(totals.sales)}</strong>
+            <span className={styles.statSubtext}>共 {visible.length} 笔{booth ? '摆摊' : '供货'}记录</span>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <span className={styles.statLabel}>已记支出</span>
+              <span className={styles.statIcon}>🧾</span>
+            </div>
+            <strong className={styles.statValue} style={{ color: totals.expenses > 0 ? '#dc2626' : 'var(--color-primary)' }}>
+              {money(totals.expenses)}
+            </strong>
+            <span className={styles.statSubtext}>{booth ? '现场摊位费与杂费开销' : '包装与物流配送支出'}</span>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <span className={styles.statLabel}>{booth ? '营收净额 (扣除支出)' : '待收尾款'}</span>
+              <span className={styles.statIcon}>{booth ? '📈' : '⏳'}</span>
+            </div>
+            <strong
+              className={styles.statValue}
+              style={{
+                color: booth
+                  ? (totals.sales - totals.expenses >= 0 ? '#16a34a' : '#dc2626')
+                  : (totals.outstanding > 0 ? '#ea580c' : '#16a34a')
+              }}
+            >
+              {money(booth ? totals.sales - totals.expenses : totals.outstanding)}
+            </strong>
+            <span className={styles.statSubtext}>
+              {booth ? '销售额扣减现场支出后净额' : (totals.outstanding > 0 ? '尚未收回货款' : '所有订单均已结清')}
+            </span>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <span className={styles.statLabel}>{booth ? '售出曲奇总量' : '批发供货总量'}</span>
+              <span className={styles.statIcon}>🍪</span>
+            </div>
+            <strong className={styles.statValue}>{totalPiecesSold} 片</strong>
+            <span className={styles.statSubtext}>
+              {booth ? `准备出摊共 ${totalPiecesPrepared} 片` : `累计出库 ${totalPiecesSold} 片`}
+            </span>
+          </div>
+        </div>
+
+        <section className={styles.panel}>
+          <h2>{booth ? '摆摊历史记录' : '订单历史记录'}</h2>
+          {loading ? (
+            <p>正在加载记录...</p>
+          ) : !visible.length ? (
+            <p className={styles.empty}>
+              {filterMode === 'date' && filterDate
+                ? `在 ${formatDMY(filterDate)} 暂无${booth ? '摆摊记录' : '批发订单'}`
+                : filterMode === 'month' && filterMonth
+                  ? `本月暂无${booth ? '摆摊记录' : '批发订单'}`
+                  : `暂无${booth ? '摆摊记录' : '批发订单'}`}。点击上方按钮添加第一条记录。
+            </p>
+          ) : (
+            <div className={styles.history}>
+              {visible.map(record => {
+                const isPrep = booth && record.status === 'preparing';
+                const totalPrepared = record.items.reduce((sum, item) => sum + (Number(item.prepared) || 0), 0);
+                const totalSold = record.items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+                const totalLeftover = record.items.reduce((sum, item) => sum + (Number(item.leftover) || 0), 0);
+                return (
+                  <div className={styles.historyRow} key={record.id}>
+                    <div className={styles.historyRowLeft}>
+                      <div className={styles.historyRowTitleLine}>
+                        <strong className={styles.recordTitle}>{record.title}</strong>
+                        {booth && (
+                          isPrep
+                            ? <span className={styles.badgePreparing}>⏳ 摆摊中 · 待结单</span>
+                            : <span className={styles.badgeCompleted}>✅ 已结单</span>
+                        )}
+                        {!booth && (
+                          record.outstanding > 0
+                            ? <span className={styles.badgeOutstanding}>待收尾款 {money(record.outstanding)}</span>
+                            : <span className={styles.badgeCompleted}>✅ 已结清</span>
+                        )}
+                      </div>
+
+                      <div className={styles.historyRowSubtext}>
+                        <span className={styles.dateBadge}>📅 {formatDMY(record.date)}</span>
+                        <span>·</span>
+                        <span>
+                          {booth
+                            ? (isPrep ? `准备出摊共 ${totalPrepared} 片 (待收摊结单)` : `${totalSold} 片 已售出`)
+                            : `${record.items.reduce((sum, item) => sum + item.quantity, 0)} 片 已订购`}
+                        </span>
+                        {booth && !isPrep && (
+                          <>
+                            <span>·</span>
+                            <span>准备 {totalPrepared} 片 · 剩余 {totalLeftover} 片</span>
+                          </>
+                        )}
+                      </div>
+
+                      {record.items && record.items.length > 0 && (
+                        <div className={styles.flavourPills}>
+                          {record.items.map((item, idx) => (
+                            <span key={idx} className={styles.flavourPill}>
+                              {item.name}: {booth ? (isPrep ? `备${item.prepared}片` : `售${item.quantity}/备${item.prepared}片`) : `${item.quantity}片`}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {record.notes && (
+                        <div className={styles.historyNotes}>
+                          📝 {record.notes}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className={styles.historyRowRight}>
+                      <div className={styles.historyPriceBox}>
+                        <span className={styles.historyPriceLabel}>{isPrep ? '状态' : '销售额'}</span>
+                        <strong className={styles.historyPriceValue}>{isPrep ? '待结单' : money(record.sales)}</strong>
+                        {record.expenseTotal > 0 && (
+                          <span className={styles.historyExpenseNote}>支出 {money(record.expenseTotal)}</span>
+                        )}
+                      </div>
+
+                      <div className={styles.historyActions}>
+                        {isPrep ? (
+                          <>
+                            <button
+                              type="button"
+                              className={`btn btnPrimary ${styles.finalizeBtn}`}
+                              onClick={() => {
+                                setError('');
+                                setNotice('');
+                                setDraft({ ...structuredClone(record), status: 'completed' });
+                              }}
+                            >
+                              🏁 摆摊结束结单
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btnSecondary"
+                              onClick={() => {
+                                setError('');
+                                setNotice('');
+                                setDraft(structuredClone(record));
+                              }}
+                            >
+                              修改出摊准备
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btnSecondary"
+                            onClick={() => {
+                              setError('');
+                              setNotice('');
+                              setDraft(structuredClone(record));
+                            }}
+                          >
+                            查看 / 编辑
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
       </>}
-      {tab === 'buyers' && <section className={styles.panel}><h2>合作商联系录</h2><p className={styles.hint}>在此统一维护合作批发商及店铺联系信息。每笔订单均可单独设置不同口味的供货价格。</p>{loading ? <p>正在加载批发商...</p> : !buyers.length ? <p className={styles.empty}>暂无合作商。录入首笔批发订单前请先在此添加合作商。</p> : <div className={styles.history}>{buyers.map(buyer => <div className={styles.historyRow} key={buyer.id}><div><strong>{buyer.name}</strong><p>{buyer.contact || '暂无联系信息'}</p>{buyer.notes && <small>{buyer.notes}</small>}</div><button className="btn btnSecondary" onClick={() => { setError(''); setBuyerDraft({ ...buyer, notes: buyer.notes || '', contact: buyer.contact || '' }); }}>编辑联系人</button></div>)}</div>}</section>}
+      {tab === 'buyers' && (
+        <section className={styles.panel}>
+          <h2>合作商联系录</h2>
+          <p className={styles.hint}>在此统一维护合作批发商及店铺联系信息。每笔订单均可单独设置不同口味的供货价格。</p>
+          {loading ? (
+            <p>正在加载批发商...</p>
+          ) : !buyers.length ? (
+            <p className={styles.empty}>暂无合作商。录入首笔批发订单前请先在此添加合作商。</p>
+          ) : (
+            <div className={styles.history}>
+              {buyers.map(buyer => (
+                <div className={styles.historyRow} key={buyer.id}>
+                  <div className={styles.historyRowLeft}>
+                    <div className={styles.historyRowTitleLine}>
+                      <strong className={styles.recordTitle}>{buyer.name}</strong>
+                    </div>
+                    <p className={styles.historyRowSubtext}>📞 {buyer.contact || '暂无联系信息'}</p>
+                    {buyer.notes && <div className={styles.historyNotes}>📝 {buyer.notes}</div>}
+                  </div>
+                  <div className={styles.historyRowRight}>
+                    <div className={styles.historyActions}>
+                      <button
+                        className="btn btnSecondary"
+                        onClick={() => {
+                          setError('');
+                          setBuyerDraft({ ...buyer, notes: buyer.notes || '', contact: buyer.contact || '' });
+                        }}
+                      >
+                        编辑联系人
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </>}
   </div>;
 }

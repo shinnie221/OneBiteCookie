@@ -1,6 +1,6 @@
 .page {
   display: grid;
-  gap: 20px;
+  gap: 24px;
 }
 
 .header {
@@ -21,7 +21,7 @@
 .header p, .hint {
   color: var(--color-text-light);
   font-size: 0.88rem;
-  line-height: 1.45;
+  line-height: 1.5;
   margin: 0;
 }
 
@@ -34,54 +34,123 @@
   margin: 0;
 }
 
-/* KPI Summary Cards Grid */
+/* =========================================
+   KPI Summary Cards Grid (Graphical Design)
+   ========================================= */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
+  margin-bottom: 6px;
 }
 
 .statCard {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 16px;
+  gap: 6px;
+  padding: 18px 20px;
   background: white;
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-lg, 14px);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.statHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.statIcon {
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
 .statLabel {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--color-text-light);
 }
 
 .statValue {
-  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
   font-weight: 800;
   color: var(--color-primary);
   line-height: 1.2;
 }
 
 .statSubtext {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--color-text-light);
 }
 
-/* Date Control Panel */
+/* Fallback / Form Totals */
+.totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  background: white;
+  border: 1px solid var(--color-border-light);
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin: 12px 0 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.totals span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+}
+
+.totals strong {
+  color: var(--color-primary);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+/* =========================================
+   Date Control & Filter Toolbar
+   ========================================= */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar button {
+  padding: 9px 18px !important;
+}
+
 .controlPanel {
   background: white;
   border: 1px solid var(--color-border-light);
   border-radius: 14px;
-  padding: 16px 20px;
+  padding: 18px 22px;
   display: grid;
-  gap: 14px;
+  gap: 16px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
 }
 
-.modeSwitcher {
+.toolbarTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dateModeGroup {
   display: flex;
   gap: 8px;
   background: #f1f5f9;
@@ -90,10 +159,8 @@
   flex-wrap: wrap;
 }
 
-.modeBtn {
-  flex: 1;
-  min-width: 130px;
-  padding: 8px 14px;
+.modeTab {
+  padding: 8px 16px;
   border: 0;
   background: transparent;
   border-radius: 7px;
@@ -102,98 +169,112 @@
   color: var(--color-text-light);
   cursor: pointer;
   transition: all 0.15s ease;
-  text-align: center;
+  white-space: nowrap;
 }
 
-.modeBtn:hover {
+.modeTab:hover {
   color: var(--color-text);
 }
 
-.modeBtnActive {
+.modeTabActive {
   background: white;
   color: var(--color-primary);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
 }
 
-.dateToolbar {
+.toolbarActionBtns {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
-.quickButtons {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.quickBtn {
+.quickDateBtn {
   background: white;
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  padding: 7px 12px;
+  padding: 8px 14px;
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--color-text);
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
-.quickBtn:hover {
+.quickDateBtn:hover {
   background: var(--color-bg-alt);
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
 
-.dateInputs {
+.toolbarBottomRow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+}
+
+.datePickerWrapper {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.searchWrapper {
   flex: 1;
-  justify-content: flex-end;
-}
-
-.inlineLabel {
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin: 0;
 }
 
-.dateInput,
-.searchInput {
+.styledDateInput,
+.styledSearchInput {
+  height: 42px;
+  box-sizing: border-box;
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 0 14px;
   font: inherit;
   font-size: 0.88rem;
   background: white;
   color: var(--color-text);
   outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  line-height: 40px;
 }
 
-.dateInput:focus,
-.searchInput:focus {
+.styledDateInput {
+  min-width: 190px;
+}
+
+.styledSearchInput {
+  width: 100%;
+}
+
+.styledDateInput:focus,
+.styledSearchInput:focus {
   border-color: var(--color-primary);
   outline: 2px solid rgba(234, 88, 12, 0.15);
 }
 
-.searchInput {
-  min-width: 220px;
+.searchWrapper {
+  flex: 1;
+  min-width: 240px;
 }
 
-/* Panel & Forms */
+.styledSearchInput {
+  width: 100%;
+}
+
+/* =========================================
+   History Panel & Far-Right Aligned Row
+   ========================================= */
 .panel {
   background: white;
   border: 1px solid var(--color-border-light);
   border-radius: 16px;
-  padding: 24px;
+  padding: 24px 28px;
   min-width: 0;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
 }
@@ -213,383 +294,89 @@
 }
 
 .panel h2 {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  margin: 24px 0 8px;
+  margin: 24px 0 10px;
   color: var(--color-text);
 }
 
 .panel > h2 {
   margin-top: 0;
+  margin-bottom: 8px;
 }
 
-.page label {
+.history {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  min-width: 0;
 }
 
-.page input, .page select, .page textarea {
-  width: 100%;
-  min-width: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  color: var(--color-text);
-  background: white;
-  font: inherit;
-  font-size: 0.88rem;
-  outline: none;
-}
-
-.page textarea {
-  min-height: 80px;
-  resize: vertical;
-}
-
-.page input:focus-visible, .page select:focus-visible, .page textarea:focus-visible {
-  border-color: var(--color-primary);
-  outline: 2px solid rgba(234, 88, 12, 0.15);
-}
-
-.page small {
-  font-weight: 400;
-  color: var(--color-text-light);
-  font-size: 0.78rem;
-}
-
-.fields {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 18px;
-}
-
-/* Booth Stage Switcher */
-.stageToggle {
-  display: flex;
-  gap: 8px;
-  background: #f8fafc;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 5px;
-  margin-bottom: 20px;
-}
-
-.stageBtn {
-  flex: 1;
-  border: 0;
-  background: transparent;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.88rem;
-  color: var(--color-text-light);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: center;
-}
-
-.stageBtn:hover {
-  color: var(--color-text);
-}
-
-.stageBtnActive {
-  background: white;
-  color: var(--color-primary);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-}
-
-.stageNotice {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1e40af;
-  padding: 12px 16px;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  line-height: 1.45;
-  margin-bottom: 20px;
-}
-
-/* Items List in Form */
-.itemList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 14px 0 18px;
-}
-
-.itemCard {
-  background: var(--color-bg-alt, #fafaf9);
-  border: 1px solid var(--color-border-light);
-  border-radius: 12px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.itemHeader {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-}
-
-.itemBadge {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  padding: 4px 8px;
-  border-radius: 6px;
-  white-space: nowrap;
-}
-
-.flavourLabel {
-  flex: 1;
-  margin: 0 !important;
-}
-
-.removeBtn {
-  background: transparent;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s ease;
-}
-
-.removeBtn:hover:not(:disabled) {
-  background: #fef2f2;
-}
-
-.removeBtn:disabled {
-  opacity: 0.4;
-  cursor: default;
-  border-color: #e5e7eb;
-  color: #9ca3af;
-}
-
-.itemInputsGrid3 {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  align-items: end;
-}
-
-.itemInputsGridBooth {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
-  align-items: end;
-}
-
-.itemSubtotalBox {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 8px 12px;
-  height: 42px;
-}
-
-.itemSubtotalBox span {
-  font-size: 0.72rem;
-  color: var(--color-text-light);
-  line-height: 1;
-  margin-bottom: 3px;
-}
-
-.itemSubtotalBox strong {
-  font-size: 0.88rem;
-  line-height: 1;
-}
-
-/* Expenses in Form */
-.expenseList {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 14px 0;
-}
-
-.expenseRow {
-  display: flex;
-  gap: 12px;
-  align-items: flex-end;
-  background: var(--color-bg-alt, #fafaf9);
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--color-border-light);
-}
-
-.removeExpenseBtn {
-  background: transparent;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  margin-bottom: 2px;
-}
-
-.removeExpenseBtn:hover {
-  background: #fef2f2;
-}
-
-/* Form Real-time Totals Card */
-.formTotalsCard {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  background: #f8fafc;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 16px;
-  margin: 18px 0;
-}
-
-.formTotalsCard span {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 0.8rem;
-  color: var(--color-text-light);
-}
-
-.formTotalsCard strong {
-  font-size: 1.25rem;
-  color: var(--color-primary);
-}
-
-.actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-top: 20px;
-}
-
-/* History Records Cards */
-.recordList {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 14px;
-}
-
-.recordCard {
-  background: white;
-  border: 1px solid var(--color-border-light);
-  border-radius: 14px;
-  padding: 18px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.recordCard:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
-}
-
-.recordCardHeader {
+/* History Row with Far Right Positioning */
+.historyRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding-bottom: 12px;
+  gap: 24px;
+  padding: 20px 0;
   border-bottom: 1px solid var(--color-border-light);
+  width: 100%;
 }
 
-.recordCardHeaderLeft {
+.historyRow:last-child {
+  border-bottom: 0;
+}
+
+.historyRow:hover {
+  background: #fafaf9;
+}
+
+.historyRowLeft {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.historyRowTitleLine {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+}
+
+.recordTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.historyRowSubtext {
+  margin: 2px 0 4px;
+  color: var(--color-text-light);
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .dateBadge {
-  font-size: 0.82rem;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8rem;
   font-weight: 700;
   background: #eff6ff;
   color: #1e40af;
   border: 1px solid #bfdbfe;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: 6px;
-}
-
-.recordTitle {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.recordCardHeaderRight {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.recordSalesLabel {
-  font-size: 0.78rem;
-  color: var(--color-text-light);
-}
-
-.recordSalesAmount {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--color-primary);
-}
-
-.metricsGrid {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
-  background: #f8fafc;
-  padding: 12px 14px;
-  border-radius: 10px;
-}
-
-.metricItem {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.metricItem span {
-  font-size: 0.72rem;
-  color: var(--color-text-light);
-  font-weight: 600;
-}
-
-.metricItem strong {
-  font-size: 0.95rem;
-  color: var(--color-text);
 }
 
 .flavourPills {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  margin-top: 4px;
 }
 
 .flavourPill {
@@ -597,34 +384,70 @@
   align-items: center;
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-size: 0.78rem;
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-size: 0.75rem;
   color: #334155;
 }
 
-.recordNotes {
-  font-size: 0.82rem;
-  color: #475569;
-  background: #fffbeb;
-  border: 1px solid #fef3c7;
-  padding: 8px 12px;
-  border-radius: 8px;
-  line-height: 1.4;
+.historyNotes {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 2px;
 }
 
-.recordCardFooter {
+/* Far Right Aligned Container */
+.historyRowRight {
+  margin-left: auto; /* Pushes firmly to the far right edge of the rect */
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.historyPriceBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  min-width: 100px;
+}
+
+.historyPriceLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  font-weight: 600;
+}
+
+.historyPriceValue {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1.2;
+}
+
+.historyExpenseNote {
+  font-size: 0.75rem;
+  color: #dc2626;
+  font-weight: 500;
+  margin-top: 2px;
 }
 
 .historyActions {
   display: flex;
-  gap: 10px;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 12px; /* Ample spacing between action buttons */
+}
+
+.historyActions button,
+.actions button {
+  padding: 9px 18px !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
 }
 
 .finalizeBtn {
@@ -675,18 +498,6 @@
   border: 1px solid #fed7aa;
 }
 
-.badgePaid {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  background: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
-}
-
 .boothAlertBanner {
   display: flex;
   align-items: center;
@@ -698,7 +509,7 @@
   border-radius: 12px;
   color: #9a3412;
   font-size: 0.92rem;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
@@ -706,17 +517,257 @@
   color: #c2410c;
 }
 
-/* Tabs & Common Elements */
-.tabs {
+/* =========================================
+   Draft Form (Add / Edit) Styles
+   ========================================= */
+.stageToggle {
   display: flex;
   gap: 8px;
+  background: #f8fafc;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 5px;
+  margin-bottom: 22px;
+}
+
+.stageBtn {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.stageBtn:hover {
+  color: var(--color-text);
+}
+
+.stageBtnActive {
+  background: white;
+  color: var(--color-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.stageNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin-bottom: 20px;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.page label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.page input, .page select, .page textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--color-text);
+  background: white;
+  font: inherit;
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.page textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.page input:focus-visible, .page select:focus-visible, .page textarea:focus-visible {
+  border-color: var(--color-primary);
+  outline: 2px solid rgba(234, 88, 12, 0.15);
+}
+
+.page small {
+  font-weight: 400;
+  color: var(--color-text-light);
+  font-size: 0.78rem;
+}
+
+/* Flavours Grid */
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 16px 0 20px;
+}
+
+.itemCard {
+  background: var(--color-bg-alt, #fafaf9);
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.itemHeader {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.itemBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.flavourLabel {
+  flex: 1;
+  margin: 0 !important;
+}
+
+.removeBtn {
+  background: transparent;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.removeBtn:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.removeBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+}
+
+.itemInputsGrid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.itemInputsGridBooth {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.itemSubtotalBox {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  height: 42px;
+}
+
+.itemSubtotalBox span {
+  font-size: 0.72rem;
+  color: var(--color-text-light);
+  line-height: 1;
+  margin-bottom: 3px;
+}
+
+.itemSubtotalBox strong {
+  font-size: 0.88rem;
+  line-height: 1;
+}
+
+/* Expenses */
+.expenseList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.expenseRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  background: var(--color-bg-alt, #fafaf9);
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-light);
+}
+
+.removeExpenseBtn {
+  background: transparent;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.removeExpenseBtn:hover {
+  background: #fef2f2;
+}
+
+.actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-top: 24px;
+}
+
+/* Tabs & Alerts */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .tabs button {
   border: 1px solid var(--color-border);
   background: white;
   border-radius: 8px;
-  padding: 10px 18px;
+  padding: 10px 20px;
   cursor: pointer;
   font: inherit;
   font-size: 0.88rem;
@@ -756,54 +807,7 @@
   font-size: 0.88rem;
 }
 
-/* Legacy history styles for SettingsPage compatibility */
-.history {
-  display: flex;
-  flex-direction: column;
-}
-
-.historyRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--color-border-light);
-  text-decoration: none;
-  color: inherit;
-}
-
-.historyRow:hover {
-  background: #fafaf9;
-}
-
-.historyRow > div {
-  flex: 1;
-  min-width: 180px;
-}
-
-.historyRow p {
-  margin: 4px 0 0;
-  color: var(--color-text-light);
-  font-size: 0.85rem;
-}
-
-.historyRow:last-child {
-  border-bottom: 0;
-}
-
-.summaryFooter {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 32px;
-  font-size: 0.9rem;
-}
-
-.summaryFooter strong {
-  margin-left: 8px;
-}
-
-/* Responsive Media Queries */
+/* Responsive */
 @media (max-width: 1024px) {
   .statsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -811,12 +815,23 @@
   .itemInputsGridBooth {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .metricsGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 768px) {
+  .historyRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .historyRowRight {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .historyPriceBox {
+    align-items: flex-start;
+    text-align: left;
+  }
   .statsGrid {
     grid-template-columns: 1fr;
   }
@@ -829,31 +844,14 @@
   .itemInputsGridBooth {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .metricsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .formTotalsCard {
-    grid-template-columns: 1fr;
-  }
   .controlPanel {
-    padding: 14px;
+    padding: 16px;
   }
   .panel {
-    padding: 16px;
+    padding: 18px;
   }
   .expenseRow {
     flex-direction: column;
     align-items: stretch;
-  }
-  .recordCardHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .dateInputs {
-    justify-content: stretch;
-  }
-  .dateInputs label,
-  .searchInput {
-    width: 100%;
   }
 }
