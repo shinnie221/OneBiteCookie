@@ -65,8 +65,9 @@ export function AuthProvider({ children }) {
     const headers = {
       ...options.headers,
     };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    const activeToken = token || (typeof window !== 'undefined' ? localStorage.getItem('onebite_token') : null);
+    if (activeToken) {
+      headers['Authorization'] = `Bearer ${activeToken}`;
     }
     return fetch(url, { ...options, headers });
   }, [token]);

@@ -38,7 +38,7 @@ export default function BusinessChannel({ channel }) {
     let active = true;
     authFetch('/api/products').then(res => res.ok ? res.json() : null).then(data => {
       if (active && data?.products) setProducts(data.products);
-    }).catch(() => {}); // Flavour names can still be entered if menu suggestions are unavailable.
+    }).catch(() => { }); // Flavour names can still be entered if menu suggestions are unavailable.
     return () => { active = false; };
   }, [authFetch]);
   const visible = records.filter(r => r.channel === channel && (!month || r.date.startsWith(month)));
@@ -87,15 +87,15 @@ export default function BusinessChannel({ channel }) {
         kind === 'buyer'
           ? '批发商联系人已保存。'
           : source.status === 'preparing'
-          ? '出摊准备记录已保存！摆摊结束后可点击“🏁 摆摊结束结单”录入售出数量。'
-          : '业务记录已保存。'
+            ? '出摊准备记录已保存！摆摊结束后可点击“🏁 摆摊结束结单”录入售出数量。'
+            : '业务记录已保存。'
       );
     } catch (err) { setError(err.message || '保存失败，请重试。'); }
     finally { setSaving(false); }
   };
   const closeForm = () => { setDraft(null); setBuyerDraft(null); setError(''); };
   let preview = null;
-  if (draft) { try { preview = normalizeBusinessRecord(draft); } catch {} }
+  if (draft) { try { preview = normalizeBusinessRecord(draft); } catch { } }
   const header = booth ? '摆摊销售' : '批发供货';
   const isBoothPreparing = booth && draft?.status === 'preparing';
 
@@ -154,15 +154,15 @@ export default function BusinessChannel({ channel }) {
         </div>
       )}
       <div className={styles.fields}><label>{booth ? '活动日期' : '订单日期'}<input required type="date" value={draft.date} onChange={e => update('date', e.target.value)} /></label>
-      {booth ? <label>摆摊名称 / 地点<input required maxLength={1000} placeholder="例如：吉隆坡周末市集 / 商场展销" value={draft.title} onChange={e => update('title', e.target.value)} /></label> : <label htmlFor="wholesale-buyer">批发采购商<select id="wholesale-buyer" aria-label="批发采购商" required value={draft.buyerId} onChange={e => { const buyer = buyers.find(b => b.id === e.target.value); setDraft(prev => ({ ...prev, buyerId: buyer?.id || '', title: buyer?.name || '', contact: buyer?.contact || '' })); }}><option value="">请选择批发商</option>{buyers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>}</div>
+        {booth ? <label>摆摊名称 / 地点<input required maxLength={1000} placeholder="例如：吉隆坡周末市集 / 商场展销" value={draft.title} onChange={e => update('title', e.target.value)} /></label> : <label htmlFor="wholesale-buyer">批发采购商<select id="wholesale-buyer" aria-label="批发采购商" required value={draft.buyerId} onChange={e => { const buyer = buyers.find(b => b.id === e.target.value); setDraft(prev => ({ ...prev, buyerId: buyer?.id || '', title: buyer?.name || '', contact: buyer?.contact || '' })); }}><option value="">请选择批发商</option>{buyers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>}</div>
       {!booth && <><label>本单联系方式<input required maxLength={1000} value={draft.contact} onChange={e => update('contact', e.target.value)} /></label>{!buyers.length && <p className={styles.hint}>请先取消此单，并在“合作商联系录”中添加合作商。</p>}</>}
       <h2>各口味曲奇明细</h2>
       <p className={styles.hint}>
         {isBoothPreparing
           ? '第一阶段：只需输入出摊准备总片数与单价。售出数量与试吃损耗将在收摊结单时填写。'
           : booth
-          ? '第二阶段：请确认准备片数，并输入最终售出片数与试吃/损耗。系统将自动计算结余库存。'
-          : '输入每种口味协商一致的单价。价格将保存在本订单中。'}
+            ? '第二阶段：请确认准备片数，并输入最终售出片数与试吃/损耗。系统将自动计算结余库存。'
+            : '输入每种口味协商一致的单价。价格将保存在本订单中。'}
       </p>
       <datalist id="cookie-flavours">{products.map(p => <option key={p.id} value={p.name} />)}</datalist>
       {isBoothPreparing ? (
@@ -208,7 +208,7 @@ export default function BusinessChannel({ channel }) {
         </div>
       )}
       <button type="button" className="btn btnSecondary" onClick={() => update('items', [...draft.items, blankItem(booth)])}>+ 添加曲奇口味</button>
-      
+
       {!isBoothPreparing && (
         <>
           <h2>支出明细 (Expenses)</h2>
@@ -219,9 +219,9 @@ export default function BusinessChannel({ channel }) {
           <div className={styles.fields}><label>优惠折扣扣减 (RM)<input required type="number" min="0" max="1000000" step="0.01" value={draft.discount} onChange={e => update('discount', e.target.value)} /><small>从曲奇总额中扣除优惠折扣或满减。</small></label>{!booth && <label>已收金额 (RM)<input required type="number" min="0" max="1000000" step="0.01" value={draft.received} onChange={e => update('received', e.target.value)} /><small>批发商付款后可随时更新此收款金额。</small></label>}</div>
         </>
       )}
-      
+
       <label>{isBoothPreparing ? '出摊前备忘说明' : '备注说明'}<textarea maxLength={1000} placeholder={isBoothPreparing ? '选填：当日摆摊备忘、摊位分配、天气等' : booth ? '选填：当日活动备注、人流天气等' : '选填：订单参考号、特殊配送说明等'} value={draft.notes} onChange={e => update('notes', e.target.value)} /></label>
-      
+
       {isBoothPreparing ? (
         <div className={styles.totals} aria-live="polite">
           <span>准备总片数 <strong>{draft.items.reduce((s, it) => s + (Number(it.prepared) || 0), 0)} 片</strong></span>
@@ -231,7 +231,7 @@ export default function BusinessChannel({ channel }) {
       ) : preview ? (
         <div className={styles.totals} aria-live="polite"><span>总销售额 <strong>{money(preview.sales)}</strong></span><span>已记支出 <strong>{money(preview.expenseTotal)}</strong></span><span>{booth ? '营收净额 (扣除支出)' : '待结清尾款'}<strong>{money(booth ? preview.sales - preview.expenseTotal : preview.outstanding)}</strong></span></div>
       ) : <p className={styles.hint}>填写必要信息后将自动计算最终统计。</p>}
-      
+
       {error && <p className={styles.error} role="alert">{error}</p>}
       <div className={styles.actions}>
         <button className="btn btnPrimary">
