@@ -158,6 +158,304 @@
   color: var(--color-primary);
 }
 
+/* Delivery Area Restrictions Notice */
+.klDeliveryNotice {
+  padding: 14px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.klDeliveryNoticeHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #166534;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.klDeliveryNoticeText {
+  font-size: 0.86rem;
+  color: #15803d;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.whatsappInquiryBtn {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  padding: 7px 14px;
+  background: #16a34a;
+  color: white !important;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+  transition: all 0.15s ease;
+}
+
+.whatsappInquiryBtn:hover {
+  background: #15803d;
+  transform: translateY(-1px);
+}
+
+.nonKlBlockAlert {
+  padding: 16px;
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.nonKlBlockTitle {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nonKlBlockAlert p {
+  font-size: 0.86rem;
+  color: #b91c1c;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.nonKlActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.nonKlActions a,
+.nonKlActions button {
+  padding: 8px 14px;
+  font-size: 0.84rem;
+}
+
+/* No Address in Profile Box */
+.noAddressBox {
+  padding: 24px;
+  background: #fffbeb;
+  border: 1.5px dashed #fcd34d;
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.noAddressIcon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.noAddressContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.noAddressContent strong {
+  font-size: 1rem;
+  color: #92400e;
+}
+
+.noAddressContent p {
+  font-size: 0.88rem;
+  color: #b45309;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Selected Address Card in Checkout */
+.selectedAddressCard {
+  background: #f8fafc;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 12px;
+}
+
+.selectedAddressHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.selectedAddressBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--color-primary-lighter);
+  color: var(--color-primary-dark);
+  border: 1px solid var(--color-primary-light);
+}
+
+.selectedRecipient {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.selectedPhone {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+}
+
+.selectedAddressLines {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Store Pickup Location Card */
+.pickupLocationCard {
+  margin-top: 18px;
+  padding: 20px;
+  background: #fdfbf7;
+  border: 1.5px solid #fed7aa;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.pickupLocationHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pickupPinIcon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.pickupTitle {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #9a3412;
+}
+
+.pickupSubtitle {
+  display: block;
+  font-size: 0.82rem;
+  color: #c2410c;
+  margin-top: 2px;
+}
+
+.pickupDetails {
+  padding: 12px 14px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #ffedd5;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pickupAddress {
+  font-size: 0.88rem;
+  color: var(--color-text);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.pickupTime {
+  font-size: 0.9rem;
+  color: #9a3412;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pickupNote {
+  font-size: 0.82rem;
+  color: #78350f;
+  margin: 0;
+}
+
+.pickupLinks {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.locationLinkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #ea580c;
+  color: white !important;
+  font-size: 0.84rem;
+  font-weight: 700;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.2);
+  transition: all 0.15s ease;
+}
+
+.locationLinkBtn:hover {
+  background: #c2410c;
+  transform: translateY(-1px);
+}
+
+.mapsLinkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: white;
+  color: var(--color-text) !important;
+  font-size: 0.84rem;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.mapsLinkBtn:hover {
+  background: var(--color-bg-alt);
+  border-color: var(--color-primary);
+}
+
 @media (max-width: 900px) {
   .checkoutLayout {
     grid-template-columns: 1fr;

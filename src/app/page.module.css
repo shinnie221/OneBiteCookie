@@ -180,7 +180,7 @@
     text-align: center;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px 28px;
+    padding: 36px 20px 0;
     gap: 0;
   }
   .heroContent {
@@ -224,14 +224,22 @@
     display: none !important;
   }
 
-  /* Mobile Divider between Hero and Menu */
+  /* Mobile Divider - Perfectly symmetric spacing between Hero and Menu */
   .mobileDivider {
     display: block;
     width: min(85%, 320px);
     height: 1.5px;
     background: linear-gradient(90deg, transparent, var(--color-border), transparent);
-    margin: 10px auto 32px;
+    margin: 20px auto 20px;
     border-radius: 999px;
+  }
+
+  /* Menu Section - Remove huge desktop top padding on mobile */
+  .menu {
+    padding: 0 16px 40px;
+  }
+  .menuHeader {
+    margin-bottom: 28px;
   }
 
   .productGrid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
@@ -276,7 +284,7 @@
 
 @media (max-width: 480px) {
   .hero {
-    padding: 30px 16px 20px;
+    padding: 28px 16px 0;
   }
   .heroBadge {
     font-size: 0.76rem;
@@ -302,7 +310,14 @@
 
   .mobileDivider {
     width: min(88%, 280px);
-    margin: 8px auto 26px;
+    margin: 16px auto 16px;
+  }
+
+  .menu {
+    padding: 0 12px 32px;
+  }
+  .menuHeader {
+    margin-bottom: 22px;
   }
 
   .productGrid { grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 0 auto; }

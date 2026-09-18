@@ -2,6 +2,7 @@ import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
 import { sendOrderNotificationEmail } from '@/lib/email';
+import { isStateDeliverable } from '@/lib/addresses.mjs';
 import { NextResponse } from 'next/server';
 
 function generateOrderId() {
@@ -101,6 +102,8 @@ export async function POST(request) {
       email, 
       order_type, 
       address, 
+      delivery_state,
+      pickup_time,
       items, 
       voucher_code, 
       payment_screenshot,
@@ -114,6 +117,17 @@ export async function POST(request) {
 
     if (!customer_name || !phone || !items || items.length === 0) {
       return NextResponse.json({ error: 'Customer name, phone, and items are required' }, { status: 400 });
+    }
+
+    if (order_type === 'delivery' && !isStaffOrAdmin) {
+      if (!address || !address.trim()) {
+        return NextResponse.json({ error: 'Delivery address is required for delivery orders' }, { status: 400 });
+      }
+      if (delivery_state && !isStateDeliverable(delivery_state)) {
+        return NextResponse.json({ 
+          error: 'Delivery is only available within Kuala Lumpur. Other states are not acceptable, except Klang Valley area where you can WhatsApp us (011-10897061) for inquiry, or select Store Pickup.' 
+        }, { status: 400 });
+      }
     }
 
     let subtotal = 0;
@@ -254,6 +268,8 @@ export async function POST(request) {
       email: email || '',
       order_type: order_type || 'pickup',
       address: address || '',
+      pickup_time: pickup_time || (order_type === 'pickup' ? '11:00 AM' : null),
+      delivery_state: delivery_state || (order_type === 'delivery' ? 'Kuala Lumpur' : null),
       subtotal,
       discount,
       total,
@@ -311,13 +327,15 @@ export async function POST(request) {
       }
     }
 
-    // Deduct stock
+    // Deduct stock if numerical inventory is tracked
     for (const item of resolvedItems) {
       const productRef = doc(db, 'products', item.product_id);
       const snap = await getDoc(productRef);
       if (snap.exists()) {
         const prod = snap.data();
-        await updateDoc(productRef, { stock: Math.max(0, prod.stock - item.quantity) });
+        if (typeof prod.stock === 'number') {
+          await updateDoc(productRef, { stock: Math.max(0, prod.stock - item.quantity) });
+        }
       }
     }
 

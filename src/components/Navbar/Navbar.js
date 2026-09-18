@@ -31,7 +31,10 @@ export default function Navbar() {
           <Link href="/#menu" className={styles.navLink} onClick={() => setMobileOpen(false)}>Menu</Link>
           
           {isAuthenticated && user?.role === 'customer' && (
-            <Link href="/orders" className={styles.navLink} onClick={() => setMobileOpen(false)}>Order History</Link>
+            <>
+              <Link href="/orders" className={styles.navLink} onClick={() => setMobileOpen(false)}>Order History</Link>
+              <Link href="/profile" className={styles.navLink} onClick={() => setMobileOpen(false)}>My Profile</Link>
+            </>
           )}
 
           {isAuthenticated && user?.role !== 'customer' && (
@@ -41,7 +44,9 @@ export default function Navbar() {
           <div className={styles.mobileAuthSection}>
             {isAuthenticated ? (
               <div className={styles.mobileUserInfo}>
-                <span className={styles.mobileGreeting}>👤 {user?.name || 'Customer'}</span>
+                <Link href="/profile" className={styles.mobileGreeting} style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => setMobileOpen(false)}>
+                  👤 {user?.name || 'Customer'} · Profile ↗
+                </Link>
                 <button 
                   onClick={() => {
                     setMobileOpen(false);
@@ -77,7 +82,10 @@ export default function Navbar() {
           {isAuthenticated ? (
             <>
               {user?.role === 'customer' ? (
-                <button onClick={handleLogout} className={styles.loginBtn}>Logout</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Link href="/profile" className={styles.loginBtn} style={{ background: 'var(--color-bg-alt)', color: 'var(--color-text)' }}>Profile</Link>
+                  <button onClick={handleLogout} className={styles.loginBtn}>Logout</button>
+                </div>
               ) : (
                 <Link href="/staff/dashboard" className={styles.loginBtn}>Dashboard</Link>
               )}

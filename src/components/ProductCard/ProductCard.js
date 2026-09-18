@@ -32,8 +32,8 @@ export default function ProductCard({ product }) {
   
   const cartItem = items.find(i => i.product_id === product.id);
   const cartQuantity = cartItem ? cartItem.quantity : 0;
-  // Available or unavailable only (no stock quantity numbers shown to customers)
-  const isAvailable = product.available !== false && product.available !== 0 && (product.stock === undefined || product.stock > 0);
+  // Available or unavailable only (controlled by staff toggle, no stock numbers shown)
+  const isAvailable = product.available !== false && product.available !== 0;
   const isUnavailable = !isAvailable;
 
   const handleAdd = () => {

@@ -107,8 +107,24 @@ function ConfirmationContent() {
           <p><strong>Name:</strong> {order.customer_name}</p>
           <p><strong>Phone:</strong> {order.phone}</p>
           <p><strong>Type:</strong> {order.order_type === 'delivery' ? 'Delivery' : 'Store Pickup'}</p>
-          {order.order_type === 'delivery' && (
-            <p><strong>Address:</strong> {order.address}</p>
+          {order.order_type === 'delivery' ? (
+            <p><strong>Delivery Address:</strong> {order.address}</p>
+          ) : (
+            <>
+              <p><strong>Pickup Time:</strong> {order.pickup_time || '11:00 AM'}</p>
+              <p>
+                <strong>Pickup Location:</strong>{' '}
+                <a 
+                  href="https://thepalette.com.my/the-palette-danau-kota/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--color-primary)', textDecoration: 'underline', fontWeight: 600 }}
+                >
+                  The Palette @ Danau Kota ↗
+                </a>{' '}
+                (Setapak, Kuala Lumpur)
+              </p>
+            </>
           )}
         </div>
         
