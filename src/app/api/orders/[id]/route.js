@@ -93,7 +93,16 @@ export async function PUT(request, { params }) {
 
     if (body.order_status !== undefined) {
       updates.order_status = body.order_status;
+      if (body.order_status === 'completed') {
+        updates.completed_at = body.completed_at || existing.completed_at || new Date().toISOString();
+      } else if (existing.completed_at) {
+        updates.completed_at = null;
+      }
     }
+    if (body.completed_at !== undefined) {
+      updates.completed_at = body.completed_at;
+    }
+    updates.updated_at = new Date().toISOString();
     if (body.payment_status !== undefined) {
       updates.payment_status = body.payment_status;
     }

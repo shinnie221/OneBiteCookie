@@ -63,14 +63,26 @@ export function normalizeBusinessRecord(input) {
     return result;
 }
 
-export function summarizeChannels(orders, records, from, to) {
+export function getOrderCompletionDate(order) {
+    if (!order) return null;
+    const status = order.order_status || order.status;
+    if (status !== 'completed') return null;
+    const dateVal = order.completed_at || order.updated_at || order.created_at;
+    return dateVal ? businessDate(dateVal) : null;
+}
+
+export function summarizeChannels(orders, records, from, to, financeRecords = []) {
     const inRange = date => date >= from && date <= to;
-    const result = { preorder: 0, booth: 0, wholesale: 0, expenses: 0, outstanding: 0, manualOrders: 0 };
-    const paidStatuses = ['accepted', 'preparing', 'ready_pickup', 'out_delivery', 'completed'];
+    const result = { preorder: 0, booth: 0, wholesale: 0, expenses: 0, outstanding: 0, manualOrders: 0, generalExpenses: 0 };
     for (const order of orders) {
-        if (!order.created_at || !inRange(businessDate(order.created_at))) continue;
         if (order.is_manual_order) { result.manualOrders++; continue; }
-        if (paidStatuses.includes(order.order_status) && order.payment_status === 'verified') result.preorder += Number(order.total) || 0;
+        const status = order.order_status || order.status;
+        if (status !== 'completed') continue;
+        const completionDate = getOrderCompletionDate(order);
+        if (!completionDate || !inRange(completionDate)) continue;
+        if (order.payment_status === 'verified') {
+            result.preorder += Number(order.total ?? order.total_amount) || 0;
+        }
     }
     for (const record of records) {
         if (!inRange(record.date) || !['booth', 'wholesale'].includes(record.channel)) continue;
@@ -78,7 +90,18 @@ export function summarizeChannels(orders, records, from, to) {
         result.expenses += record.expenseTotal;
         result.outstanding += record.outstanding;
     }
-    for (const key of ['preorder', 'booth', 'wholesale', 'expenses', 'outstanding']) result[key] = round(result[key]);
+    if (Array.isArray(financeRecords)) {
+        for (const item of financeRecords) {
+            if (!item.date || !inRange(item.date)) continue;
+            if (item.transactionType === '支出' || !item.transactionType) {
+                const amt = Number(item.amount) || 0;
+                result.expenses += amt;
+                result.generalExpenses += amt;
+            }
+        }
+    }
+    for (const key of ['preorder', 'booth', 'wholesale', 'expenses', 'outstanding', 'generalExpenses']) result[key] = round(result[key]);
     result.total = round(result.preorder + result.booth + result.wholesale);
+    result.net = round(result.total - result.expenses);
     return result;
 }

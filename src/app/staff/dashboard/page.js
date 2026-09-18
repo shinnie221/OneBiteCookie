@@ -45,7 +45,7 @@ export default function DashboardPage() {
       {stats && <>
         <div className={styles.columns}>
           <section className={styles.panel}>
-            <div className={styles.panelHeader}><div><h2>线上预购待办队列</h2><p>{stats.pendingOrders} 笔待核验 · {stats.acceptedOrders} 笔制作中</p><p>按时间先后排序 · 显示最多 5 笔进行中的官网预购</p></div><Link href="/staff/orders" className="btn btnPrimary">管理预购订单</Link></div>
+            <div className={styles.panelHeader}><div><h2>线上预购待办队列</h2><p>{stats.pendingOrders} 笔待核验 · {stats.acceptedOrders} 笔制作中</p><p className={styles.queueSubtext}>按时间先后排序 · 显示最多 5 笔进行中的官网预购</p></div><Link href="/staff/orders" className="btn btnPrimary">管理预购订单</Link></div>
             {queue.length ? <ul className={styles.queue}>{queue.map(order => <li key={order.order_id}>
               <Link href={`/staff/orders?order=${encodeURIComponent(order.order_id)}`} className={styles.orderLink}>
                 <div className={styles.orderInfo}><strong>{order.customer_name}</strong><span>#{order.order_id} · {order.order_type === 'delivery' ? '送货上门' : '自取'}</span></div>

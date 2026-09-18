@@ -187,6 +187,12 @@
     padding: 20px 16px;
   }
 
+  @media (max-width: 640px) {
+    .main {
+      padding: 12px 10px;
+    }
+  }
+
   .overlay {
     position: fixed;
     top: 0;

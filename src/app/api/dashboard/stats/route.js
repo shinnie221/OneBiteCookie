@@ -2,7 +2,7 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
-import { businessDate } from '@/lib/business.mjs';
+import { businessDate, getOrderCompletionDate } from '@/lib/business.mjs';
 
 export async function GET(request) {
   try {
@@ -35,17 +35,13 @@ export async function GET(request) {
     let totalSales = 0;
 
     const acceptedStatuses = ['accepted', 'preparing', 'ready_pickup', 'out_delivery'];
-    const invalidStatuses = ['rejected', 'cancelled', 'refunded'];
 
     for (const order of allOrders) {
       const orderDate = order.created_at ? businessDate(order.created_at) : '';
-      const orderTotal = order.total || 0;
+      const orderTotal = Number(order.total ?? order.total_amount) || 0;
 
       if (orderDate === today) {
         todayOrders++;
-        if (!invalidStatuses.includes(order.order_status)) {
-          todaySales += orderTotal;
-        }
       }
 
       if (order.order_status === 'pending_verification') {
@@ -55,6 +51,11 @@ export async function GET(request) {
       } else if (order.order_status === 'completed') {
         completedOrders++;
         totalSales += orderTotal;
+
+        const completionDate = getOrderCompletionDate(order);
+        if (completionDate === today) {
+          todaySales += orderTotal;
+        }
       }
     }
 

@@ -262,6 +262,7 @@ export async function POST(request) {
       payment_method: payment_method || (isStaffOrAdmin ? 'qr_pay' : (payment_screenshot ? 'qr_transfer' : 'manual')),
       payment_status: finalPaymentStatus,
       order_status: finalOrderStatus,
+      completed_at: finalOrderStatus === 'completed' ? new Date().toISOString() : null,
       staff_note: staff_note || (isStaffOrAdmin ? `Manually keyed in by ${user.name || user.email || 'staff'}` : null),
       is_manual_order: isStaffOrAdmin ? true : false,
       items: resolvedItems,

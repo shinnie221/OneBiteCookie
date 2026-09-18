@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { businessDate, money } from '@/lib/business.mjs';
+import { businessDate, money, getOrderCompletionDate } from '@/lib/business.mjs';
 import styles from './page.module.css';
 
 function getPreviousDay(dateStr) {
@@ -17,10 +18,13 @@ function getPreviousMonth(monthStr) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
+const GOOGLE_DRIVE_RECEIPTS_URL = 'https://drive.google.com/drive/folders/1CxUKoiIQ5oicc6Eo-vun2pC0-2mG0joh?usp=sharing';
+
 export default function LedgerPage() {
   const { authFetch } = useAuth();
   const [orders, setOrders] = useState([]);
   const [records, setRecords] = useState([]);
+  const [financeRecords, setFinanceRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -39,16 +43,17 @@ export default function LedgerPage() {
   const [customFrom, setCustomFrom] = useState(today);
   const [customTo, setCustomTo] = useState(today);
 
-  // Active channel tab: 'all' | 'orders' | 'booth' | 'wholesale'
+  // Active channel tab: 'all' | 'orders' | 'booth' | 'wholesale' | 'expenses'
   const [tab, setTab] = useState('all');
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const [ordersRes, businessRes] = await Promise.all([
+      const [ordersRes, businessRes, financeRes] = await Promise.all([
         authFetch('/api/orders'),
-        authFetch('/api/business')
+        authFetch('/api/business'),
+        authFetch('/api/finance'),
       ]);
 
       if (!ordersRes.ok) throw new Error('无法加载线上预购订单数据');
@@ -56,9 +61,11 @@ export default function LedgerPage() {
 
       const ordersData = await ordersRes.json();
       const businessData = await businessRes.json();
+      const financeData = financeRes.ok ? await financeRes.json() : { records: [] };
 
       setOrders(ordersData.orders || []);
       setRecords(businessData.records || []);
+      setFinanceRecords(financeData.records || []);
     } catch (err) {
       setError(err.message || '加载流水账本数据失败，请重试。');
     } finally {
@@ -87,14 +94,14 @@ export default function LedgerPage() {
     return { from: customFrom, to: customTo, dateLabel: `自定义区间 (${customFrom} 至 ${customTo})` };
   }, [mode, dailyDate, monthlyMonth, yearlyYear, customFrom, customTo, today, yesterday, thisMonth, lastMonth, thisYear, lastYear]);
 
-  // Filter Online Orders
-  const validOrderStatuses = useMemo(() => ['accepted', 'preparing', 'ready_pickup', 'out_delivery', 'completed'], []);
-
+  // Filter Online Orders: Only completed orders count towards sales, on the date of completion
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
       if (order.is_manual_order) return false;
-      const orderDate = order.created_at ? businessDate(order.created_at) : '';
-      return orderDate >= from && orderDate <= to;
+      const status = order.order_status || order.status;
+      if (status !== 'completed') return false;
+      const completionDate = getOrderCompletionDate(order);
+      return completionDate && completionDate >= from && completionDate <= to;
     });
   }, [orders, from, to]);
 
@@ -108,21 +115,25 @@ export default function LedgerPage() {
     return records.filter(r => r.channel === 'wholesale' && r.date >= from && r.date <= to);
   }, [records, from, to]);
 
+  // Filter General Expenses records (flour, butter, packaging, etc.)
+  const filteredExpenses = useMemo(() => {
+    return financeRecords.filter(r => r.date >= from && r.date <= to);
+  }, [financeRecords, from, to]);
+
   // Calculations per channel
   const orderStats = useMemo(() => {
-    const paidOrders = filteredOrders.filter(o => validOrderStatuses.includes(o.status));
-    const totalSales = paidOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
-    const totalPieces = paidOrders.reduce((sum, o) => sum + (o.items?.reduce((is, it) => is + (it.quantity || 0), 0) || 0), 0);
+    const totalSales = filteredOrders.reduce((sum, o) => sum + (Number(o.total ?? o.total_amount) || 0), 0);
+    const totalPieces = filteredOrders.reduce((sum, o) => sum + (o.items?.reduce((is, it) => is + (it.quantity || 0), 0) || 0), 0);
     return {
       count: filteredOrders.length,
-      paidCount: paidOrders.length,
+      paidCount: filteredOrders.length,
       sales: totalSales,
       pieces: totalPieces,
       expenses: 0,
       net: totalSales,
       outstanding: 0,
     };
-  }, [filteredOrders, validOrderStatuses]);
+  }, [filteredOrders]);
 
   const boothStats = useMemo(() => {
     const sales = filteredBooths.reduce((sum, b) => sum + (b.sales || 0), 0);
@@ -159,14 +170,22 @@ export default function LedgerPage() {
     };
   }, [filteredWholesale]);
 
-  // Combined Totals
+  const expenseStats = useMemo(() => {
+    const expenses = filteredExpenses.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+    return {
+      count: filteredExpenses.length,
+      expenses,
+    };
+  }, [filteredExpenses]);
+
+  // Combined Totals (deducting all expenses including general flour/butter expenses)
   const combinedStats = useMemo(() => {
     const totalSales = orderStats.sales + boothStats.sales + wholesaleStats.sales;
-    const totalExpenses = boothStats.expenses + wholesaleStats.expenses;
+    const totalExpenses = boothStats.expenses + wholesaleStats.expenses + expenseStats.expenses;
     const netRevenue = totalSales - totalExpenses;
     const totalPieces = orderStats.pieces + boothStats.pieces + wholesaleStats.pieces;
     const totalOutstanding = wholesaleStats.outstanding;
-    const totalCount = orderStats.count + boothStats.count + wholesaleStats.count;
+    const totalCount = orderStats.count + boothStats.count + wholesaleStats.count + expenseStats.count;
     return {
       sales: totalSales,
       expenses: totalExpenses,
@@ -175,7 +194,7 @@ export default function LedgerPage() {
       outstanding: totalOutstanding,
       count: totalCount,
     };
-  }, [orderStats, boothStats, wholesaleStats]);
+  }, [orderStats, boothStats, wholesaleStats, expenseStats]);
 
   // Unified Chronological Stream for 'all' tab
   const unifiedStream = useMemo(() => {
@@ -183,22 +202,22 @@ export default function LedgerPage() {
 
     // Orders
     for (const o of filteredOrders) {
-      const orderDate = o.created_at ? businessDate(o.created_at) : '';
+      const completionDate = getOrderCompletionDate(o) || (o.created_at ? businessDate(o.created_at) : '');
       const pieces = o.items?.reduce((s, it) => s + (it.quantity || 0), 0) || 0;
-      const isPaid = validOrderStatuses.includes(o.status);
+      const amount = Number(o.total ?? o.total_amount) || 0;
       stream.push({
         id: `order-${o.order_id}`,
         type: 'orders',
         typeLabel: '线上预购',
-        date: orderDate,
+        date: completionDate,
         title: `订单 #${o.order_id.slice(-6).toUpperCase()} · ${o.customer_name || '顾客'}`,
-        subtext: `${o.delivery_method === 'delivery' ? '🚚 送货' : '🛍️ 自取'} · ${pieces} 片曲奇 · ${o.customer_phone || ''}`,
+        subtext: `${o.order_type === 'delivery' || o.delivery_method === 'delivery' ? '🚚 送货' : '🛍️ 自取'} · ${pieces} 片曲奇 · ${o.phone || o.customer_phone || ''}`,
         pieces,
-        gross: Number(o.total_amount) || 0,
-        sales: isPaid ? Number(o.total_amount) || 0 : 0,
+        gross: amount,
+        sales: amount,
         expenses: 0,
-        net: isPaid ? Number(o.total_amount) || 0 : 0,
-        statusText: isPaid ? '已核验付款' : '待付款/未生效',
+        net: amount,
+        statusText: '已完成结单',
         raw: o,
       });
     }
@@ -245,8 +264,29 @@ export default function LedgerPage() {
       });
     }
 
+    // General Expenses (Flour, Butter, Packaging, etc.)
+    for (const exp of filteredExpenses) {
+      const amount = Number(exp.amount) || 0;
+      stream.push({
+        id: `expense-${exp.id}`,
+        type: 'expense',
+        typeLabel: '成本支出',
+        date: exp.date,
+        title: `${exp.category || '成本支出'} · ${exp.supplierName ? exp.supplierName + ' · ' : ''}${exp.note || '支出记录'}`,
+        subtext: exp.receiptUrl ? `📎 含有 Google Drive 凭据收据` : (exp.orderType ? `关联业务: ${exp.orderType}` : '通用原材物料与日常开销'),
+        receiptUrl: exp.receiptUrl || '',
+        pieces: 0,
+        gross: 0,
+        sales: 0,
+        expenses: amount,
+        net: -amount,
+        statusText: exp.receiptUrl ? '有收据凭单' : '已入账',
+        raw: exp,
+      });
+    }
+
     return stream.sort((a, b) => b.date.localeCompare(a.date));
-  }, [filteredOrders, filteredBooths, filteredWholesale, validOrderStatuses]);
+  }, [filteredOrders, filteredBooths, filteredWholesale, filteredExpenses]);
 
   // CSV Export
   const exportCSV = () => {
@@ -262,30 +302,32 @@ export default function LedgerPage() {
 
     // Part 1: KPI Summary
     lines.push(['【一、全渠道财务综合汇总】']);
-    lines.push(['销售渠道', '交易笔数/场次', '售出总片数', '销售营业额 (RM)', '已记支出 (RM)', '净营业额 (RM)', '待收尾款 (RM)'].map(cleanCSV).join(','));
+    lines.push(['销售渠道/开支项目', '交易笔数/场次', '售出总片数', '销售营业额 (RM)', '已记支出 (RM)', '净营业额 (RM)', '待收尾款 (RM)'].map(cleanCSV).join(','));
     lines.push(['线上预购', orderStats.count, orderStats.pieces, orderStats.sales.toFixed(2), '0.00', orderStats.net.toFixed(2), '0.00'].map(cleanCSV).join(','));
     lines.push(['摆摊销售', boothStats.count, boothStats.pieces, boothStats.sales.toFixed(2), boothStats.expenses.toFixed(2), boothStats.net.toFixed(2), '0.00'].map(cleanCSV).join(','));
     lines.push(['批发供货', wholesaleStats.count, wholesaleStats.pieces, wholesaleStats.sales.toFixed(2), wholesaleStats.expenses.toFixed(2), wholesaleStats.net.toFixed(2), wholesaleStats.outstanding.toFixed(2)].map(cleanCSV).join(','));
+    lines.push(['成本支出(原料/耗材)', expenseStats.count, '0', '0.00', expenseStats.expenses.toFixed(2), (-expenseStats.expenses).toFixed(2), '0.00'].map(cleanCSV).join(','));
     lines.push(['全渠道总计', combinedStats.count, combinedStats.pieces, combinedStats.sales.toFixed(2), combinedStats.expenses.toFixed(2), combinedStats.net.toFixed(2), combinedStats.outstanding.toFixed(2)].map(cleanCSV).join(','));
     lines.push([]);
 
     // Part 2: Online Orders Detail
     lines.push(['【二、线上预购明细清单】']);
-    lines.push(['订单编号', '订购日期', '顾客姓名', '联系电话', '配送方式', '预取/配送日期', '曲奇总片数', '订单金额 (RM)', '核验状态'].map(cleanCSV).join(','));
+    lines.push(['订单编号', '完成日期', '订购日期', '顾客姓名', '联系电话', '配送方式', '预取/配送日期', '曲奇总片数', '订单金额 (RM)', '状态'].map(cleanCSV).join(','));
     for (const o of filteredOrders) {
+      const completionDate = getOrderCompletionDate(o) || '';
       const orderDate = o.created_at ? businessDate(o.created_at) : '';
       const pieces = o.items?.reduce((s, it) => s + (it.quantity || 0), 0) || 0;
-      const isPaid = validOrderStatuses.includes(o.status);
       lines.push([
         o.order_id,
+        completionDate,
         orderDate,
         o.customer_name || '',
-        o.customer_phone || '',
-        o.delivery_method === 'delivery' ? '送货上门' : '自取',
+        o.phone || o.customer_phone || '',
+        (o.order_type === 'delivery' || o.delivery_method === 'delivery') ? '送货上门' : '自取',
         o.delivery_date || '',
         pieces,
-        (Number(o.total_amount) || 0).toFixed(2),
-        isPaid ? '已核验入账' : '待确认/未入账'
+        (Number(o.total ?? o.total_amount) || 0).toFixed(2),
+        '已完成入账'
       ].map(cleanCSV).join(','));
     }
     lines.push([]);
@@ -329,6 +371,21 @@ export default function LedgerPage() {
         (w.outstanding || 0).toFixed(2),
         (w.expenseTotal || 0).toFixed(2),
         w.notes || ''
+      ].map(cleanCSV).join(','));
+    }
+    lines.push([]);
+
+    // Part 5: General Expenses Detail
+    lines.push(['【五、原材料及日常成本支出明细清单】']);
+    lines.push(['支出日期', '支出类别', '供应商/开销项目', '金额 (RM)', '关联业务', 'Google Drive 凭据链接'].map(cleanCSV).join(','));
+    for (const exp of filteredExpenses) {
+      lines.push([
+        exp.date,
+        exp.category || '',
+        `${exp.supplierName ? exp.supplierName + ' - ' : ''}${exp.note || ''}`,
+        (Number(exp.amount) || 0).toFixed(2),
+        exp.orderType || '通用成本',
+        exp.receiptUrl || ''
       ].map(cleanCSV).join(','));
     }
 
@@ -531,13 +588,13 @@ export default function LedgerPage() {
         <div className={`${styles.kpiCard} ${styles.kpiWarning}`}>
           <span>已记支出费用</span>
           <strong>{money(combinedStats.expenses)}</strong>
-          <small>摆摊现场开销与批发物流相关支出</small>
+          <small>摆摊开销、批发物流与原料耗材等全店支出</small>
         </div>
 
         <div className={`${styles.kpiCard} ${styles.kpiSuccess}`}>
           <span>全店净营业额</span>
           <strong>{money(combinedStats.net)}</strong>
-          <small>总销售额扣除已记支出后的净收入</small>
+          <small>总销售额扣除全部支出后的净收入</small>
         </div>
 
         <div className={`${styles.kpiCard} ${styles.kpiInfo}`}>
@@ -558,6 +615,11 @@ export default function LedgerPage() {
         <div style={{ background: '#f3e8ff', padding: '8px 16px', borderRadius: '8px', border: '1px solid #e9d5ff' }}>
           <strong>批发供货：</strong> {money(wholesaleStats.sales)} ({wholesaleStats.pieces} 片 · {wholesaleStats.count} 笔订单)
         </div>
+        <Link href="/staff/expenses" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div style={{ background: '#fee2e2', padding: '8px 16px', borderRadius: '8px', border: '1px solid #fecaca', cursor: 'pointer' }}>
+            <strong>成本支出：</strong> {money(expenseStats.expenses)} ({expenseStats.count} 笔记录 · 管理 ↗)
+          </div>
+        </Link>
       </div>
 
       {/* Channel View Tabs */}
@@ -590,13 +652,33 @@ export default function LedgerPage() {
         >
           批发供货流水 ({filteredWholesale.length})
         </button>
+        <button
+          type="button"
+          className={`${styles.tabBtn} ${tab === 'expenses' ? styles.tabBtnActive : ''}`}
+          onClick={() => setTab('expenses')}
+        >
+          成本支出流水 ({filteredExpenses.length})
+        </button>
       </div>
 
       {/* Table Card */}
       <section className={styles.tableCard}>
         <div className={styles.tableHeader}>
-          <h2>{dateLabel} · {tab === 'all' ? '综合流水明细' : tab === 'orders' ? '线上预购明细' : tab === 'booth' ? '摆摊销售明细' : '批发供货明细'}</h2>
-          <span className={styles.hint}>展示马来西亚时间交易数据</span>
+          <h2>{dateLabel} · {tab === 'all' ? '综合流水明细' : tab === 'orders' ? '线上预购明细' : tab === 'booth' ? '摆摊销售明细' : tab === 'wholesale' ? '批发供货明细' : '成本支出明细'}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {tab === 'expenses' && (
+              <a
+                href={GOOGLE_DRIVE_RECEIPTS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.receiptLink}
+                style={{ padding: '6px 12px', fontSize: '0.82rem', background: '#eff6ff' }}
+              >
+                📂 打开 Google Drive 收据文件夹 ↗
+              </a>
+            )}
+            <span className={styles.hint}>展示马来西亚时间交易数据</span>
+          </div>
         </div>
 
         {loading ? (
@@ -626,19 +708,36 @@ export default function LedgerPage() {
                       <tr key={row.id}>
                         <td><strong>{row.date}</strong></td>
                         <td>
-                          <span className={row.type === 'orders' ? styles.badgeOrder : row.type === 'booth' ? styles.badgeBooth : styles.badgeWholesale}>
+                          <span className={
+                            row.type === 'orders' ? styles.badgeOrder :
+                            row.type === 'booth' ? styles.badgeBooth :
+                            row.type === 'wholesale' ? styles.badgeWholesale :
+                            styles.badgeExpense
+                          }>
                             {row.typeLabel}
                           </span>
                         </td>
                         <td>
                           <strong>{row.title}</strong>
                           <div className={styles.hint}>{row.subtext}</div>
+                          {row.type === 'expense' && (
+                            <div style={{ marginTop: '4px' }}>
+                              <a
+                                href={row.receiptUrl || GOOGLE_DRIVE_RECEIPTS_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.receiptLink}
+                              >
+                                {row.receiptUrl ? '📄 查看特定收据 ↗' : '📂 打开收据云盘 ↗'}
+                              </a>
+                            </div>
+                          )}
                         </td>
                         <td>{row.pieces} 片</td>
                         <td><strong>{money(row.sales)}</strong></td>
                         <td>{row.expenses > 0 ? money(row.expenses) : '—'}</td>
-                        <td style={{ color: row.net > 0 ? '#16a34a' : 'inherit' }}>
-                          <strong>{money(row.net)}</strong>
+                        <td style={{ color: row.net > 0 ? '#16a34a' : row.net < 0 ? '#dc2626' : 'inherit' }}>
+                          <strong>{row.net < 0 ? `- ${money(Math.abs(row.net))}` : money(row.net)}</strong>
                         </td>
                         <td><small>{row.statusText}</small></td>
                       </tr>
@@ -651,41 +750,46 @@ export default function LedgerPage() {
             {/* View 2: ONLINE ORDERS */}
             {tab === 'orders' && (
               filteredOrders.length === 0 ? (
-                <div className={styles.emptyState}>当前时间段内暂无线上预购订单。</div>
+                <div className={styles.emptyState}>当前时间段内暂无已完成的线上预购订单。</div>
               ) : (
                 <table className={styles.ledgerTable}>
                   <thead>
                     <tr>
-                      <th>订购日期</th>
+                      <th>完成日期</th>
                       <th>订单编号</th>
                       <th>顾客信息</th>
                       <th>预取/配送</th>
                       <th>曲奇总件数</th>
                       <th>订单金额</th>
-                      <th>核验状态</th>
+                      <th>结单状态</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredOrders.map(order => {
-                      const isPaid = validOrderStatuses.includes(order.status);
+                      const completionDate = getOrderCompletionDate(order) || (order.created_at ? businessDate(order.created_at) : '—');
                       const pieces = order.items?.reduce((s, it) => s + (it.quantity || 0), 0) || 0;
                       return (
                         <tr key={order.order_id}>
-                          <td>{order.created_at ? businessDate(order.created_at) : '—'}</td>
+                          <td>
+                            <strong>{completionDate}</strong>
+                            {order.created_at && (
+                              <div className={styles.hint}>下单: {businessDate(order.created_at)}</div>
+                            )}
+                          </td>
                           <td><strong>#{order.order_id.slice(-6).toUpperCase()}</strong></td>
                           <td>
                             <strong>{order.customer_name || '顾客'}</strong>
-                            <div className={styles.hint}>{order.customer_phone || ''}</div>
+                            <div className={styles.hint}>{order.phone || order.customer_phone || ''}</div>
                           </td>
                           <td>
-                            <span>{order.delivery_method === 'delivery' ? '🚚 送货' : '🛍️ 自取'}</span>
+                            <span>{(order.order_type === 'delivery' || order.delivery_method === 'delivery') ? '🚚 送货' : '🛍️ 自取'}</span>
                             <div className={styles.hint}>{order.delivery_date || '未定日期'}</div>
                           </td>
                           <td>{pieces} 片</td>
-                          <td><strong>{money(order.total_amount)}</strong></td>
+                          <td><strong>{money(order.total ?? order.total_amount)}</strong></td>
                           <td>
-                            <span style={{ color: isPaid ? '#16a34a' : '#ea580c', fontWeight: 600 }}>
-                              {isPaid ? '已核验入账' : '待核验/未入账'}
+                            <span style={{ color: '#16a34a', fontWeight: 600 }}>
+                              已完成入账
                             </span>
                           </td>
                         </tr>
@@ -782,6 +886,80 @@ export default function LedgerPage() {
                         </tr>
                       );
                     })}
+                  </tbody>
+                </table>
+              )
+            )}
+
+            {/* View 5: EXPENSES */}
+            {tab === 'expenses' && (
+              filteredExpenses.length === 0 ? (
+                <div className={styles.emptyState}>
+                  当前时间段内暂无成本支出记录。
+                  <div style={{ marginTop: '12px' }}>
+                    <Link href="/staff/expenses" className="btn btnPrimary" style={{ fontSize: '0.85rem' }}>
+                      + 记录新成本支出
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <table className={styles.ledgerTable}>
+                  <thead>
+                    <tr>
+                      <th>支出日期</th>
+                      <th>支出类别</th>
+                      <th>供应商 / 说明</th>
+                      <th>关联业务</th>
+                      <th>支出金额</th>
+                      <th>Google Drive 收据凭单</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredExpenses.map(exp => (
+                      <tr key={exp.id}>
+                        <td><strong>{exp.date}</strong></td>
+                        <td>
+                          <span className={styles.badgeExpense}>{exp.category || '成本支出'}</span>
+                        </td>
+                        <td>
+                          <strong>{exp.supplierName ? `${exp.supplierName} · ` : ''}{exp.note || '支出记录'}</strong>
+                        </td>
+                        <td>
+                          <span className={styles.hint}>{exp.orderType || '通用日常成本'}</span>
+                        </td>
+                        <td>
+                          <strong style={{ color: '#dc2626' }}>- {money(exp.amount)}</strong>
+                        </td>
+                        <td>
+                          {exp.receiptUrl ? (
+                            <a
+                              href={exp.receiptUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={styles.receiptLink}
+                            >
+                              📄 查看特定收据 ↗
+                            </a>
+                          ) : (
+                            <a
+                              href={GOOGLE_DRIVE_RECEIPTS_URL}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={styles.receiptLink}
+                              style={{ color: '#475569', background: '#f8fafc', borderColor: '#e2e8f0' }}
+                            >
+                              📂 打开收据云盘 ↗
+                            </a>
+                          )}
+                        </td>
+                        <td>
+                          <Link href="/staff/expenses" className={styles.receiptLink} style={{ color: 'var(--color-primary)' }}>
+                            管理 ↗
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               )

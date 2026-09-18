@@ -43,3 +43,52 @@ test('overview counts verified online orders and channel records once, in Malays
  assert.equal(summary.preorder, 20); assert.equal(summary.total, 605); assert.equal(summary.outstanding, 225); assert.equal(summary.expenses, 52.5); assert.equal(summary.manualOrders, 1);
  assert.equal(businessDate('2026-09-17T18:00:00Z'), '2026-09-18');
 });
+
+test('order sales are counted on the day completed, not the day customer placed order', () => {
+  // Order placed on Sept 10, completed on Sept 18
+  const pastOrder = {
+    order_id: 'OB-20260910-0001',
+    created_at: '2026-09-10T02:00:00Z',
+    completed_at: '2026-09-18T04:00:00Z',
+    order_status: 'completed',
+    payment_status: 'verified',
+    total: 88
+  };
+  // Order placed on Sept 18, but still preparing (not completed)
+  const preparingOrder = {
+    order_id: 'OB-20260918-0002',
+    created_at: '2026-09-18T02:00:00Z',
+    order_status: 'preparing',
+    payment_status: 'verified',
+    total: 50
+  };
+
+  // On Sept 10 (order date): pastOrder is not completed yet on that day, so preorder sales should be 0
+  const summarySept10 = summarizeChannels([pastOrder, preparingOrder], [], '2026-09-10', '2026-09-10');
+  assert.equal(summarySept10.preorder, 0);
+
+  // On Sept 18 (completion date): pastOrder is completed today, so it counts (RM88). preparingOrder is not completed yet so not counted.
+  const summarySept18 = summarizeChannels([pastOrder, preparingOrder], [], '2026-09-18', '2026-09-18');
+  assert.equal(summarySept18.preorder, 88);
+});
+
+test('general expenses (flour, butter, etc.) are included in total expenses and deducted from net income', () => {
+  const financeRecords = [
+    { id: 'f1', date: '2026-09-18', category: '食材', amount: 85.5, note: 'Anchor Butter & Flour', receiptUrl: 'https://drive.google.com/file/d/test1' },
+    { id: 'f2', date: '2026-09-18', category: '包装', amount: 24.5, note: 'Cookie Tins' },
+    { id: 'f3', date: '2026-09-10', category: '食材', amount: 150.0, note: 'Out of range expense' },
+  ];
+
+  // Booth sales: 260, Booth expenses: 52.50
+  // General expenses for 2026-09-18: 85.50 + 24.50 = 110.00
+  // Total expenses: 52.50 + 110.00 = 162.50
+  // Total sales: 260
+  // Net revenue: 260 - 162.50 = 97.50
+  const summary = summarizeChannels([], [normalizeBusinessRecord(booth())], '2026-09-18', '2026-09-18', financeRecords);
+
+  assert.equal(summary.booth, 260);
+  assert.equal(summary.generalExpenses, 110.0);
+  assert.equal(summary.expenses, 162.5);
+  assert.equal(summary.net, 97.5);
+});
+

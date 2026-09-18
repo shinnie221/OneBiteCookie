@@ -173,7 +173,8 @@ function OrdersContent() {
   // Flow Step 3: Delivered or Picked Up -> Completed
   const handleMarkCompleted = () => {
     updateOrderStatus(selectedOrder.order_id, {
-      order_status: 'completed'
+      order_status: 'completed',
+      completed_at: new Date().toISOString()
     });
   };
 
@@ -297,6 +298,7 @@ function OrdersContent() {
                 <tr>
                   <th>订单编号</th>
                   <th>下单时间</th>
+                  <th>完成时间</th>
                   <th>顾客信息</th>
                   <th>配送方式</th>
                   <th>总金额</th>
@@ -307,7 +309,7 @@ function OrdersContent() {
               <tbody>
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="textCenter" style={{ padding: '30px', color: 'var(--color-text-light)' }}>
+                    <td colSpan="8" className="textCenter" style={{ padding: '30px', color: 'var(--color-text-light)' }}>
                       暂无符合条件的订单记录
                     </td>
                   </tr>
@@ -320,7 +322,28 @@ function OrdersContent() {
                           <span className={styles.manualTag}>堂食 / 手工录入</span>
                         )}
                       </td>
-                      <td>{new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                      <td>
+                        {order.created_at ? (
+                          <>
+                            <div>{new Date(order.created_at).toLocaleDateString()}</div>
+                            <small style={{ color: 'var(--color-text-light)' }}>{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+                          </>
+                        ) : '—'}
+                      </td>
+                      <td>
+                        {order.order_status === 'completed' ? (
+                          (order.completed_at || order.updated_at) ? (
+                            <>
+                              <div>{new Date(order.completed_at || order.updated_at).toLocaleDateString()}</div>
+                              <small style={{ color: '#16a34a', fontWeight: 600 }}>{new Date(order.completed_at || order.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+                            </>
+                          ) : (
+                            <span style={{ color: '#16a34a', fontWeight: 600 }}>已完成</span>
+                          )
+                        ) : (
+                          <span style={{ color: 'var(--color-text-light)' }}>—</span>
+                        )}
+                      </td>
                       <td>
                         <div className={styles.customerName}>{order.customer_name}</div>
                         <div className={styles.customerPhone}>{order.phone}</div>
@@ -412,6 +435,10 @@ function OrdersContent() {
                     <p><strong>姓名:</strong> {selectedOrder.customer_name}</p>
                     <p><strong>电话:</strong> {selectedOrder.phone}</p>
                     {selectedOrder.email && <p><strong>邮箱:</strong> {selectedOrder.email}</p>}
+                    <p><strong>下单时间:</strong> {selectedOrder.created_at ? `${new Date(selectedOrder.created_at).toLocaleDateString()} ${new Date(selectedOrder.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '—'}</p>
+                    {selectedOrder.order_status === 'completed' && (
+                      <p><strong>完成时间:</strong> <span style={{ color: '#16a34a', fontWeight: 600 }}>{(selectedOrder.completed_at || selectedOrder.updated_at) ? `${new Date(selectedOrder.completed_at || selectedOrder.updated_at).toLocaleDateString()} ${new Date(selectedOrder.completed_at || selectedOrder.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '已完成'}</span></p>
+                    )}
                     <p><strong>履约方式:</strong> {selectedOrder.order_type === 'delivery' ? '送货上门' : '到店自取'}</p>
                     {selectedOrder.order_type === 'delivery' && (
                       <p><strong>送货地址:</strong> {selectedOrder.address}</p>
@@ -614,7 +641,12 @@ function OrdersContent() {
               {/* COMPLETED BANNER */}
               {selectedOrder.order_status === 'completed' && (
                 <div className={styles.completedNotice}>
-                  🎉 本订单已全部履约完成。
+                  <div>🎉 本订单已全部履约完成。</div>
+                  {(selectedOrder.completed_at || selectedOrder.updated_at) && (
+                    <div style={{ marginTop: '6px', fontSize: '0.9rem', fontWeight: 500, color: '#047857' }}>
+                      完成时间：{new Date(selectedOrder.completed_at || selectedOrder.updated_at).toLocaleDateString()} {new Date(selectedOrder.completed_at || selectedOrder.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  )}
                 </div>
               )}
 

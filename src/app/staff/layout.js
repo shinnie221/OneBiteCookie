@@ -12,6 +12,7 @@ const NAV_GROUPS = [
     label: '业务概览', items: [
       { path: '/staff/dashboard', label: '业务总览', icon: '◷' },
       { path: '/staff/ledger', label: '总结流水账本', icon: '📒' },
+      { path: '/staff/expenses', label: '成本支出', icon: '🏷️' },
     ]
   },
   {
