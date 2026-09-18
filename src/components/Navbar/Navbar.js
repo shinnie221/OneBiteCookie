@@ -41,23 +41,8 @@ export default function Navbar() {
             <Link href="/staff/dashboard" className={styles.navLink} onClick={() => setMobileOpen(false)}>Staff Dashboard</Link>
           )}
 
-          <div className={styles.mobileAuthSection}>
-            {isAuthenticated ? (
-              <div className={styles.mobileUserInfo}>
-                <Link href="/profile" className={styles.mobileGreeting} style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => setMobileOpen(false)}>
-                  👤 {user?.name || 'Customer'} · Profile ↗
-                </Link>
-                <button 
-                  onClick={() => {
-                    setMobileOpen(false);
-                    handleLogout();
-                  }} 
-                  className={styles.mobileLogoutBtn}
-                >
-                  Log Out
-                </button>
-              </div>
-            ) : (
+          {!isAuthenticated && (
+            <div className={styles.mobileAuthSection}>
               <div className={styles.mobileAuthButtons}>
                 <Link 
                   href="/login" 
@@ -67,8 +52,8 @@ export default function Navbar() {
                   Sign In / Sign Up
                 </Link>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <div className={styles.actions}>
