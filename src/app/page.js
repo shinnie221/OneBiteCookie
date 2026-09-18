@@ -48,24 +48,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features */}
-      <section className={styles.features}>
-        <div className={styles.featureCard}>
-          <span className={styles.featureIcon}>🧑‍🍳</span>
-          <h3>Handcrafted</h3>
-          <p>Every cookie is made from scratch with love and care</p>
-        </div>
-        <div className={styles.featureCard}>
-          <span className={styles.featureIcon}>🌿</span>
-          <h3>Premium Ingredients</h3>
-          <p>Only the finest butter, chocolate, and natural flavors</p>
-        </div>
-        <div className={styles.featureCard}>
-          <span className={styles.featureIcon}>📦</span>
-          <h3>Fresh Delivery</h3>
-          <p>Baked fresh and delivered straight to your doorstep</p>
-        </div>
-      </section>
 
       {/* Menu Section */}
       <section id="menu" className={styles.menu}>
