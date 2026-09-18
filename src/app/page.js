@@ -45,6 +45,8 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Mobile Divider */}
+      <div className={styles.mobileDivider} aria-hidden="true" />
 
       {/* Menu Section */}
       <section id="menu" className={styles.menu}>

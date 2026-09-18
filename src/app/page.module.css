@@ -71,6 +71,10 @@
   75% { transform: translateY(-20px) rotate(3deg); }
 }
 
+/* Mobile Divider */
+.mobileDivider {
+  display: none;
+}
 
 /* Menu Section */
 .menu {
@@ -220,6 +224,16 @@
     display: none !important;
   }
 
+  /* Mobile Divider between Hero and Menu */
+  .mobileDivider {
+    display: block;
+    width: min(85%, 320px);
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+    margin: 10px auto 32px;
+    border-radius: 999px;
+  }
+
   .productGrid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
 
   /* How It Works - 2 Rows in Mobile View */
@@ -284,6 +298,11 @@
   }
   .heroVisual {
     display: none !important;
+  }
+
+  .mobileDivider {
+    width: min(88%, 280px);
+    margin: 8px auto 26px;
   }
 
   .productGrid { grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 0 auto; }
