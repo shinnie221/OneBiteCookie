@@ -37,9 +37,6 @@ export default function HomePage() {
             Handcrafted premium cookies made with the finest ingredients.
             Order online and pick up or get them delivered to your door.
           </p>
-          <a href="#menu" className={styles.heroCta}>
-            Explore Our Menu ↓
-          </a>
         </div>
         <div className={styles.heroVisual}>
           <div className={styles.floatingCookie} style={{ animationDelay: '0s' }}>🍪</div>
