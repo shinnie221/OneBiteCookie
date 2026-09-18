@@ -49,7 +49,7 @@ export default function DashboardPage() {
             {queue.length ? <ul className={styles.queue}>{queue.map(order => <li key={order.order_id}>
               <Link href={`/staff/orders?order=${encodeURIComponent(order.order_id)}`} className={styles.orderLink}>
                 <div className={styles.orderInfo}><strong>{order.customer_name}</strong><span>#{order.order_id} · {order.order_type === 'delivery' ? '送货上门' : '自取'}</span></div>
-                <div className={styles.orderStatus}><OrderStatusBadge status={order.order_status} /><span>查看订单 →</span></div>
+                <div className={styles.orderStatus}><OrderStatusBadge status={order.order_status} lang="zh" /><span>查看订单 →</span></div>
               </Link>
             </li>)}</ul> : <div className={styles.empty}><strong>全部处理完毕</strong><p>当收到新的官网订单时，将自动显示在此处。</p></div>}
           </section>

@@ -82,10 +82,7 @@ export default function Navbar() {
           {isAuthenticated ? (
             <>
               {user?.role === 'customer' ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Link href="/profile" className={styles.loginBtn} style={{ background: 'var(--color-bg-alt)', color: 'var(--color-text)' }}>Profile</Link>
-                  <button onClick={handleLogout} className={styles.loginBtn}>Logout</button>
-                </div>
+                <button onClick={handleLogout} className={styles.loginBtn}>Logout</button>
               ) : (
                 <Link href="/staff/dashboard" className={styles.loginBtn}>Dashboard</Link>
               )}

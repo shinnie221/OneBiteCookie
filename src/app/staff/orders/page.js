@@ -354,7 +354,7 @@ function OrdersContent() {
                         </span>
                       </td>
                       <td className={styles.totalCell}>RM{order.total.toFixed(2)}</td>
-                      <td><OrderStatusBadge status={order.order_status} /></td>
+                      <td><OrderStatusBadge status={order.order_status} lang="zh" /></td>
                       <td>
                         <button
                           className="btn btnSecondary"
@@ -517,7 +517,7 @@ function OrdersContent() {
                 <div>
                   <span className={styles.flowHeaderSubtitle}>当前订单流转状态</span>
                   <div className={styles.currentStatusRow}>
-                    <OrderStatusBadge status={selectedOrder.order_status} />
+                    <OrderStatusBadge status={selectedOrder.order_status} lang="zh" />
                     <span className={styles.orderTypeTag}>
                       {selectedOrder.order_type === 'delivery' ? '🚚 送货上门' : '🛍️ 到店自取'}
                     </span>

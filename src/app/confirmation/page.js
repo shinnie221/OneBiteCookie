@@ -96,7 +96,7 @@ function ConfirmationContent() {
         </div>
         <div className={styles.metaItem}>
           <span className={styles.metaLabel}>Status</span>
-          <OrderStatusBadge status={order.order_status} />
+          <OrderStatusBadge status={order.order_status} lang="en" />
         </div>
       </div>
       

@@ -12,9 +12,9 @@ const STATUS_MAP = {
   refunded: { label: 'Refunded', zh: '已退款', variant: 'neutral' },
 };
 
-export default function OrderStatusBadge({ status, lang = 'zh' }) {
+export default function OrderStatusBadge({ status, lang = 'en' }) {
   const config = STATUS_MAP[status] || { label: status, zh: status, variant: 'default' };
-  const displayText = lang === 'en' ? config.label : (config.zh || config.label);
+  const displayText = lang === 'zh' ? (config.zh || config.label) : config.label;
   
   return (
     <span className={`${styles.badge} ${styles[config.variant]}`}>

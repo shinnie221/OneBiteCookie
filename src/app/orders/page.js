@@ -161,7 +161,7 @@ export default function OrdersPage() {
                           <span className={styles.headerTotal}>RM{order.total.toFixed(2)}</span>
                           <span className={styles.headerItemCount}>({totalItemCount} {totalItemCount === 1 ? 'item' : 'items'})</span>
                         </div>
-                        <OrderStatusBadge status={order.order_status} />
+                        <OrderStatusBadge status={order.order_status} lang="en" />
                         <button 
                           type="button" 
                           className={styles.toggleBtn}
