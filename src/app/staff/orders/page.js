@@ -501,6 +501,12 @@ function OrdersContent() {
                     <span>-RM{selectedOrder.discount.toFixed(2)}</span>
                   </div>
                 )}
+                {selectedOrder.delivery_fee > 0 && (
+                  <div className={styles.summaryRow}>
+                    <span>🚚 运费 Delivery Fee</span>
+                    <span>RM{selectedOrder.delivery_fee.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
                   <span>实付总额</span>
                   <span>RM{selectedOrder.total.toFixed(2)}</span>

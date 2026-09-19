@@ -115,6 +115,11 @@ export async function POST(request) {
       customer_id
     } = body;
 
+    const DELIVERY_FEE = 8;
+    const delivery_fee = body.delivery_fee !== undefined
+      ? Number(body.delivery_fee)
+      : (order_type === 'delivery' ? DELIVERY_FEE : 0);
+
     if (!customer_name || !phone || !items || items.length === 0) {
       return NextResponse.json({ error: 'Customer name, phone, and items are required' }, { status: 400 });
     }
@@ -212,7 +217,7 @@ export async function POST(request) {
       }
     }
 
-    const total = Math.max(0, subtotal - discount);
+    const total = Math.max(0, subtotal - discount) + delivery_fee;
     const orderId = generateOrderId();
     const createdAt = new Date().toISOString();
 
@@ -272,6 +277,7 @@ export async function POST(request) {
       delivery_state: delivery_state || (order_type === 'delivery' ? 'Kuala Lumpur' : null),
       subtotal,
       discount,
+      delivery_fee,
       total,
       voucher_code: voucher_code || (manual_discount ? 'Manual Discount' : null),
       payment_screenshot: payment_screenshot || null,

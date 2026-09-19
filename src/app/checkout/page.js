@@ -15,6 +15,8 @@ import {
 } from '@/lib/addresses.mjs';
 import styles from './page.module.css';
 
+const DELIVERY_FEE = 8;
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, discount, total, totalQuantity } = useCart();
@@ -186,6 +188,8 @@ export default function CheckoutPage() {
       ? (selectedAddr ? formatFullAddress(selectedAddr) : formData.address)
       : 'The Palette @ Danau Kota, Kuala Lumpur';
 
+    const deliveryFee = formData.order_type === 'delivery' ? DELIVERY_FEE : 0;
+
     // Save to local storage for payment page
     localStorage.setItem('onebite_checkout', JSON.stringify({
       customerInfo: {
@@ -194,7 +198,8 @@ export default function CheckoutPage() {
         pickup_time: formData.order_type === 'pickup' ? '11:00 AM' : null,
         delivery_state: formData.order_type === 'delivery'
           ? (selectedAddr?.state || 'Kuala Lumpur')
-          : null
+          : null,
+        delivery_fee: deliveryFee
       }
     }));
 
@@ -530,9 +535,16 @@ export default function CheckoutPage() {
                     </div>
                   )}
 
+                  {formData.order_type === 'delivery' && (
+                    <div className={styles.totalRow}>
+                      <span>🚚 Delivery Fee</span>
+                      <span>RM{DELIVERY_FEE.toFixed(2)}</span>
+                    </div>
+                  )}
+
                   <div className={styles.finalTotal}>
                     <span>Total</span>
-                    <span>RM{total.toFixed(2)}</span>
+                    <span>RM{(total + (formData.order_type === 'delivery' ? DELIVERY_FEE : 0)).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

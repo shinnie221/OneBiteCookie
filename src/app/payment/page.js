@@ -64,6 +64,8 @@ export default function PaymentPage() {
   const toast = useToast();
   
   const [checkoutData, setCheckoutData] = useState(null);
+  const deliveryFee = checkoutData?.customerInfo?.delivery_fee || 0;
+  const grandTotal = total + deliveryFee;
   const [qrCode, setQrCode] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -214,7 +216,7 @@ export default function PaymentPage() {
           <div className={`card ${styles.paymentCard}`}>
             <div className={styles.amountBox}>
               <span className={styles.amountLabel}>Amount to Pay</span>
-              <span className={styles.amountValue}>RM{total.toFixed(2)}</span>
+              <span className={styles.amountValue}>RM{grandTotal.toFixed(2)}</span>
             </div>
             
             <div className={styles.qrSection}>
@@ -238,7 +240,7 @@ export default function PaymentPage() {
             <form onSubmit={handleSubmit} className={styles.uploadForm}>
               <div className={styles.uploadSection}>
                 <h3>Upload Payment Proof</h3>
-                <p>After transferring RM{total.toFixed(2)}, please upload a screenshot of your successful transaction.</p>
+                <p>After transferring RM{grandTotal.toFixed(2)}, please upload a screenshot of your successful transaction.</p>
                 
                 <div className={styles.fileUploadWrapper}>
                   <input 
