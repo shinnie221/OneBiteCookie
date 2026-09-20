@@ -213,7 +213,27 @@ export default function CheckoutPage() {
       <Navbar />
 
       <main className="pageContainer">
-        <h1 className={styles.pageTitle}>Checkout</h1>
+        <div className={styles.headerContainer}>
+          <button
+            type="button"
+            className={styles.backButton}
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/cart');
+              }
+            }}
+            aria-label="Go back to previous page"
+            title="Go back"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+          <h1 className={styles.pageTitle}>Checkout</h1>
+        </div>
 
         <div className={styles.checkoutLayout}>
           <form className={styles.checkoutForm} onSubmit={handleSubmit}>
@@ -406,7 +426,7 @@ export default function CheckoutPage() {
                                 const deliverable = isStateDeliverable(a.state);
                                 return (
                                   <option key={a.id} value={a.id}>
-                                    {deliverable ? '🚚 ' : '⚠️ [Outside KL] '}
+                                    {!deliverable ? '⚠️ [Outside KL] ' : ''}
                                     {a.isDefault ? '⭐ [Default] ' : ''}
                                     {a.label}: {a.recipientName} - {a.addressLine1}, {a.city}
                                   </option>
@@ -428,11 +448,7 @@ export default function CheckoutPage() {
                                     ⭐ Default
                                   </span>
                                 )}
-                                {isStateDeliverable(selectedAddr.state) ? (
-                                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#047857', background: '#d1fae5', padding: '2px 6px', borderRadius: '4px' }}>
-                                    🚚 KL Delivery
-                                  </span>
-                                ) : (
+                                {!isStateDeliverable(selectedAddr.state) && (
                                   <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b91c1c', background: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>
                                     ⚠️ Outside KL
                                   </span>

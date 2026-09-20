@@ -181,6 +181,28 @@ export default function VouchersPage() {
     }
   };
 
+  const handleResetUsage = async (voucher) => {
+    if (!confirm(`确定要重置优惠券【${voucher.code}】的使用记录吗？\n这会将已使用次数清零，并允许之前使用过的顾客重新使用此优惠券。`)) {
+      return;
+    }
+    try {
+      const res = await authFetch(`/api/vouchers/${voucher.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reset_usage: true })
+      });
+
+      if (res.ok) {
+        toast.success(`优惠券【${voucher.code}】使用记录已清空重置`);
+        fetchVouchers();
+      } else {
+        toast.error('重置使用记录失败');
+      }
+    } catch (e) {
+      toast.error('重置使用记录出错');
+    }
+  };
+
   const isExpired = (dateStr) => {
     if (!dateStr) return false;
     const today = new Date().toISOString().split('T')[0];
@@ -308,8 +330,18 @@ export default function VouchersPage() {
                           </button>
                         </td>
                         <td>
-                          <div className="flex gap1">
+                          <div className="flex gap1" style={{ flexWrap: 'wrap' }}>
                             <button onClick={() => openEditModal(voucher)} className="btn btnSecondary" style={{ padding: '6px 12px' }}>编辑</button>
+                            {(timesUsed > 0 || (Array.isArray(voucher.used_by) && voucher.used_by.length > 0)) && (
+                              <button
+                                onClick={() => handleResetUsage(voucher)}
+                                className="btn"
+                                style={{ padding: '6px 10px', fontSize: '0.78rem', background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}
+                                title="清空已使用记录与顾客名单"
+                              >
+                                🔄 重置使用
+                              </button>
+                            )}
                             <button onClick={() => handleDelete(voucher.id)} className="btn btnDanger" style={{ padding: '6px 12px' }}>删除</button>
                           </div>
                         </td>

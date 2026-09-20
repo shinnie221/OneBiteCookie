@@ -121,6 +121,11 @@ export async function POST(request) {
       note: (note || '').trim(),
       receiptUrl: (receiptUrl || '').trim(),
       supplierName: (supplierName || '').trim(),
+      payer: body.payer || null,
+      extra_amount: body.extra_amount !== undefined ? Number(body.extra_amount) : null,
+      linked_order_id: body.linked_order_id || null,
+      auto_generated: Boolean(body.auto_generated),
+      record_sub_type: body.record_sub_type || null,
       created_by: user.name || user.email || 'staff',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()

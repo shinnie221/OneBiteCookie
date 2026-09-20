@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 
 export async function GET(request, { params }) {
@@ -128,8 +128,122 @@ export async function PUT(request, { params }) {
     if (body.address !== undefined) {
       updates.address = body.address;
     }
+    if (body.delivery_method !== undefined) {
+      updates.delivery_method = body.delivery_method;
+    }
+    if (body.lalamove_cost !== undefined) {
+      updates.lalamove_cost = body.lalamove_cost !== '' ? Math.round((Number(body.lalamove_cost) || 0) * 100) / 100 : 0;
+    }
+    if (body.lalamove_payer !== undefined) {
+      updates.lalamove_payer = body.lalamove_payer;
+    }
+    if (body.lalamove_receipt_url !== undefined) {
+      updates.lalamove_receipt_url = body.lalamove_receipt_url;
+    }
+
+    const effectiveOrderType = updates.order_type !== undefined ? updates.order_type : existing.order_type;
+    const effectiveDeliveryMethod = updates.delivery_method !== undefined ? updates.delivery_method : existing.delivery_method;
+
+    if (effectiveDeliveryMethod === 'lalamove') {
+      const finalCost = updates.lalamove_cost !== undefined ? updates.lalamove_cost : (Number(existing.lalamove_cost) || 0);
+      updates.lalamove_extra_amount = Math.max(0, Math.round((finalCost - 8) * 100) / 100);
+    }
 
     await updateDoc(docRef, updates);
+
+    // Sync financial records for Lalamove delivery
+    try {
+      const isLalamove = effectiveOrderType === 'delivery' && effectiveDeliveryMethod === 'lalamove';
+      const orderIdStr = existing.order_id || orderId;
+
+      const financeRef = collection(db, 'finance_records');
+      const qFinance = query(financeRef, where('linked_order_id', '==', orderIdStr));
+      const financeSnap = await getDocs(qFinance);
+      
+      const autoRecords = [];
+      financeSnap.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.auto_generated) {
+          autoRecords.push({ id: docSnap.id, ...data });
+        }
+      });
+
+      if (isLalamove) {
+        const cost = updates.lalamove_cost !== undefined ? updates.lalamove_cost : (Number(existing.lalamove_cost) || 0);
+        const payer = updates.lalamove_payer !== undefined ? updates.lalamove_payer : (existing.lalamove_payer || 'Shinnie');
+        const payerLabel = (payer === 'Yunxuan' || payer.includes('Yunxuan')) ? 'Yunxuan个人先行垫付' : 'Shinnie个人先行垫付';
+        const receiptUrl = updates.lalamove_receipt_url !== undefined ? updates.lalamove_receipt_url : (existing.lalamove_receipt_url || '');
+        const extraAmount = Math.max(0, Math.round((cost - 8) * 100) / 100);
+        const recordDate = (existing.created_at || new Date().toISOString()).split('T')[0];
+
+        // 1. Income Record (RM 8 Customer Delivery Fee)
+        const existingIncome = autoRecords.find(r => r.record_sub_type === 'delivery_customer_fee' || r.transactionType === '收入');
+        const incomeData = {
+          date: recordDate,
+          transactionType: '收入',
+          category: '配送相关',
+          amount: 8,
+          orderType: 'Pre-order',
+          note: `顾客固定配送费RM8 (订单#${orderIdStr})`,
+          linked_order_id: orderIdStr,
+          auto_generated: true,
+          record_sub_type: 'delivery_customer_fee',
+          receiptUrl: '',
+          supplierName: '',
+          updated_at: new Date().toISOString()
+        };
+
+        if (existingIncome) {
+          await updateDoc(doc(db, 'finance_records', existingIncome.id), incomeData);
+        } else {
+          await addDoc(financeRef, {
+            ...incomeData,
+            created_by: user.name || user.email || 'system',
+            created_at: new Date().toISOString()
+          });
+        }
+
+        // 2. Expense Record (Full Lalamove Delivery Fee)
+        const existingExpense = autoRecords.find(r => r.record_sub_type === 'delivery_lalamove_cost' || r.transactionType === '支出');
+        const expenseData = {
+          date: recordDate,
+          transactionType: '支出',
+          category: '配送相关',
+          amount: cost,
+          orderType: 'Pre-order',
+          note: `Lalamove运费 RM${cost.toFixed(2)} (多出差额RM${extraAmount.toFixed(2)}由公款承担) · 垫付人: ${payerLabel} (先垫付后从公款报销) (订单#${orderIdStr})`,
+          receiptUrl: receiptUrl.trim(),
+          supplierName: 'Lalamove',
+          payer: payer,
+          extra_amount: extraAmount,
+          linked_order_id: orderIdStr,
+          auto_generated: true,
+          record_sub_type: 'delivery_lalamove_cost',
+          updated_at: new Date().toISOString()
+        };
+
+        if (existingExpense) {
+          await updateDoc(doc(db, 'finance_records', existingExpense.id), expenseData);
+        } else {
+          await addDoc(financeRef, {
+            ...expenseData,
+            created_by: user.name || user.email || 'system',
+            created_at: new Date().toISOString()
+          });
+        }
+      } else {
+        // If not Lalamove (e.g. admin_delivery or pickup), delete any existing auto records for this order
+        for (const rec of autoRecords) {
+          try {
+            await deleteDoc(doc(db, 'finance_records', rec.id));
+          } catch (e) {
+            console.error('Error deleting obsolete auto finance record:', e);
+          }
+        }
+      }
+    } catch (financeErr) {
+      console.error('Error syncing delivery finance records:', financeErr);
+    }
 
     const updatedOrder = {
       id: orderId,

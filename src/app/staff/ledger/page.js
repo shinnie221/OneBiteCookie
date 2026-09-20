@@ -115,14 +115,23 @@ export default function LedgerPage() {
     return records.filter(r => r.channel === 'wholesale' && r.date >= from && r.date <= to);
   }, [records, from, to]);
 
-  // Filter General Expenses records (flour, butter, packaging, etc.)
-  const filteredExpenses = useMemo(() => {
+  // Filter Finance records (raw materials, operating costs, and Lalamove delivery records)
+  const filteredFinance = useMemo(() => {
     return financeRecords.filter(r => r.date >= from && r.date <= to);
   }, [financeRecords, from, to]);
 
   // Calculations per channel
   const orderStats = useMemo(() => {
-    const totalSales = filteredOrders.reduce((sum, o) => sum + (Number(o.total ?? o.total_amount) || 0), 0);
+    const totalSales = filteredOrders.reduce((sum, o) => {
+      let amount = Number(o.total ?? o.total_amount) || 0;
+      // 管理员亲送的RM8配送费属于送货人个人补贴，不属于合伙公款，从销售营收中扣除
+      // Lalamove的RM8配送费由finance_records作为收入记录单独核算配送收入，避免重复统计
+      if (o.delivery_method === 'admin_delivery' || o.delivery_method === 'lalamove') {
+        const fee = Number(o.delivery_fee) || 8;
+        amount = Math.max(0, amount - fee);
+      }
+      return sum + amount;
+    }, 0);
     const totalPieces = filteredOrders.reduce((sum, o) => sum + (o.items?.reduce((is, it) => is + (it.quantity || 0), 0) || 0), 0);
     return {
       count: filteredOrders.length,
@@ -170,22 +179,42 @@ export default function LedgerPage() {
     };
   }, [filteredWholesale]);
 
-  const expenseStats = useMemo(() => {
-    const expenses = filteredExpenses.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+  const financeStats = useMemo(() => {
+    let income = 0;
+    let expenses = 0;
+    let deliveryIncome = 0;
+    let deliveryExpenses = 0;
+    for (const r of filteredFinance) {
+      const amt = Number(r.amount) || 0;
+      if (r.transactionType === '收入') {
+        income += amt;
+        if (r.category === '配送相关') {
+          deliveryIncome += amt;
+        }
+      } else {
+        expenses += amt;
+        if (r.category === '配送相关') {
+          deliveryExpenses += amt;
+        }
+      }
+    }
     return {
-      count: filteredExpenses.length,
+      count: filteredFinance.length,
+      income,
       expenses,
+      deliveryIncome,
+      deliveryExpenses,
     };
-  }, [filteredExpenses]);
+  }, [filteredFinance]);
 
-  // Combined Totals (deducting all expenses including general flour/butter expenses)
+  // Combined Totals (accounting for all sales channels, delivery income, and all expenses)
   const combinedStats = useMemo(() => {
-    const totalSales = orderStats.sales + boothStats.sales + wholesaleStats.sales;
-    const totalExpenses = boothStats.expenses + wholesaleStats.expenses + expenseStats.expenses;
+    const totalSales = orderStats.sales + boothStats.sales + wholesaleStats.sales + financeStats.income;
+    const totalExpenses = boothStats.expenses + wholesaleStats.expenses + financeStats.expenses;
     const netRevenue = totalSales - totalExpenses;
     const totalPieces = orderStats.pieces + boothStats.pieces + wholesaleStats.pieces;
     const totalOutstanding = wholesaleStats.outstanding;
-    const totalCount = orderStats.count + boothStats.count + wholesaleStats.count + expenseStats.count;
+    const totalCount = orderStats.count + boothStats.count + wholesaleStats.count + financeStats.count;
     return {
       sales: totalSales,
       expenses: totalExpenses,
@@ -194,7 +223,7 @@ export default function LedgerPage() {
       outstanding: totalOutstanding,
       count: totalCount,
     };
-  }, [orderStats, boothStats, wholesaleStats, expenseStats]);
+  }, [orderStats, boothStats, wholesaleStats, financeStats]);
 
   // Unified Chronological Stream for 'all' tab
   const unifiedStream = useMemo(() => {
@@ -204,14 +233,21 @@ export default function LedgerPage() {
     for (const o of filteredOrders) {
       const completionDate = getOrderCompletionDate(o) || (o.created_at ? businessDate(o.created_at) : '');
       const pieces = o.items?.reduce((s, it) => s + (it.quantity || 0), 0) || 0;
-      const amount = Number(o.total ?? o.total_amount) || 0;
+      let amount = Number(o.total ?? o.total_amount) || 0;
+      if (o.delivery_method === 'admin_delivery' || o.delivery_method === 'lalamove') {
+        amount = Math.max(0, amount - (Number(o.delivery_fee) || 8));
+      }
+      let deliveryTag = '🛍️ 自取';
+      if (o.order_type === 'delivery') {
+        deliveryTag = o.delivery_method === 'lalamove' ? '🛵 Lalamove' : '🚗 亲送(补贴不入公款)';
+      }
       stream.push({
         id: `order-${o.order_id}`,
         type: 'orders',
         typeLabel: '线上预购',
         date: completionDate,
         title: `订单 #${o.order_id.slice(-6).toUpperCase()} · ${o.customer_name || '顾客'}`,
-        subtext: `${o.order_type === 'delivery' || o.delivery_method === 'delivery' ? '🚚 送货' : '🛍️ 自取'} · ${pieces} 片曲奇 · ${o.phone || o.customer_phone || ''}`,
+        subtext: `${deliveryTag} · ${pieces} 片曲奇 · ${o.phone || o.customer_phone || ''}`,
         pieces,
         gross: amount,
         sales: amount,
@@ -264,29 +300,42 @@ export default function LedgerPage() {
       });
     }
 
-    // General Expenses (Flour, Butter, Packaging, etc.)
-    for (const exp of filteredExpenses) {
-      const amount = Number(exp.amount) || 0;
+    // Finance records (raw materials, operational costs, and Lalamove delivery records)
+    for (const item of filteredFinance) {
+      const amount = Number(item.amount) || 0;
+      const isIncome = item.transactionType === '收入';
+      const isDelivery = item.category === '配送相关';
+      
+      let typeLabel = isIncome ? '财务收入' : '成本支出';
+      if (isDelivery) {
+        typeLabel = isIncome ? '配送收入' : '配送运费支出';
+      }
+
+      let payerNotice = '';
+      if (item.payer) {
+        payerNotice = item.payer === 'Yunxuan' ? ' [Yunxuan垫付/待报销]' : ' [Shinnie垫付/待报销]';
+      }
+
       stream.push({
-        id: `expense-${exp.id}`,
-        type: 'expense',
-        typeLabel: '成本支出',
-        date: exp.date,
-        title: `${exp.category || '成本支出'} · ${exp.supplierName ? exp.supplierName + ' · ' : ''}${exp.note || '支出记录'}`,
-        subtext: exp.receiptUrl ? `📎 含有 Google Drive 凭据收据` : (exp.orderType ? `关联业务: ${exp.orderType}` : '通用原材物料与日常开销'),
-        receiptUrl: exp.receiptUrl || '',
+        id: `finance-${item.id}`,
+        type: 'finance',
+        typeLabel,
+        date: item.date,
+        title: `${item.category || (isIncome ? '业务收入' : '成本支出')} · ${item.supplierName ? item.supplierName + ' · ' : ''}${item.note || ''}${payerNotice}`,
+        subtext: item.receiptUrl ? `📎 含有凭据收据` : (item.orderType ? `关联业务: ${item.orderType}` : '日常开销与配送支出'),
+        receiptUrl: item.receiptUrl || '',
         pieces: 0,
-        gross: 0,
-        sales: 0,
-        expenses: amount,
-        net: -amount,
-        statusText: exp.receiptUrl ? '有收据凭单' : '已入账',
-        raw: exp,
+        gross: isIncome ? amount : 0,
+        sales: isIncome ? amount : 0,
+        expenses: isIncome ? 0 : amount,
+        net: isIncome ? amount : -amount,
+        statusText: item.receiptUrl ? '有收据凭单' : '已入账',
+        raw: item,
       });
     }
 
     return stream.sort((a, b) => b.date.localeCompare(a.date));
-  }, [filteredOrders, filteredBooths, filteredWholesale, filteredExpenses]);
+  }, [filteredOrders, filteredBooths, filteredWholesale, filteredFinance]);
 
   // CSV Export
   const exportCSV = () => {
@@ -303,31 +352,56 @@ export default function LedgerPage() {
     // Part 1: KPI Summary
     lines.push(['【一、全渠道财务综合汇总】']);
     lines.push(['销售渠道/开支项目', '交易笔数/场次', '售出总片数', '销售营业额 (RM)', '已记支出 (RM)', '净营业额 (RM)', '待收尾款 (RM)'].map(cleanCSV).join(','));
-    lines.push(['线上预购', orderStats.count, orderStats.pieces, orderStats.sales.toFixed(2), '0.00', orderStats.net.toFixed(2), '0.00'].map(cleanCSV).join(','));
+    lines.push(['线上预购 (曲奇销售)', orderStats.count, orderStats.pieces, orderStats.sales.toFixed(2), '0.00', orderStats.net.toFixed(2), '0.00'].map(cleanCSV).join(','));
+    if (financeStats.deliveryIncome > 0) {
+      lines.push(['配送收入 (Lalamove)', '-', '-', financeStats.deliveryIncome.toFixed(2), '0.00', financeStats.deliveryIncome.toFixed(2), '0.00'].map(cleanCSV).join(','));
+    }
     lines.push(['摆摊销售', boothStats.count, boothStats.pieces, boothStats.sales.toFixed(2), boothStats.expenses.toFixed(2), boothStats.net.toFixed(2), '0.00'].map(cleanCSV).join(','));
     lines.push(['批发供货', wholesaleStats.count, wholesaleStats.pieces, wholesaleStats.sales.toFixed(2), wholesaleStats.expenses.toFixed(2), wholesaleStats.net.toFixed(2), wholesaleStats.outstanding.toFixed(2)].map(cleanCSV).join(','));
-    lines.push(['成本支出(原料/耗材)', expenseStats.count, '0', '0.00', expenseStats.expenses.toFixed(2), (-expenseStats.expenses).toFixed(2), '0.00'].map(cleanCSV).join(','));
+    lines.push(['成本支出 (含Lalamove运费)', financeStats.count, '0', '0.00', financeStats.expenses.toFixed(2), (-financeStats.expenses).toFixed(2), '0.00'].map(cleanCSV).join(','));
     lines.push(['全渠道总计', combinedStats.count, combinedStats.pieces, combinedStats.sales.toFixed(2), combinedStats.expenses.toFixed(2), combinedStats.net.toFixed(2), combinedStats.outstanding.toFixed(2)].map(cleanCSV).join(','));
     lines.push([]);
 
     // Part 2: Online Orders Detail
     lines.push(['【二、线上预购明细清单】']);
-    lines.push(['订单编号', '完成日期', '订购日期', '顾客姓名', '联系电话', '配送方式', '预取/配送日期', '曲奇总片数', '订单金额 (RM)', '状态'].map(cleanCSV).join(','));
+    lines.push(['订单编号', '完成日期', '订购日期', '顾客姓名', '联系电话', '履约方式', '送货选项', '顾客配送费 (RM)', 'Lalamove实际运费 (RM)', '多出差额 (RM)', '运费垫付人', '预取/配送日期', '曲奇总片数', '订单入账金额 (RM)', '状态'].map(cleanCSV).join(','));
     for (const o of filteredOrders) {
       const completionDate = getOrderCompletionDate(o) || '';
       const orderDate = o.created_at ? businessDate(o.created_at) : '';
       const pieces = o.items?.reduce((s, it) => s + (it.quantity || 0), 0) || 0;
+      
+      const isDelivery = o.order_type === 'delivery';
+      const isLalamove = isDelivery && o.delivery_method === 'lalamove';
+      const isAdminDelivery = isDelivery && o.delivery_method !== 'lalamove';
+
+      const deliveryOption = isDelivery ? (isLalamove ? 'Lalamove第三方' : '管理员本人亲送') : '—';
+      const customerFee = isDelivery ? (Number(o.delivery_fee) || 8).toFixed(2) : '0.00';
+      const actualCost = isLalamove ? Number(o.lalamove_cost || 0).toFixed(2) : '—';
+      const extraAmount = isLalamove ? Math.max(0, (Number(o.lalamove_cost) || 0) - 8).toFixed(2) : '—';
+      const payer = isLalamove ? (o.lalamove_payer === 'Yunxuan' ? 'Yunxuan个人先行垫付' : 'Shinnie个人先行垫付') : '—';
+
+      // 入账金额 (排除亲送RM8补贴，Lalamove单独记配送收入，此处纯曲奇入账)
+      let recordedAmount = Number(o.total ?? o.total_amount) || 0;
+      if (isDelivery) {
+        recordedAmount = Math.max(0, recordedAmount - (Number(o.delivery_fee) || 8));
+      }
+
       lines.push([
         o.order_id,
         completionDate,
         orderDate,
         o.customer_name || '',
         o.phone || o.customer_phone || '',
-        (o.order_type === 'delivery' || o.delivery_method === 'delivery') ? '送货上门' : '自取',
+        isDelivery ? '送货上门' : '到店自取',
+        deliveryOption,
+        customerFee,
+        actualCost,
+        extraAmount,
+        payer,
         o.delivery_date || '',
         pieces,
-        (Number(o.total ?? o.total_amount) || 0).toFixed(2),
-        '已完成入账'
+        recordedAmount.toFixed(2),
+        isAdminDelivery ? '已完成入账 (RM8亲送补贴不入账)' : '已完成入账'
       ].map(cleanCSV).join(','));
     }
     lines.push([]);
@@ -376,15 +450,24 @@ export default function LedgerPage() {
     lines.push([]);
 
     // Part 5: General Expenses Detail
-    lines.push(['【五、原材料及日常成本支出明细清单】']);
-    lines.push(['支出日期', '支出类别', '供应商/开销项目', '金额 (RM)', '关联业务', 'Google Drive 凭据链接'].map(cleanCSV).join(','));
-    for (const exp of filteredExpenses) {
+    lines.push(['【五、成本支出与配送收支明细清单】']);
+    lines.push(['收支日期', '交易类型', '收支类别', '供应商 / 开销项目', '金额 (RM)', '关联业务', '运费垫付人 / 差额说明', '凭证链接'].map(cleanCSV).join(','));
+    for (const exp of filteredFinance) {
+      let payerDesc = '';
+      if (exp.payer) {
+        payerDesc = `${exp.payer === 'Yunxuan' ? 'Yunxuan' : 'Shinnie'}个人先行垫付 (公款报销)`;
+        if (exp.extra_amount !== undefined && exp.extra_amount !== null) {
+          payerDesc += ` · 公款补贴差额 RM${Number(exp.extra_amount).toFixed(2)}`;
+        }
+      }
       lines.push([
         exp.date,
+        exp.transactionType || '支出',
         exp.category || '',
         `${exp.supplierName ? exp.supplierName + ' - ' : ''}${exp.note || ''}`,
         (Number(exp.amount) || 0).toFixed(2),
         exp.orderType || '通用成本',
+        payerDesc,
         exp.receiptUrl || ''
       ].map(cleanCSV).join(','));
     }
@@ -607,8 +690,13 @@ export default function LedgerPage() {
       {/* Secondary Channels Breakdown Pills */}
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '.88rem' }}>
         <div style={{ background: '#eff6ff', padding: '8px 16px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
-          <strong>线上预购：</strong> {money(orderStats.sales)} ({orderStats.pieces} 片 · {orderStats.paidCount} 单生效)
+          <strong>线上预购 (曲奇)：</strong> {money(orderStats.sales)} ({orderStats.pieces} 片 · {orderStats.paidCount} 单生效)
         </div>
+        {financeStats.deliveryIncome > 0 && (
+          <div style={{ background: '#ecfdf5', padding: '8px 16px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+            <strong>🛵 配送收入 (Lalamove)：</strong> {money(financeStats.deliveryIncome)} (合伙入账)
+          </div>
+        )}
         <div style={{ background: '#fef3c7', padding: '8px 16px', borderRadius: '8px', border: '1px solid #fde68a' }}>
           <strong>摆摊销售：</strong> {money(boothStats.sales)} ({boothStats.pieces} 片售出 · {boothStats.count} 场市集)
         </div>
@@ -617,7 +705,7 @@ export default function LedgerPage() {
         </div>
         <Link href="/staff/expenses" style={{ textDecoration: 'none', color: 'inherit' }}>
           <div style={{ background: '#fee2e2', padding: '8px 16px', borderRadius: '8px', border: '1px solid #fecaca', cursor: 'pointer' }}>
-            <strong>成本支出：</strong> {money(expenseStats.expenses)} ({expenseStats.count} 笔记录 · 管理 ↗)
+            <strong>成本支出：</strong> {money(financeStats.expenses)} ({financeStats.count} 笔记录 · 管理 ↗)
           </div>
         </Link>
       </div>
@@ -657,7 +745,7 @@ export default function LedgerPage() {
           className={`${styles.tabBtn} ${tab === 'expenses' ? styles.tabBtnActive : ''}`}
           onClick={() => setTab('expenses')}
         >
-          成本支出流水 ({filteredExpenses.length})
+          成本支出与配送收支 ({filteredFinance.length})
         </button>
       </div>
 
@@ -891,11 +979,11 @@ export default function LedgerPage() {
               )
             )}
 
-            {/* View 5: EXPENSES */}
+            {/* View 5: EXPENSES & FINANCE */}
             {tab === 'expenses' && (
-              filteredExpenses.length === 0 ? (
+              filteredFinance.length === 0 ? (
                 <div className={styles.emptyState}>
-                  当前时间段内暂无成本支出记录。
+                  当前时间段内暂无收支记录。
                   <div style={{ marginTop: '12px' }}>
                     <Link href="/staff/expenses" className="btn btnPrimary" style={{ fontSize: '0.85rem' }}>
                       + 记录新成本支出
@@ -906,60 +994,94 @@ export default function LedgerPage() {
                 <table className={styles.ledgerTable}>
                   <thead>
                     <tr>
-                      <th>支出日期</th>
-                      <th>支出类别</th>
+                      <th>收支日期</th>
+                      <th>交易类型</th>
+                      <th>类别</th>
                       <th>供应商 / 说明</th>
                       <th>关联业务</th>
-                      <th>支出金额</th>
-                      <th>Google Drive 收据凭单</th>
+                      <th>金额</th>
+                      <th>收据凭单</th>
                       <th>操作</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredExpenses.map(exp => (
-                      <tr key={exp.id}>
-                        <td><strong>{exp.date}</strong></td>
-                        <td>
-                          <span className={styles.badgeExpense}>{exp.category || '成本支出'}</span>
-                        </td>
-                        <td>
-                          <strong>{exp.supplierName ? `${exp.supplierName} · ` : ''}{exp.note || '支出记录'}</strong>
-                        </td>
-                        <td>
-                          <span className={styles.hint}>{exp.orderType || '通用日常成本'}</span>
-                        </td>
-                        <td>
-                          <strong style={{ color: '#dc2626' }}>- {money(exp.amount)}</strong>
-                        </td>
-                        <td>
-                          {exp.receiptUrl ? (
-                            <a
-                              href={exp.receiptUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={styles.receiptLink}
-                            >
-                              📄 查看特定收据 ↗
-                            </a>
-                          ) : (
-                            <a
-                              href={GOOGLE_DRIVE_RECEIPTS_URL}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={styles.receiptLink}
-                              style={{ color: '#475569', background: '#f8fafc', borderColor: '#e2e8f0' }}
-                            >
-                              📂 打开收据云盘 ↗
-                            </a>
-                          )}
-                        </td>
-                        <td>
-                          <Link href="/staff/expenses" className={styles.receiptLink} style={{ color: 'var(--color-primary)' }}>
-                            管理 ↗
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
+                    {filteredFinance.map(exp => {
+                      const isIncome = exp.transactionType === '收入';
+                      return (
+                        <tr key={exp.id}>
+                          <td><strong>{exp.date}</strong></td>
+                          <td>
+                            <span style={{
+                              display: 'inline-block',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              background: isIncome ? '#d1fae5' : '#fee2e2',
+                              color: isIncome ? '#047857' : '#b91c1c'
+                            }}>
+                              {isIncome ? '收入' : '支出'}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={styles.badgeExpense}>{exp.category || (isIncome ? '业务收入' : '成本支出')}</span>
+                          </td>
+                          <td>
+                            <strong>{exp.supplierName ? `${exp.supplierName} · ` : ''}{exp.note || '记录'}</strong>
+                            {exp.payer && (
+                              <span style={{
+                                marginLeft: '6px',
+                                fontSize: '0.75rem',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                background: exp.payer === 'Yunxuan' ? '#f3e8ff' : '#ecfdf5',
+                                color: exp.payer === 'Yunxuan' ? '#7e22ce' : '#047857',
+                                fontWeight: 700
+                              }}>
+                                {exp.payer === 'Yunxuan' ? '🟣 Yunxuan垫付' : '🟢 Shinnie垫付'}
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <span className={styles.hint}>{exp.orderType || '通用日常'}</span>
+                          </td>
+                          <td>
+                            {isIncome ? (
+                              <strong style={{ color: '#16a34a' }}>+ {money(exp.amount)}</strong>
+                            ) : (
+                              <strong style={{ color: '#dc2626' }}>- {money(exp.amount)}</strong>
+                            )}
+                          </td>
+                          <td>
+                            {exp.receiptUrl ? (
+                              <a
+                                href={exp.receiptUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.receiptLink}
+                              >
+                                📄 查看凭证 ↗
+                              </a>
+                            ) : (
+                              <a
+                                href={GOOGLE_DRIVE_RECEIPTS_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.receiptLink}
+                                style={{ color: '#475569', background: '#f8fafc', borderColor: '#e2e8f0' }}
+                              >
+                                📂 打开云盘 ↗
+                              </a>
+                            )}
+                          </td>
+                          <td>
+                            <Link href="/staff/expenses" className={styles.receiptLink} style={{ color: 'var(--color-primary)' }}>
+                              管理 ↗
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )

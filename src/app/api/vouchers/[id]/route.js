@@ -39,7 +39,7 @@ export async function PUT(request, { params }) {
       ? (body.customer_name ? body.customer_name.trim() : null) 
       : (existing.customer_name || null);
     
-    await updateDoc(voucherRef, {
+    const updatePayload = {
       code,
       discount_type: discountType,
       discount_value: discountValue,
@@ -51,7 +51,19 @@ export async function PUT(request, { params }) {
       target_type: targetType,
       customer_email: customerEmail,
       customer_name: customerName
-    });
+    };
+
+    if (body.reset_usage === true) {
+      updatePayload.times_used = 0;
+      updatePayload.used_by = [];
+    } else if (body.times_used !== undefined) {
+      updatePayload.times_used = Number(body.times_used) || 0;
+    }
+    if (body.used_by !== undefined && Array.isArray(body.used_by)) {
+      updatePayload.used_by = body.used_by;
+    }
+
+    await updateDoc(voucherRef, updatePayload);
     
     return NextResponse.json({ message: 'Voucher updated' });
   } catch (error) {

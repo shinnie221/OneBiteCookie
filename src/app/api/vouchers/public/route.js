@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where, updateDoc } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
@@ -13,6 +13,42 @@ export async function GET(request) {
       currentUser = verifyAuth(request);
     } catch (e) {
       // Unauthenticated is fine
+    }
+
+    // Check actual active orders placed by currentUser to verify used vouchers
+    const userUsedVoucherCodes = new Set();
+    if (currentUser) {
+      try {
+        if (currentUser.id) {
+          const orderQ = query(
+            collection(db, 'orders'),
+            where('customer_id', '==', currentUser.id)
+          );
+          const orderSnap = await getDocs(orderQ);
+          orderSnap.forEach(d => {
+            const od = d.data();
+            if (od.voucher_code && od.order_status !== 'cancelled' && od.order_status !== 'rejected') {
+              userUsedVoucherCodes.add(od.voucher_code.trim().toUpperCase());
+            }
+          });
+        }
+
+        if (currentUser.email) {
+          const orderQEmail = query(
+            collection(db, 'orders'),
+            where('email', '==', currentUser.email.toLowerCase())
+          );
+          const orderSnapEmail = await getDocs(orderQEmail);
+          orderSnapEmail.forEach(d => {
+            const od = d.data();
+            if (od.voucher_code && od.order_status !== 'cancelled' && od.order_status !== 'rejected') {
+              userUsedVoucherCodes.add(od.voucher_code.trim().toUpperCase());
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Error checking user order history for vouchers:', e);
+      }
     }
 
     const vouchersRef = collection(db, 'vouchers');
@@ -33,8 +69,21 @@ export async function GET(request) {
       // Check once per customer
       const isOncePerCustomer = data.usage_limit === 'once_per_customer';
       let alreadyUsedByThisUser = false;
-      if (isOncePerCustomer && currentUser && Array.isArray(data.used_by)) {
-        alreadyUsedByThisUser = data.used_by.includes(currentUser.id) || (currentUser.email && data.used_by.includes(currentUser.email));
+      if (isOncePerCustomer && currentUser) {
+        const upperCode = (data.code || '').trim().toUpperCase();
+        if (userUsedVoucherCodes.has(upperCode)) {
+          alreadyUsedByThisUser = true;
+        } else if (Array.isArray(data.used_by)) {
+          const inUsedBy = data.used_by.includes(currentUser.id) || (currentUser.email && data.used_by.includes(currentUser.email));
+          if (inUsedBy) {
+            // Reconcile stale used_by entry because no active orders exist in Firestore
+            const cleaned = data.used_by.filter(id => id !== currentUser.id && id !== currentUser.email);
+            updateDoc(doc.ref, {
+              used_by: cleaned,
+              times_used: Math.max(0, (data.times_used || 1) - 1)
+            }).catch(() => {});
+          }
+        }
       }
 
       // Check customer targeting (if assigned to a specific customer)

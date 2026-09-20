@@ -202,6 +202,10 @@ function OrdersContent() {
       email: selectedOrder.email || '',
       order_type: selectedOrder.order_type || 'pickup',
       address: selectedOrder.address || '',
+      delivery_method: selectedOrder.delivery_method || (selectedOrder.order_type === 'delivery' ? 'admin_delivery' : 'pickup'),
+      lalamove_cost: selectedOrder.lalamove_cost !== undefined && selectedOrder.lalamove_cost !== null ? selectedOrder.lalamove_cost : '',
+      lalamove_payer: selectedOrder.lalamove_payer || 'Shinnie',
+      lalamove_receipt_url: selectedOrder.lalamove_receipt_url || '',
       staff_note: selectedOrder.staff_note || '',
     });
     setIsEditing(true);
@@ -213,6 +217,17 @@ function OrdersContent() {
   };
 
   const saveEditing = async () => {
+    if (editData.order_type === 'delivery' && editData.delivery_method === 'lalamove') {
+      if (editData.lalamove_cost === '' || isNaN(Number(editData.lalamove_cost)) || Number(editData.lalamove_cost) < 0) {
+        toast.error('请填写有效的 Lalamove 实际总运费金额');
+        return;
+      }
+      if (!editData.lalamove_payer) {
+        toast.error('请选择 Lalamove 运费垫付人（Shinnie 或 Yunxuan）');
+        return;
+      }
+    }
+
     setActionLoading(true);
     try {
       const res = await authFetch(`/api/orders/${selectedOrder.order_id}`, {
@@ -349,9 +364,13 @@ function OrdersContent() {
                         <div className={styles.customerPhone}>{order.phone}</div>
                       </td>
                       <td>
-                        <span className={order.order_type === 'delivery' ? styles.deliveryBadge : styles.pickupBadge}>
-                          {order.order_type === 'delivery' ? '🚚 送货上门' : '🛍️ 到店自取'}
-                        </span>
+                        {order.order_type === 'delivery' ? (
+                          <span className={styles.deliveryBadge} title={order.delivery_method === 'lalamove' ? `🛵 Lalamove配送 · 实际运费 RM${Number(order.lalamove_cost || 0).toFixed(2)}` : '🚗 管理员亲送'}>
+                            {order.delivery_method === 'lalamove' ? '🛵 Lalamove' : '🚚 管理员亲送'}
+                          </span>
+                        ) : (
+                          <span className={styles.pickupBadge}>🛍️ 到店自取</span>
+                        )}
                       </td>
                       <td className={styles.totalCell}>RM{order.total.toFixed(2)}</td>
                       <td><OrderStatusBadge status={order.order_status} lang="zh" /></td>
@@ -407,17 +426,119 @@ function OrdersContent() {
                       <input type="email" value={editData.email} onChange={e => setEditData({ ...editData, email: e.target.value })} />
                     </div>
                     <div className={styles.editField}>
-                      <label>配送方式</label>
+                      <label>履约类型</label>
                       <select value={editData.order_type} onChange={e => setEditData({ ...editData, order_type: e.target.value })}>
                         <option value="pickup">到店自取</option>
                         <option value="delivery">送货上门</option>
                       </select>
                     </div>
                     {editData.order_type === 'delivery' && (
-                      <div className={styles.editField}>
-                        <label>送货地址</label>
-                        <textarea rows="2" value={editData.address} onChange={e => setEditData({ ...editData, address: e.target.value })} />
-                      </div>
+                      <>
+                        <div className={styles.editField}>
+                          <label>送货地址 *</label>
+                          <textarea rows="2" value={editData.address} onChange={e => setEditData({ ...editData, address: e.target.value })} />
+                        </div>
+
+                        {/* Delivery Option: ONLY 2 choices (admin_delivery or lalamove) */}
+                        <div className={styles.editField}>
+                          <label>送货方式选项 *</label>
+                          <select
+                            value={editData.delivery_method || 'admin_delivery'}
+                            onChange={e => setEditData({ ...editData, delivery_method: e.target.value })}
+                          >
+                            <option value="admin_delivery">🚗 管理员本人亲自送货（收取RM8属于个人补贴，不入公款）</option>
+                            <option value="lalamove">🛵 Lalamove 第三方配送（产生财务记录与公款报销）</option>
+                          </select>
+                        </div>
+
+                        {/* Lalamove Extra Amount Calculation and Payer Selection */}
+                        {editData.delivery_method === 'lalamove' && (
+                          <div className={styles.lalamoveBox}>
+                            <div className={styles.lalamoveHeader}>
+                              <span>🛵</span>
+                              <span>Lalamove 第三方运费核算与公款报销</span>
+                            </div>
+
+                            <div className={styles.lalamoveRow}>
+                              <span>向顾客收取配送费:</span>
+                              <strong>RM 8.00 (固定)</strong>
+                            </div>
+
+                            <div className={styles.editField}>
+                              <label>Lalamove 实际总运费 (RM) *</label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="例如: 15.00"
+                                value={editData.lalamove_cost}
+                                onChange={e => setEditData({ ...editData, lalamove_cost: e.target.value })}
+                                required
+                              />
+                            </div>
+
+                            {/* Real-time Calculation of Extra Amount */}
+                            <div className={styles.calculationCard}>
+                              <div className={styles.calcRow}>
+                                <span>顾客已交配送费:</span>
+                                <span>RM 8.00</span>
+                              </div>
+                              <div className={styles.calcRow}>
+                                <span>Lalamove 实际总运费:</span>
+                                <span>RM {(Number(editData.lalamove_cost) || 0).toFixed(2)}</span>
+                              </div>
+                              <div className={`${styles.calcRow} ${styles.calcExtraRow}`}>
+                                <span>💡 多出来的金额 (公款承担差额):</span>
+                                <span className={styles.extraAmountHighlight}>
+                                  RM {Math.max(0, (Number(editData.lalamove_cost) || 0) - 8).toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Payer Selection */}
+                            <div className={styles.editField}>
+                              <label>Lalamove 运费先行垫付人 *</label>
+                              <div className={styles.payerRadioGroup}>
+                                <label className={`${styles.payerRadioLabel} ${editData.lalamove_payer !== 'Yunxuan' ? styles.payerActive : ''}`}>
+                                  <input
+                                    type="radio"
+                                    name="lalamove_payer"
+                                    value="Shinnie"
+                                    checked={editData.lalamove_payer !== 'Yunxuan'}
+                                    onChange={() => setEditData({ ...editData, lalamove_payer: 'Shinnie' })}
+                                  />
+                                  <span>🟢 Shinnie 个人先行垫付</span>
+                                </label>
+                                <label className={`${styles.payerRadioLabel} ${editData.lalamove_payer === 'Yunxuan' ? styles.payerActive : ''}`}>
+                                  <input
+                                    type="radio"
+                                    name="lalamove_payer"
+                                    value="Yunxuan"
+                                    checked={editData.lalamove_payer === 'Yunxuan'}
+                                    onChange={() => setEditData({ ...editData, lalamove_payer: 'Yunxuan' })}
+                                  />
+                                  <span>🟣 Yunxuan 个人先行垫付</span>
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* Reimbursement Notice */}
+                            <div className={styles.reimbursementNotice}>
+                              📌 <strong>结算流程说明：</strong> 全额运费 <strong>RM {(Number(editData.lalamove_cost) || 0).toFixed(2)}</strong> 将由 <strong>{editData.lalamove_payer === 'Yunxuan' ? 'Yunxuan' : 'Shinnie'}</strong> 先行个人垫付支付。订单保存后系统将自动生成财务记录，随后从<strong>合伙公款中全额报销取回</strong>（公款实际净承担多出的差额 RM {Math.max(0, (Number(editData.lalamove_cost) || 0) - 8).toFixed(2)}）。
+                            </div>
+
+                            <div className={styles.editField}>
+                              <label>Lalamove 凭据链接 / 收据截图 (选填)</label>
+                              <input
+                                type="url"
+                                placeholder="https://... 或 Google Drive 链接"
+                                value={editData.lalamove_receipt_url}
+                                onChange={e => setEditData({ ...editData, lalamove_receipt_url: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                     <div className={styles.editField}>
                       <label>员工内部备注</label>
@@ -441,7 +562,37 @@ function OrdersContent() {
                     )}
                     <p><strong>履约方式:</strong> {selectedOrder.order_type === 'delivery' ? '送货上门' : '到店自取'}</p>
                     {selectedOrder.order_type === 'delivery' && (
-                      <p><strong>送货地址:</strong> {selectedOrder.address}</p>
+                      <>
+                        <p><strong>送货地址:</strong> {selectedOrder.address}</p>
+                        <div className={styles.deliveryModeViewCard}>
+                          <div className={styles.deliveryModeViewTitle}>
+                            <span>配送调度模式</span>
+                            <span className={selectedOrder.delivery_method === 'lalamove' ? styles.lalamoveTag : styles.adminDeliveryTag}>
+                              {selectedOrder.delivery_method === 'lalamove' ? '🛵 Lalamove 第三方配送' : '🚗 管理员本人亲自送货'}
+                            </span>
+                          </div>
+                          {selectedOrder.delivery_method === 'lalamove' ? (
+                            <div className={styles.lalamoveViewGrid}>
+                              <div><strong>顾客已交运费:</strong> RM 8.00</div>
+                              <div><strong>实际总运费:</strong> RM {(Number(selectedOrder.lalamove_cost) || 0).toFixed(2)}</div>
+                              <div><strong>多出差额 (公款承担):</strong> <span className={styles.extraAmountHighlight}>RM {Math.max(0, (Number(selectedOrder.lalamove_cost) || 0) - 8).toFixed(2)}</span></div>
+                              <div><strong>运费垫付人:</strong> {selectedOrder.lalamove_payer === 'Yunxuan' ? '🟣 Yunxuan个人先行垫付 (从公款报销)' : '🟢 Shinnie个人先行垫付 (从公款报销)'}</div>
+                              {selectedOrder.lalamove_receipt_url && (
+                                <div style={{ gridColumn: '1 / -1' }}>
+                                  <strong>收据凭证: </strong>
+                                  <a href={selectedOrder.lalamove_receipt_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>
+                                    查看凭据链接 ↗
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className={styles.adminDeliveryNotice}>
+                              💡 <strong>管理员亲自送货：</strong>向顾客收取的 RM 8.00 属于送货人个人补贴，不计入合伙财务账目，不出现在销售报表中。
+                            </div>
+                          )}
+                        </div>
+                      </>
                     )}
                   </>
                 )}
@@ -503,7 +654,14 @@ function OrdersContent() {
                 )}
                 {selectedOrder.delivery_fee > 0 && (
                   <div className={styles.summaryRow}>
-                    <span>🚚 运费 Delivery Fee</span>
+                    <span>
+                      🚚 运费 Delivery Fee
+                      {selectedOrder.order_type === 'delivery' && (
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', marginLeft: '6px' }}>
+                          ({selectedOrder.delivery_method === 'lalamove' ? '🛵 Lalamove' : '🚗 亲送个人补贴'})
+                        </span>
+                      )}
+                    </span>
                     <span>RM{selectedOrder.delivery_fee.toFixed(2)}</span>
                   </div>
                 )}
