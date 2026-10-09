@@ -187,6 +187,18 @@
   border: 1px solid #bfdbfe;
 }
 
+.badgeBooth {
+  background: #faf5ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+}
+
+.badgeSupplier {
+  background: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+}
+
 .badgeOther {
   background: #f1f5f9;
   color: #475569;
@@ -516,4 +528,414 @@
     padding: 4px 8px;
     font-size: 0.72rem;
   }
+}
+
+/* 公款 (Petty Cash Pool) Dashboard Styles */
+.fundBanner {
+  background: linear-gradient(135deg, #fdfbf7 0%, #ffffff 100%);
+  border: 1.5px solid #e2d9cf;
+  border-radius: var(--radius-lg, 16px);
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.fundHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.fundTitleBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fundIcon {
+  font-size: 1.6rem;
+  background: var(--color-primary-lighter);
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fundTitle {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.fundSubtitle {
+  font-size: 0.82rem;
+  color: var(--color-text-light);
+  margin: 2px 0 0 0;
+}
+
+.fundMetricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.fundMetricCard {
+  background: white;
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fundMetricBalance {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.fundMetricNegative {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.fundMetricLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.fundMetricValue {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.fundMetricSubtext {
+  font-size: 0.72rem;
+  color: var(--color-text-light);
+}
+
+.badgeClaimed {
+  background: #d1fae5;
+  color: #065f46;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badgePendingClaim {
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badgeInjection {
+  background: #dbeafe;
+  color: #1e40af;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btnQuickClaim {
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btnQuickClaim:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.viewTabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--color-border-light);
+  padding-bottom: 6px;
+  margin-top: 4px;
+  overflow-x: auto;
+}
+
+.viewTabBtn {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.viewTabBtn:hover {
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+}
+
+.viewTabActive {
+  background: var(--color-primary-lighter) !important;
+  color: var(--color-primary-dark) !important;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .fundMetricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .fundBanner {
+    padding: 14px 12px;
+  }
+  .fundMetricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .fundMetricCard {
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+  .fundMetricValue {
+    font-size: 1.22rem;
+  }
+  .fundMetricLabel {
+    font-size: 0.72rem;
+  }
+  .fundMetricSubtext {
+    font-size: 0.68rem;
+    line-height: 1.3;
+  }
+  .fundHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .fundMetricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .fundMetricCard {
+    padding: 10px;
+  }
+  .fundMetricValue {
+    font-size: 1.15rem;
+  }
+}
+
+/* ========================================
+   Receipt & Screenshot Preview Modal Styles
+   ======================================== */
+.receiptBtnWithThumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.receiptBtnWithThumb:hover {
+  background: #dcfce7;
+  border-color: #86efac;
+  transform: translateY(-1px);
+}
+
+.receiptThumbMini {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid #86efac;
+}
+
+.receiptBtnMissing {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px dashed #fcd34d;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.receiptBtnMissing:hover {
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+
+.photoUploadBox {
+  border: 2px dashed #cbd5e1;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.photoUploadBox:hover {
+  border-color: var(--color-primary);
+  background: #fff7ed;
+}
+
+.photoUploadInput {
+  display: none;
+}
+
+.photoUploadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid var(--color-border);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+}
+
+.photoUploadBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: #fff;
+}
+
+.photoPreviewContainer {
+  position: relative;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.photoPreviewImg {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: 8px;
+  object-fit: contain;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.photoRemoveBtn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Receipt Modal Styles */
+.screenshotViewer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.screenshotImageBox {
+  background: #0f172a;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 240px;
+  max-height: 60vh;
+  overflow: hidden;
+}
+
+.screenshotModalImg {
+  max-width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.screenshotMetaCard {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 16px;
+  font-size: 0.85rem;
+}
+
+.screenshotMetaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.screenshotMetaLabel {
+  font-size: 0.72rem;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.screenshotMetaValue {
+  font-weight: 600;
+  color: var(--color-text);
 }

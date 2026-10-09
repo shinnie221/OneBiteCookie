@@ -28,8 +28,10 @@ export async function PUT(request, { params }) {
     const minOrder = body.min_order ?? existing.min_order;
     const expiryDate = body.expiry_date !== undefined ? body.expiry_date : existing.expiry_date;
     const active = body.active !== undefined ? (body.active ? 1 : 0) : existing.active;
-    const isPublic = body.is_public !== undefined ? Boolean(body.is_public) : (existing.is_public !== undefined ? existing.is_public : true);
     const usageLimit = body.usage_limit !== undefined ? body.usage_limit : (existing.usage_limit || 'unlimited');
+    const monthlyLimit = body.monthly_limit !== undefined 
+      ? Math.max(1, parseInt(body.monthly_limit, 10) || 1) 
+      : (existing.monthly_limit ? Number(existing.monthly_limit) : 1);
     
     const targetType = body.target_type !== undefined ? body.target_type : (existing.target_type || 'all');
     const customerEmail = body.customer_email !== undefined 
@@ -48,6 +50,7 @@ export async function PUT(request, { params }) {
       active,
       is_public: isPublic,
       usage_limit: usageLimit,
+      monthly_limit: monthlyLimit,
       target_type: targetType,
       customer_email: customerEmail,
       customer_name: customerName

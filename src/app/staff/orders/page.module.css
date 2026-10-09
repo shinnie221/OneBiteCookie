@@ -950,3 +950,448 @@
   color: #92400e;
   line-height: 1.4;
 }
+
+/* Search Bar */
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 240px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.92rem;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(160, 113, 79, 0.15);
+}
+
+/* Item Edit Mode */
+.editItemsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.editItemCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: #fdfaf6;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.editItemInfo {
+  flex: 1;
+  min-width: 140px;
+}
+
+.editItemName {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.editItemPrice {
+  font-size: 0.82rem;
+  color: var(--color-text-light);
+}
+
+.editItemControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qtyGroup {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: white;
+  overflow: hidden;
+}
+
+.qtyBtn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.qtyBtn:hover:not(:disabled) {
+  background: var(--color-primary-lighter);
+  color: var(--color-primary-dark);
+}
+
+.qtyBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.qtyInput {
+  width: 44px;
+  height: 32px;
+  border: none;
+  border-left: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  text-align: center;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-text);
+  background: white;
+  padding: 0;
+}
+
+.qtyInput:focus {
+  outline: none;
+  background: #fefce8;
+}
+
+.itemSubtotalText {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-primary);
+  min-width: 75px;
+  text-align: right;
+}
+
+.deleteItemBtn {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.deleteItemBtn:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.addItemPanel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: #f0fdf4;
+  border: 1.5px dashed #86efac;
+  border-radius: var(--radius-md);
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.addItemSelect {
+  flex: 1;
+  min-width: 180px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #86efac;
+  background: white;
+  font-size: 0.9rem;
+}
+
+.addItemBtn {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.addItemBtn:hover:not(:disabled) {
+  background: #15803d;
+}
+
+/* Channel Tabs */
+.channelTabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--color-border-light);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+
+.channelTabBtn {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.channelTabBtn:hover {
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+}
+
+.channelTabActive {
+  background: var(--color-primary-lighter) !important;
+  color: var(--color-primary-dark) !important;
+  font-weight: 700;
+}
+
+.btnCreateManual {
+  background: #ea580c;
+  color: white;
+  border: 1px solid #c2410c;
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btnCreateManual:hover {
+  background: #c2410c;
+  transform: translateY(-1px);
+}
+
+/* Create Manual Order Modal Form */
+.createOrderForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formSection {
+  background: #fdfbf7;
+  border: 1px solid #ebdccb;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.formSectionTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.formGrid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formField label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.formField input,
+.formField select,
+.formField textarea {
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  color: var(--color-text);
+  background: white;
+  outline: none;
+  font-family: inherit;
+}
+
+.formField input:focus,
+.formField select:focus,
+.formField textarea:focus {
+  border-color: var(--color-primary);
+  outline: 2px solid rgba(234, 88, 12, 0.15);
+}
+
+.orderCalcSummary {
+  background: white;
+  border: 1.5px solid #fed7aa;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.calcRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--color-text-light);
+}
+
+.calcRowTotal {
+  border-top: 1px dashed var(--color-border);
+  padding-top: 8px;
+  margin-top: 4px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+  .formGrid2 {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .modalContent {
+    gap: 14px;
+  }
+
+  .infoBlock {
+    padding: 14px 12px;
+  }
+
+  .flowSection {
+    padding: 14px 12px;
+  }
+
+  .flowActionBox {
+    padding: 12px 10px;
+  }
+
+  .actionButtonGroup {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btnAccept,
+  .btnDeny,
+  .btnPreparingDone,
+  .btnComplete {
+    width: 100%;
+    min-width: 100%;
+    padding: 12px;
+    font-size: 0.95rem;
+  }
+
+  .lalamoveViewGrid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .screenshotBox {
+    max-height: 240px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f8fafc;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .screenshot {
+    max-height: 220px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  .editItemCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .editItemControls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .addItemPanel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .addItemSelect,
+  .addItemBtn {
+    width: 100%;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .headerRight,
+  .filters {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .filterSelect {
+    flex: 1;
+    min-width: 160px;
+  }
+}

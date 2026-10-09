@@ -18,7 +18,7 @@ const NAV_GROUPS = [
   {
     label: '销售渠道', items: [
       { path: '/staff/orders', label: '线上预购', icon: '▤' },
-      { path: '/staff/booth', label: '摆摊销售', icon: '⌂' },
+      { path: '/staff/booth', label: '摆摊收银 (POS)', icon: '🛒' },
       { path: '/staff/wholesale', label: '批发供货', icon: '▥' },
     ]
   },
@@ -33,7 +33,11 @@ const NAV_GROUPS = [
 export default function StaffLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const activePath = ['/staff/qr-payment', '/staff/vouchers', '/staff/customers'].includes(pathname) ? '/staff/settings' : pathname;
+  const activePath = pathname === '/staff/pos'
+    ? '/staff/booth'
+    : ['/staff/qr-payment', '/staff/vouchers', '/staff/customers'].includes(pathname)
+      ? '/staff/settings'
+      : pathname;
   const { isAuthenticated, loading, logout, user } = useAuth();
 
   const [mobileOpen, setMobileOpen] = useState(false);

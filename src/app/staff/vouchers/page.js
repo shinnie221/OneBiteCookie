@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Modal from '@/components/Modal/Modal';
@@ -27,7 +27,8 @@ export default function VouchersPage() {
     expiry_date: '',
     active: true,
     is_public: true, // Visible in Cart page
-    usage_limit: 'unlimited', // 'unlimited' | 'once_total' | 'once_per_customer'
+    usage_limit: 'unlimited', // 'unlimited' | 'once_total' | 'once_per_customer' | 'monthly_per_customer' | 'monthly_total'
+    monthly_limit: 1,
     target_type: 'all', // 'all' | 'specific_customer'
     customer_email: '',
     customer_name: '',
@@ -35,12 +36,7 @@ export default function VouchersPage() {
 
   const [formData, setFormData] = useState(defaultForm);
 
-  useEffect(() => {
-    fetchVouchers();
-    fetchCustomers();
-  }, []);
-
-  const fetchVouchers = async () => {
+  const fetchVouchers = useCallback(async () => {
     setLoading(true);
     try {
       const res = await authFetch('/api/vouchers');
@@ -55,9 +51,9 @@ export default function VouchersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authFetch, toast]);
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     try {
       const res = await authFetch('/api/customers');
       const data = await res.json();
@@ -67,7 +63,12 @@ export default function VouchersPage() {
     } catch (e) {
       console.error('Error fetching customers:', e);
     }
-  };
+  }, [authFetch]);
+
+  useEffect(() => {
+    fetchVouchers();
+    fetchCustomers();
+  }, [fetchVouchers, fetchCustomers]);
 
   const openAddModal = () => {
     setEditingVoucher(null);
@@ -86,6 +87,7 @@ export default function VouchersPage() {
       active: voucher.active === 1 || voucher.active === true,
       is_public: voucher.is_public !== false,
       usage_limit: voucher.usage_limit || 'unlimited',
+      monthly_limit: voucher.monthly_limit || 1,
       target_type: voucher.target_type || (voucher.customer_email ? 'specific_customer' : 'all'),
       customer_email: voucher.customer_email || '',
       customer_name: voucher.customer_name || '',
@@ -302,8 +304,16 @@ export default function VouchersPage() {
                               ⚡ 限用 1 次 ({timesUsed}/1)
                             </span>
                           ) : usageLimit === 'once_per_customer' ? (
-                            <span className={styles.badgeOnceUser} title="每位顾客仅限使用 1 次">
+                            <span className={styles.badgeOnceUser} title="每位顾客终生限用 1 次">
                               👤 每人 1 次 (已用 {timesUsed} 次)
+                            </span>
+                          ) : usageLimit === 'monthly_per_customer' ? (
+                            <span className={styles.badgeOnceUser} style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }} title={`每位顾客每月限用 ${voucher.monthly_limit || 1} 次`}>
+                              📅 每人每月 {voucher.monthly_limit || 1} 次 (已用 {timesUsed} 次)
+                            </span>
+                          ) : usageLimit === 'monthly_total' ? (
+                            <span className={styles.badgeSingleUse} style={{ background: '#eff6ff', color: '#1d4ed8', borderColor: '#bfdbfe' }} title={`全店每月限用 ${voucher.monthly_limit || 1} 次`}>
+                              🏪 全店每月 {voucher.monthly_limit || 1} 次 (已用 {timesUsed} 次)
                             </span>
                           ) : (
                             <span className={styles.badgeUnlimited} title="无限次反复使用">
@@ -547,19 +557,47 @@ export default function VouchersPage() {
 
           {/* Usage Limit Toggle */}
           <div className={styles.configBlock}>
-            <label className={styles.configHeader}>⚡ 使用次数规则</label>
+            <label className={styles.configHeader}>⚡ 使用次数与周期规则</label>
             <div className={styles.radioGroup}>
               <label className={styles.radioLabel}>
                 <input
                   type="radio"
                   name="usage_limit"
-                  value="once_total"
-                  checked={formData.usage_limit === 'once_total'}
+                  value="unlimited"
+                  checked={formData.usage_limit === 'unlimited'}
                   onChange={handleInputChange}
                 />
                 <div>
-                  <strong>⚡ 全店仅限使用 1 次</strong>
-                  <p>全店仅限使用 1 次，一旦下单成功立即核销失效（专属个人优惠券最常用）。</p>
+                  <strong>♾️ 无限次反复使用</strong>
+                  <p>有效期内任意顾客可反复使用，无次数限制。</p>
+                </div>
+              </label>
+
+              <label className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="usage_limit"
+                  value="monthly_per_customer"
+                  checked={formData.usage_limit === 'monthly_per_customer'}
+                  onChange={handleInputChange}
+                />
+                <div>
+                  <strong>📅 每位顾客每月限用 N 次 (推荐月度福利券)</strong>
+                  <p>限制每位顾客每个自然月内最多使用指定次数，次月 1 日自动重新恢复使用额度。</p>
+                </div>
+              </label>
+
+              <label className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="usage_limit"
+                  value="monthly_total"
+                  checked={formData.usage_limit === 'monthly_total'}
+                  onChange={handleInputChange}
+                />
+                <div>
+                  <strong>🏪 全店每月总限用 N 次 (月度限量抢券)</strong>
+                  <p>全店所有顾客每月共享指定使用总次数配额，当月达到上限后暂停核销，次月 1 日重置。</p>
                 </div>
               </label>
 
@@ -572,8 +610,8 @@ export default function VouchersPage() {
                   onChange={handleInputChange}
                 />
                 <div>
-                  <strong>👤 每位注册顾客仅限 1 次</strong>
-                  <p>每位已注册顾客只能使用 1 次，适合全店新人优惠等。</p>
+                  <strong>👤 每位顾客终生限用 1 次</strong>
+                  <p>每位顾客账户终生只可使用 1 次（如新人首单礼券）。</p>
                 </div>
               </label>
 
@@ -581,16 +619,48 @@ export default function VouchersPage() {
                 <input
                   type="radio"
                   name="usage_limit"
-                  value="unlimited"
-                  checked={formData.usage_limit === 'unlimited'}
+                  value="once_total"
+                  checked={formData.usage_limit === 'once_total'}
                   onChange={handleInputChange}
                 />
                 <div>
-                  <strong>♾️ 无限次反复使用</strong>
-                  <p>有效期内任意顾客可反复使用。</p>
+                  <strong>⚡ 全店仅限使用 1 次 (单次核销)</strong>
+                  <p>全店仅限使用 1 次，一旦下单成功立即核销失效（专属个人单次补偿最常用）。</p>
                 </div>
               </label>
             </div>
+
+            {(formData.usage_limit === 'monthly_per_customer' || formData.usage_limit === 'monthly_total') && (
+              <div style={{ marginTop: '12px', padding: '14px', background: '#f0fdf4', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
+                <label htmlFor="monthly_limit" style={{ fontWeight: 700, display: 'block', marginBottom: '6px', color: '#166534', fontSize: '0.9rem' }}>
+                  每月使用上限次数 (次/月) *
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <input
+                    type="number"
+                    id="monthly_limit"
+                    name="monthly_limit"
+                    min="1"
+                    max="10000"
+                    step="1"
+                    value={formData.monthly_limit || 1}
+                    onChange={handleInputChange}
+                    style={{ width: '110px', padding: '8px 12px', fontWeight: 700, fontSize: '1rem', borderRadius: '6px', border: '1px solid #86efac' }}
+                    required
+                  />
+                  <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#15803d' }}>
+                    {formData.usage_limit === 'monthly_per_customer'
+                      ? '次 / 位顾客 / 每个自然月'
+                      : '次 / 全店总额度 / 每个自然月'}
+                  </span>
+                </div>
+                <p style={{ margin: '6px 0 0', fontSize: '0.78rem', color: '#166534', lineHeight: 1.4 }}>
+                  {formData.usage_limit === 'monthly_per_customer'
+                    ? '例如设置为 1，则每位顾客本月只能使用 1 次，当下月 1 日到来时，该顾客又可以再次使用 1 次。'
+                    : '例如设置为 50，则本月全店一共只能被使用 50 次，下月 1 日自动重新开放 50 次额度。'}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Active Status */}

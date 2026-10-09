@@ -111,6 +111,62 @@ export async function POST(request) {
       }
     }
 
+    // 3. Monthly Per Customer: Each customer can only use it N times per calendar month
+    const currentMonth = today.slice(0, 7);
+    if (usageLimit === 'monthly_per_customer') {
+      if (!user || (!user.id && !user.email)) {
+        return NextResponse.json({
+          error: '此优惠券限制每月使用次数，请先登录顾客账号后再使用',
+          valid: false
+        }, { status: 400 });
+      }
+
+      const orderQ = query(
+        collection(db, 'orders'),
+        where('voucher_code', '==', upperCode)
+      );
+      const orderSnap = await getDocs(orderQ);
+      const validMonthlyOrders = orderSnap.docs.filter(d => {
+        const orderData = d.data();
+        const isUserMatch = (user.id && orderData.customer_id === user.id) ||
+          (user.email && orderData.email && orderData.email.toLowerCase() === user.email.toLowerCase());
+        const st = orderData.order_status;
+        const orderDate = orderData.created_at || '';
+        return isUserMatch && orderDate.startsWith(currentMonth) && st !== 'cancelled' && st !== 'rejected';
+      });
+
+      const monthlyLimit = Math.max(1, Number(voucher.monthly_limit) || 1);
+      if (validMonthlyOrders.length >= monthlyLimit) {
+        return NextResponse.json({
+          error: `此优惠券每位顾客每月限用 ${monthlyLimit} 次，您本月已使用 ${validMonthlyOrders.length} 次`,
+          valid: false
+        }, { status: 400 });
+      }
+    }
+
+    // 4. Monthly Total: Shop-wide limit of N times per calendar month
+    if (usageLimit === 'monthly_total') {
+      const orderQ = query(
+        collection(db, 'orders'),
+        where('voucher_code', '==', upperCode)
+      );
+      const orderSnap = await getDocs(orderQ);
+      const validMonthlyOrders = orderSnap.docs.filter(d => {
+        const orderData = d.data();
+        const st = orderData.order_status;
+        const orderDate = orderData.created_at || '';
+        return orderDate.startsWith(currentMonth) && st !== 'cancelled' && st !== 'rejected';
+      });
+
+      const monthlyLimit = Math.max(1, Number(voucher.monthly_limit) || 1);
+      if (validMonthlyOrders.length >= monthlyLimit) {
+        return NextResponse.json({
+          error: `此优惠券本月全店可用额度 (${monthlyLimit} 次) 已全部用完`,
+          valid: false
+        }, { status: 400 });
+      }
+    }
+
     if (subtotal < voucher.min_order) {
       return NextResponse.json({ 
         error: `Minimum order of RM${Number(voucher.min_order).toFixed(2)} required for this voucher`, 

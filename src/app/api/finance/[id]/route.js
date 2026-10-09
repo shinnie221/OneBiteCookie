@@ -14,6 +14,7 @@ const VALID_CATEGORIES = [
   '样品/试吃损耗',
   '内部个人采购',
   'Supplier采购',
+  '公款注资',
   '其他'
 ];
 
@@ -47,7 +48,9 @@ export async function PUT(request, { params }) {
     let receiptUrl = body.receiptUrl !== undefined ? body.receiptUrl : existing.receiptUrl;
     let supplierName = body.supplierName !== undefined ? body.supplierName : existing.supplierName;
 
-    if (category && !VALID_CATEGORIES.includes(category)) {
+    if (transactionType === '公款注资') {
+      category = '公款注资';
+    } else if (category && !VALID_CATEGORIES.includes(category)) {
       return NextResponse.json({ error: 'Invalid category' }, { status: 400 });
     }
 
@@ -75,6 +78,28 @@ export async function PUT(request, { params }) {
       supplierName: (supplierName || '').trim(),
       updated_at: new Date().toISOString()
     };
+
+    if (body.claim_status !== undefined) {
+      updates.claim_status = body.claim_status;
+      if (body.claim_status === 'claimed' && !existing.claimed_at) {
+        updates.claimed_at = new Date().toISOString();
+      } else if (body.claim_status === 'pending') {
+        updates.claimed_at = null;
+      }
+    }
+    if (body.claimed_at !== undefined) {
+      updates.claimed_at = body.claimed_at;
+    }
+    if (body.paid_by !== undefined) {
+      updates.paid_by = body.paid_by;
+      updates.payer = body.paid_by;
+    } else if (body.payer !== undefined) {
+      updates.payer = body.payer;
+      updates.paid_by = body.payer;
+    }
+    if (body.contributor !== undefined) {
+      updates.contributor = body.contributor;
+    }
 
     await updateDoc(recordRef, updates);
 

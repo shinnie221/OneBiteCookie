@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, runTransaction } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
@@ -7,6 +7,7 @@ const VALID_CATEGORIES = [
   '食材',
   '包装',
   '厨房租金',
+  '摆摊支出',
   '摊位费',
   '兼职人工费',
   '配送相关',
@@ -14,10 +15,11 @@ const VALID_CATEGORIES = [
   '样品/试吃损耗',
   '内部个人采购',
   'Supplier采购',
+  '公款注资',
   '其他'
 ];
 
-const VALID_ORDER_TYPES = ['Pre-order', 'Booth', 'General'];
+const VALID_ORDER_TYPES = ['Pre-order', 'Booth', 'Wholesale', 'General'];
 
 export async function GET(request) {
   try {
@@ -90,11 +92,13 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Date is required' }, { status: 400 });
     }
 
-    if (!transactionType || !['收入', '支出'].includes(transactionType)) {
-      return NextResponse.json({ error: 'Transaction type must be 收入 or 支出' }, { status: 400 });
+    if (!transactionType || !['收入', '支出', '公款注资'].includes(transactionType)) {
+      return NextResponse.json({ error: 'Transaction type must be 收入, 支出 or 公款注资' }, { status: 400 });
     }
 
-    if (!category || !VALID_CATEGORIES.includes(category)) {
+    if (transactionType === '公款注资') {
+      category = '公款注资';
+    } else if (!category || !VALID_CATEGORIES.includes(category)) {
       return NextResponse.json({ error: 'Invalid category selected' }, { status: 400 });
     }
 
@@ -112,6 +116,13 @@ export async function POST(request) {
       orderType = 'General';
     }
 
+    // Claim and payer fields
+    const paidBy = body.paid_by || body.payer || (transactionType === '公款注资' ? (body.contributor || '合伙人') : '公款账户');
+    const claimStatus = transactionType === '公款注资' 
+      ? 'not_applicable' 
+      : (body.claim_status || (paidBy === '公款账户' ? 'claimed' : 'pending'));
+    const claimedAt = claimStatus === 'claimed' ? (body.claimed_at || new Date().toISOString()) : null;
+
     const newRecord = {
       date: date.trim(),
       transactionType,
@@ -121,7 +132,11 @@ export async function POST(request) {
       note: (note || '').trim(),
       receiptUrl: (receiptUrl || '').trim(),
       supplierName: (supplierName || '').trim(),
-      payer: body.payer || null,
+      payer: paidBy,
+      paid_by: paidBy,
+      contributor: body.contributor || (transactionType === '公款注资' ? paidBy : null),
+      claim_status: claimStatus,
+      claimed_at: claimedAt,
       extra_amount: body.extra_amount !== undefined ? Number(body.extra_amount) : null,
       linked_order_id: body.linked_order_id || null,
       auto_generated: Boolean(body.auto_generated),
@@ -130,6 +145,25 @@ export async function POST(request) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+
+    // Idempotency: a client_ref (e.g. from the booth POS) is used as the document id so that
+    // double taps / network retries can never create the same expense twice.
+    const clientRef = typeof body.client_ref === 'string' && /^[a-zA-Z0-9_-]{8,100}$/.test(body.client_ref) ? body.client_ref : null;
+    if (clientRef) {
+      const ref = doc(db, 'finance_records', clientRef);
+      const { created, data } = await runTransaction(db, async transaction => {
+        const existing = await transaction.get(ref);
+        if (existing.exists()) return { created: false, data: existing.data() };
+        transaction.set(ref, { ...newRecord, client_ref: clientRef });
+        return { created: true, data: { ...newRecord, client_ref: clientRef } };
+      });
+      return NextResponse.json({
+        message: created ? 'Financial record created successfully' : 'Duplicate submission ignored',
+        id: clientRef,
+        duplicate: !created,
+        record: { id: clientRef, ...data }
+      }, { status: created ? 201 : 200 });
+    }
 
     const docRef = await addDoc(collection(db, 'finance_records'), newRecord);
 

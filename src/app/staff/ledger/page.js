@@ -74,6 +74,7 @@ export default function LedgerPage() {
   }, [authFetch]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 
@@ -144,9 +145,20 @@ export default function LedgerPage() {
     };
   }, [filteredOrders]);
 
+  // Dates whose booth expenses were recorded directly in finance_records (成本支出) by the POS.
+  // For those days the booth record's own expense list is a duplicate copy and must not be deducted again.
+  const boothFinanceDates = useMemo(() => {
+    const set = new Set();
+    for (const r of financeRecords) {
+      if (r.category === '摆摊支出' && r.orderType === 'Booth' && r.date) set.add(r.date);
+    }
+    return set;
+  }, [financeRecords]);
+  const boothOwnExpense = useCallback(b => (boothFinanceDates.has(b.date) ? 0 : (b.expenseTotal || 0)), [boothFinanceDates]);
+
   const boothStats = useMemo(() => {
     const sales = filteredBooths.reduce((sum, b) => sum + (b.sales || 0), 0);
-    const expenses = filteredBooths.reduce((sum, b) => sum + (b.expenseTotal || 0), 0);
+    const expenses = filteredBooths.reduce((sum, b) => sum + boothOwnExpense(b), 0);
     const preparedPieces = filteredBooths.reduce((sum, b) => sum + b.items.reduce((is, it) => is + (it.prepared || 0), 0), 0);
     const soldPieces = filteredBooths.reduce((sum, b) => sum + b.items.reduce((is, it) => is + (it.quantity || 0), 0), 0);
     const wastePieces = filteredBooths.reduce((sum, b) => sum + b.items.reduce((is, it) => is + (it.waste || 0), 0), 0);
@@ -160,7 +172,7 @@ export default function LedgerPage() {
       wastePieces,
       outstanding: 0,
     };
-  }, [filteredBooths]);
+  }, [filteredBooths, boothOwnExpense]);
 
   const wholesaleStats = useMemo(() => {
     const sales = filteredWholesale.reduce((sum, w) => sum + (w.sales || 0), 0);
@@ -184,8 +196,13 @@ export default function LedgerPage() {
     let expenses = 0;
     let deliveryIncome = 0;
     let deliveryExpenses = 0;
+    let fundInjections = 0;
     for (const r of filteredFinance) {
       const amt = Number(r.amount) || 0;
+      if (r.transactionType === '公款注资' || r.category === '公款注资') {
+        fundInjections += amt;
+        continue;
+      }
       if (r.transactionType === '收入') {
         income += amt;
         if (r.category === '配送相关') {
@@ -204,6 +221,7 @@ export default function LedgerPage() {
       expenses,
       deliveryIncome,
       deliveryExpenses,
+      fundInjections,
     };
   }, [filteredFinance]);
 
@@ -269,12 +287,12 @@ export default function LedgerPage() {
         typeLabel: '摆摊销售',
         date: b.date,
         title: `市集摆摊 · ${b.title}`,
-        subtext: isPrep ? `出摊准备 ${prep} 片 (进行中待结单)` : `售出 ${sold} 片 · 准备 ${prep} 片 · 支出 ${money(b.expenseTotal)}`,
+        subtext: isPrep ? `出摊准备 ${prep} 片 (进行中待结单)` : `售出 ${sold} 片 · 准备 ${prep} 片${boothOwnExpense(b) ? ` · 支出 ${money(boothOwnExpense(b))}` : ''}`,
         pieces: sold,
         gross: b.grossSales || 0,
         sales: b.sales || 0,
-        expenses: b.expenseTotal || 0,
-        net: (b.sales || 0) - (b.expenseTotal || 0),
+        expenses: boothOwnExpense(b),
+        net: (b.sales || 0) - boothOwnExpense(b),
         statusText: isPrep ? '⏳ 摆摊中' : '✅ 已结单',
         raw: b,
       });
@@ -300,11 +318,33 @@ export default function LedgerPage() {
       });
     }
 
-    // Finance records (raw materials, operational costs, and Lalamove delivery records)
+    // Finance records (raw materials, operational costs, Lalamove delivery records, and 公款注资)
     for (const item of filteredFinance) {
       const amount = Number(item.amount) || 0;
+      const isInjection = item.transactionType === '公款注资' || item.category === '公款注资';
       const isIncome = item.transactionType === '收入';
       const isDelivery = item.category === '配送相关';
+
+      if (isInjection) {
+        const contributor = item.contributor || item.paid_by || item.payer || '合伙人';
+        stream.push({
+          id: `finance-${item.id}`,
+          type: 'finance',
+          typeLabel: '公款注资',
+          date: item.date,
+          title: `公款备用金充值 · ${contributor} 注资`,
+          subtext: item.note || '合伙人公款资金池注资入账',
+          receiptUrl: item.receiptUrl || '',
+          pieces: 0,
+          gross: amount,
+          sales: 0,
+          expenses: 0,
+          net: 0,
+          statusText: '资金池入账',
+          raw: item,
+        });
+        continue;
+      }
       
       let typeLabel = isIncome ? '财务收入' : '成本支出';
       if (isDelivery) {
@@ -312,8 +352,16 @@ export default function LedgerPage() {
       }
 
       let payerNotice = '';
-      if (item.payer) {
-        payerNotice = item.payer === 'Yunxuan' ? ' [Yunxuan垫付/待报销]' : ' [Shinnie垫付/待报销]';
+      const payerName = item.paid_by || item.payer;
+      if (payerName) {
+        const isClaimed = item.claim_status === 'claimed' || payerName === '公款账户';
+        if (payerName === '公款账户') {
+          payerNotice = ' [公款账户直付]';
+        } else if (isClaimed) {
+          payerNotice = ` [${payerName}垫付/已从公款报销]`;
+        } else {
+          payerNotice = ` [${payerName}垫付/待从公款报销]`;
+        }
       }
 
       stream.push({
@@ -335,7 +383,7 @@ export default function LedgerPage() {
     }
 
     return stream.sort((a, b) => b.date.localeCompare(a.date));
-  }, [filteredOrders, filteredBooths, filteredWholesale, filteredFinance]);
+  }, [filteredOrders, filteredBooths, filteredWholesale, filteredFinance, boothOwnExpense]);
 
   // CSV Export
   const exportCSV = () => {

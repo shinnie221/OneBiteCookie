@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import OrderStatusBadge from '@/components/OrderStatusBadge/OrderStatusBadge';
 import Modal from '@/components/Modal/Modal';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
+import { money } from '@/lib/business.mjs';
 import styles from './page.module.css';
 
 export default function OrdersPage() {
@@ -23,6 +24,7 @@ function OrdersContent() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [channelFilter, setChannelFilter] = useState(isManualOrder ? 'manual' : 'all');
 
   // Date filter
   const [dateFrom, setDateFrom] = useState('');
@@ -45,6 +47,51 @@ function OrdersContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
 
+  // Products catalog for editing items
+  const [products, setProducts] = useState([]);
+  const [selectedProductToAdd, setSelectedProductToAdd] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Manual Order Creation Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    customer_name: '',
+    phone: '',
+    email: '',
+    order_type: 'pickup',
+    pickup_time: '今日自取',
+    address: '',
+    delivery_method: 'admin_delivery',
+    delivery_fee: '8.00',
+    items: [],
+    manual_discount: '0.00',
+    payment_method: 'cash',
+    payment_status: 'verified',
+    order_status: 'preparing',
+    staff_note: ''
+  });
+  const [createSelectedProduct, setCreateSelectedProduct] = useState('');
+  const [createItemQty, setCreateItemQty] = useState(1);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const res = await authFetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          const prods = data.products || [];
+          setProducts(prods);
+          if (prods.length > 0) {
+            setCreateSelectedProduct(prods[0].id);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to load products for editing:', e);
+      }
+    };
+    loadProducts();
+  }, [authFetch]);
+
   const fetchOrders = useCallback(async () => {
     try {
       let url = filter === 'all' ? '/api/orders' : `/api/orders?status=${filter}`;
@@ -57,18 +104,169 @@ function OrdersContent() {
       const res = await authFetch(url);
       const data = await res.json();
       if (res.ok) {
-        setOrders(data.orders.filter(order => isManualOrder ? order.is_manual_order : !order.is_manual_order));
+        setOrders(data.orders || []);
       }
-    } catch (error) {
+    } catch {
       toast.error('加载订单失败');
     } finally {
       setLoading(false);
     }
-  }, [filter, appliedDates, authFetch, toast, isManualOrder]);
+  }, [filter, appliedDates, authFetch, toast]);
 
   // Load external API data; state updates occur after the request completes.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  // Open Create Manual Order Modal
+  const handleOpenCreateModal = () => {
+    setCreateFormData({
+      customer_name: '',
+      phone: '',
+      email: '',
+      order_type: 'pickup',
+      pickup_time: '今日自取',
+      address: '',
+      delivery_method: 'admin_delivery',
+      delivery_fee: '8.00',
+      items: [],
+      manual_discount: '0.00',
+      payment_method: 'cash',
+      payment_status: 'verified',
+      order_status: 'preparing',
+      staff_note: ''
+    });
+    if (products.length > 0) {
+      setCreateSelectedProduct(products[0].id);
+    }
+    setCreateItemQty(1);
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateAddItem = () => {
+    const prod = products.find(p => p.id === createSelectedProduct) || products[0];
+    if (!prod) return;
+
+    const existingIndex = createFormData.items.findIndex(it => (it.product_id === prod.id || it.name === prod.name));
+    const qtyToAdd = Math.max(1, parseInt(createItemQty, 10) || 1);
+    const unitPrice = Number(prod.price) || 0;
+
+    if (existingIndex >= 0) {
+      const updated = [...createFormData.items];
+      const newQty = (updated[existingIndex].quantity || 1) + qtyToAdd;
+      updated[existingIndex] = {
+        ...updated[existingIndex],
+        quantity: newQty,
+        subtotal: newQty * (Number(updated[existingIndex].price) || unitPrice)
+      };
+      setCreateFormData({ ...createFormData, items: updated });
+    } else {
+      const newItem = {
+        product_id: prod.id,
+        name: prod.name,
+        price: unitPrice,
+        quantity: qtyToAdd,
+        subtotal: unitPrice * qtyToAdd
+      };
+      setCreateFormData({ ...createFormData, items: [...createFormData.items, newItem] });
+    }
+    setCreateItemQty(1);
+  };
+
+  const handleCreateQtyChange = (index, delta) => {
+    const updated = [...createFormData.items];
+    const item = updated[index];
+    if (!item) return;
+    const newQty = (item.quantity || 1) + delta;
+    if (newQty <= 0) {
+      handleCreateDeleteItem(index);
+      return;
+    }
+    item.quantity = newQty;
+    item.subtotal = newQty * (Number(item.price) || 0);
+    setCreateFormData({ ...createFormData, items: updated });
+  };
+
+  const handleCreateDeleteItem = (index) => {
+    const updated = createFormData.items.filter((_, i) => i !== index);
+    setCreateFormData({ ...createFormData, items: updated });
+  };
+
+  const createSubtotal = useMemo(() => {
+    return createFormData.items.reduce((sum, it) => sum + (Number(it.subtotal) || 0), 0);
+  }, [createFormData.items]);
+
+  const createDeliveryFee = useMemo(() => {
+    if (createFormData.order_type !== 'delivery') return 0;
+    return Math.max(0, parseFloat(createFormData.delivery_fee) || 0);
+  }, [createFormData.order_type, createFormData.delivery_fee]);
+
+  const createDiscount = useMemo(() => {
+    return Math.max(0, parseFloat(createFormData.manual_discount) || 0);
+  }, [createFormData.manual_discount]);
+
+  const createTotal = useMemo(() => {
+    return Math.max(0, createSubtotal - createDiscount) + createDeliveryFee;
+  }, [createSubtotal, createDiscount, createDeliveryFee]);
+
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    if (!createFormData.customer_name.trim()) {
+      toast.error('请填写顾客姓名');
+      return;
+    }
+    if (!createFormData.phone.trim()) {
+      toast.error('请填写联系电话');
+      return;
+    }
+    if (createFormData.items.length === 0) {
+      toast.error('请至少添加一种曲奇商品');
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const payload = {
+        customer_name: createFormData.customer_name.trim(),
+        phone: createFormData.phone.trim(),
+        email: createFormData.email.trim(),
+        order_type: createFormData.order_type,
+        address: createFormData.order_type === 'delivery' ? createFormData.address.trim() : '',
+        pickup_time: createFormData.order_type === 'pickup' ? createFormData.pickup_time.trim() : null,
+        delivery_method: createFormData.order_type === 'delivery' ? createFormData.delivery_method : 'pickup',
+        delivery_fee: createDeliveryFee,
+        items: createFormData.items.map(it => ({
+          product_id: it.product_id,
+          name: it.name,
+          price: Number(it.price) || 0,
+          quantity: Number(it.quantity) || 1,
+          subtotal: Number(it.subtotal) || ((Number(it.price) || 0) * (Number(it.quantity) || 1))
+        })),
+        manual_discount: createDiscount,
+        payment_method: createFormData.payment_method,
+        payment_status: createFormData.payment_status,
+        order_status: createFormData.order_status,
+        staff_note: createFormData.staff_note.trim() || '现场/电话手工录入订单'
+      };
+
+      const res = await authFetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '创建手工订单失败');
+
+      toast.success(`成功录入新订单 #${data.order?.order_id || ''}！`);
+      setIsCreateModalOpen(false);
+      fetchOrders();
+      setChannelFilter('manual');
+    } catch (err) {
+      toast.error(err.message || '录入订单出错');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handleDateFilter = () => {
     setLoading(true);
@@ -195,7 +393,32 @@ function OrdersContent() {
   };
 
   // Edit handlers
+  const recalculateTotals = (newItems, currentDeliveryMethod, currentOrderType, currentDiscount) => {
+    const newSubtotal = newItems.reduce((sum, item) => sum + (Number(item.subtotal) || 0), 0);
+    const fee = currentOrderType === 'delivery' ? 8 : 0;
+    const disc = Number(currentDiscount) || 0;
+    const newTotal = Math.max(0, newSubtotal - disc) + fee;
+    return {
+      items: newItems,
+      subtotal: Math.round(newSubtotal * 100) / 100,
+      delivery_fee: fee,
+      total: Math.round(newTotal * 100) / 100
+    };
+  };
+
   const startEditing = () => {
+    const clonedItems = selectedOrder.items ? selectedOrder.items.map(it => {
+      const q = Number(it.quantity) || 1;
+      const sub = Number(it.subtotal) || 0;
+      const calculatedPrice = it.price !== undefined && it.price !== null ? Number(it.price) : Math.round((sub / q) * 100) / 100;
+      return {
+        ...it,
+        quantity: q,
+        price: calculatedPrice,
+        subtotal: sub || Math.round(calculatedPrice * q * 100) / 100
+      };
+    }) : [];
+
     setEditData({
       customer_name: selectedOrder.customer_name || '',
       phone: selectedOrder.phone || '',
@@ -207,13 +430,99 @@ function OrdersContent() {
       lalamove_payer: selectedOrder.lalamove_payer || 'Shinnie',
       lalamove_receipt_url: selectedOrder.lalamove_receipt_url || '',
       staff_note: selectedOrder.staff_note || '',
+      items: clonedItems,
+      subtotal: selectedOrder.subtotal || 0,
+      discount: selectedOrder.discount || 0,
+      delivery_fee: selectedOrder.delivery_fee || (selectedOrder.order_type === 'delivery' ? 8 : 0),
+      total: selectedOrder.total || 0
     });
+    setSelectedProductToAdd('');
     setIsEditing(true);
   };
 
   const cancelEditing = () => {
     setIsEditing(false);
     setEditData({});
+    setSelectedProductToAdd('');
+  };
+
+  const handleItemQtyChange = (index, deltaOrVal) => {
+    setEditData(prev => {
+      const currentItems = [...(prev.items || [])];
+      if (!currentItems[index]) return prev;
+
+      let newQty = typeof deltaOrVal === 'number' && deltaOrVal % 1 === 0 && Math.abs(deltaOrVal) <= 1
+        ? (currentItems[index].quantity || 1) + deltaOrVal
+        : parseInt(deltaOrVal, 10);
+
+      if (isNaN(newQty) || newQty < 1) newQty = 1;
+
+      const unitPrice = Number(currentItems[index].price) || 0;
+      currentItems[index] = {
+        ...currentItems[index],
+        quantity: newQty,
+        subtotal: Math.round(unitPrice * newQty * 100) / 100
+      };
+
+      const recalculated = recalculateTotals(currentItems, prev.delivery_method, prev.order_type, prev.discount);
+      return {
+        ...prev,
+        ...recalculated
+      };
+    });
+  };
+
+  const handleDeleteItem = (index) => {
+    if ((editData.items || []).length <= 1) {
+      toast.error('订单至少需要保留 1 种商品口味');
+      return;
+    }
+    setEditData(prev => {
+      const currentItems = prev.items.filter((_, i) => i !== index);
+      const recalculated = recalculateTotals(currentItems, prev.delivery_method, prev.order_type, prev.discount);
+      return {
+        ...prev,
+        ...recalculated
+      };
+    });
+  };
+
+  const handleAddProductItem = (productId) => {
+    if (!productId) return;
+    const prod = products.find(p => p.id === productId);
+    if (!prod) return;
+
+    setEditData(prev => {
+      const currentItems = [...(prev.items || [])];
+      const existingIdx = currentItems.findIndex(it => it.product_id === prod.id || it.product_name === prod.name);
+      const price = Number(prod.price) || 0;
+
+      if (existingIdx >= 0) {
+        const item = currentItems[existingIdx];
+        const newQty = (item.quantity || 1) + 1;
+        currentItems[existingIdx] = {
+          ...item,
+          quantity: newQty,
+          subtotal: Math.round(price * newQty * 100) / 100
+        };
+      } else {
+        currentItems.push({
+          product_id: prod.id,
+          product_name: prod.name,
+          price: price,
+          quantity: 1,
+          subtotal: price
+        });
+      }
+
+      const recalculated = recalculateTotals(currentItems, prev.delivery_method, prev.order_type, prev.discount);
+      setSelectedProductToAdd('');
+      return {
+        ...prev,
+        ...recalculated
+      };
+    });
+    toast.success(`已添加【${prod.name}】至订单商品列表中`);
   };
 
   const saveEditing = async () => {
@@ -228,6 +537,11 @@ function OrdersContent() {
       }
     }
 
+    if (!editData.items || editData.items.length === 0) {
+      toast.error('订单商品不能为空');
+      return;
+    }
+
     setActionLoading(true);
     try {
       const res = await authFetch(`/api/orders/${selectedOrder.order_id}`, {
@@ -238,7 +552,7 @@ function OrdersContent() {
 
       const data = await res.json();
       if (res.ok) {
-        toast.success('订单信息更新成功');
+        toast.success('订单信息及商品明细更新成功');
         setSelectedOrder(data.order);
         setOrders(prev => prev.map(o => o.order_id === selectedOrder.order_id ? data.order : o));
         setIsEditing(false);
@@ -252,6 +566,36 @@ function OrdersContent() {
     }
   };
 
+  const counts = useMemo(() => {
+    let all = orders.length;
+    let manual = 0;
+    let online = 0;
+    for (const o of orders) {
+      if (o.is_manual_order) manual++;
+      else online++;
+    }
+    return { all, manual, online };
+  }, [orders]);
+
+  const filteredOrdersList = useMemo(() => {
+    let list = orders;
+    if (channelFilter === 'manual') {
+      list = list.filter(o => Boolean(o.is_manual_order));
+    } else if (channelFilter === 'online') {
+      list = list.filter(o => !o.is_manual_order);
+    }
+
+    if (!searchQuery.trim()) return list;
+    const q = searchQuery.trim().toLowerCase();
+    return list.filter(o => {
+      const orderId = (o.order_id || '').toLowerCase();
+      const name = (o.customer_name || '').toLowerCase();
+      const phone = (o.phone || '').toLowerCase();
+      const email = (o.email || '').toLowerCase();
+      return orderId.includes(q) || name.includes(q) || phone.includes(q) || email.includes(q);
+    });
+  }, [orders, channelFilter, searchQuery]);
+
   return (
     <div>
       <div className={styles.header}>
@@ -260,6 +604,13 @@ function OrdersContent() {
           <p className={styles.subtitle}>{isManualOrder ? '查看与处理店内现场、电话预订等手工录入的订单记录。' : '官网线上订单：审核付款凭证、制作曲奇、安排顾客自取或送货上门。'}</p>
         </div>
         <div className={styles.headerRight}>
+          <button
+            type="button"
+            className={styles.btnCreateManual}
+            onClick={handleOpenCreateModal}
+          >
+            ✍️ + 手动录入新订单
+          </button>
           <div className={styles.filters}>
             <select
               aria-label="订单状态筛选"
@@ -267,7 +618,7 @@ function OrdersContent() {
               onChange={(e) => { setLoading(true); setFilter(e.target.value); }}
               className={styles.filterSelect}
             >
-              <option value="all">全部订单</option>
+              <option value="all">全部状态</option>
               <option value="pending_verification">⏳ 待核验付款</option>
               <option value="preparing">🧑‍🍳 烘焙制作中</option>
               <option value="ready_or_delivery">🛍️ 待自取 / 🚚 配送中</option>
@@ -300,8 +651,53 @@ function OrdersContent() {
             </button>
           )}
         </div>
-
       </details>
+
+      {/* 订单渠道来源 Tabs */}
+      <div className={styles.channelTabs}>
+        <button
+          type="button"
+          className={`${styles.channelTabBtn} ${channelFilter === 'all' ? styles.channelTabActive : ''}`}
+          onClick={() => setChannelFilter('all')}
+        >
+          📋 全部订单 ({counts.all})
+        </button>
+        <button
+          type="button"
+          className={`${styles.channelTabBtn} ${channelFilter === 'manual' ? styles.channelTabActive : ''}`}
+          onClick={() => setChannelFilter('manual')}
+        >
+          ✍️ 手动录入订单 ({counts.manual})
+        </button>
+        <button
+          type="button"
+          className={`${styles.channelTabBtn} ${channelFilter === 'online' ? styles.channelTabActive : ''}`}
+          onClick={() => setChannelFilter('online')}
+        >
+          🌐 线上预购订单 ({counts.online})
+        </button>
+      </div>
+
+      {/* Real-time Order Search Bar */}
+      <div className={styles.searchBar}>
+        <input
+          type="text"
+          className={styles.searchInput}
+          placeholder="🔍 搜索历史与进行中订单：输入订单编号 (#ORD-xxxx)、顾客姓名、手机号或邮箱..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            className="btn btnSecondary"
+            style={{ padding: '8px 14px', fontSize: '0.85rem' }}
+            onClick={() => setSearchQuery('')}
+          >
+            清空搜索
+          </button>
+        )}
+      </div>
 
       <div className="card">
         {loading ? (
@@ -322,14 +718,40 @@ function OrdersContent() {
                 </tr>
               </thead>
               <tbody>
-                {orders.length === 0 ? (
+                {filteredOrdersList.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="textCenter" style={{ padding: '30px', color: 'var(--color-text-light)' }}>
-                      暂无符合条件的订单记录
+                    <td colSpan="8" className="textCenter" style={{ padding: '36px 20px', color: 'var(--color-text-light)' }}>
+                      {searchQuery ? (
+                        <div>未找到匹配【{searchQuery}】的订单记录</div>
+                      ) : channelFilter === 'manual' ? (
+                        <div>
+                          <p style={{ margin: '0 0 14px', fontSize: '0.95rem' }}>
+                            当前暂无手动录入的订单记录。
+                          </p>
+                          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              className="btn btnPrimary"
+                              onClick={handleOpenCreateModal}
+                            >
+                              ✍️ + 立即录入第一笔手工订单
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btnSecondary"
+                              onClick={() => setChannelFilter('all')}
+                            >
+                              查看全部订单 ({counts.all})
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        '暂无符合条件的订单记录'
+                      )}
                     </td>
                   </tr>
                 ) : (
-                  orders.map(order => (
+                  filteredOrdersList.map(order => (
                     <tr key={order.id} className={order.order_status === 'pending_verification' ? styles.highlightRow : ''}>
                       <td className={styles.orderIdCell}>
                         <div>{order.order_id}</div>
@@ -397,6 +819,7 @@ function OrdersContent() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={`订单详情 - #${selectedOrder?.order_id}`}
+        maxWidth="840px"
       >
         {selectedOrder && (
           <div className={styles.modalContent}>
@@ -621,53 +1044,139 @@ function OrdersContent() {
 
             {/* 2. Payment Summary (Items -> Subtotal -> Discount -> Total) */}
             <div className={styles.infoBlock}>
-              <div className={styles.sectionHeader}>费用结算明细</div>
-              <table className={styles.itemsTable}>
-                <thead>
-                  <tr>
-                    <th>商品口味</th>
-                    <th className="textRight">数量</th>
-                    <th className="textRight">小计</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedOrder.items && selectedOrder.items.map((item, idx) => (
-                    <tr key={item.id || idx}>
-                      <td>{item.product_name}</td>
-                      <td className="textRight">{item.quantity}</td>
-                      <td className="textRight">RM{item.subtotal.toFixed(2)}</td>
-                    </tr>
+              <div className={styles.sectionHeader}>
+                费用结算明细
+                {isEditing && (
+                  <span style={{ fontSize: '0.8rem', color: '#16a34a', fontWeight: 600 }}>（编辑模式：可增减数量或添加新口味）</span>
+                )}
+              </div>
+
+              {isEditing ? (
+                <div className={styles.editItemsSection}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--color-text-light)', marginBottom: '4px' }}>
+                    调整订购的曲奇口味与数量：
+                  </div>
+                  {(editData.items || []).map((item, idx) => (
+                    <div key={item.id || item.product_id || idx} className={styles.editItemCard}>
+                      <div className={styles.editItemInfo}>
+                        <div className={styles.editItemName}>{item.product_name}</div>
+                        <div className={styles.editItemPrice}>单价: RM{Number(item.price || 0).toFixed(2)}</div>
+                      </div>
+                      <div className={styles.editItemControls}>
+                        <div className={styles.qtyGroup}>
+                          <button
+                            type="button"
+                            className={styles.qtyBtn}
+                            onClick={() => handleItemQtyChange(idx, -1)}
+                            disabled={(item.quantity || 1) <= 1}
+                            title="减少数量"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            className={styles.qtyInput}
+                            value={item.quantity || 1}
+                            onChange={e => handleItemQtyChange(idx, e.target.value)}
+                            min="1"
+                          />
+                          <button
+                            type="button"
+                            className={styles.qtyBtn}
+                            onClick={() => handleItemQtyChange(idx, 1)}
+                            title="增加数量"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <div className={styles.itemSubtotalText}>
+                          RM{Number(item.subtotal || 0).toFixed(2)}
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.deleteItemBtn}
+                          onClick={() => handleDeleteItem(idx)}
+                          title="移除此口味"
+                        >
+                          ✕ 移除
+                        </button>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+
+                  {/* Add Product Panel */}
+                  <div className={styles.addItemPanel}>
+                    <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>+ 增订其他口味:</span>
+                    <select
+                      className={styles.addItemSelect}
+                      value={selectedProductToAdd}
+                      onChange={e => setSelectedProductToAdd(e.target.value)}
+                    >
+                      <option value="">-- 选择要添加的曲奇口味 --</option>
+                      {products.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} (RM{Number(p.price).toFixed(2)})
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className={styles.addItemBtn}
+                      onClick={() => handleAddProductItem(selectedProductToAdd)}
+                      disabled={!selectedProductToAdd}
+                    >
+                      + 加入订单
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <table className={styles.itemsTable}>
+                  <thead>
+                    <tr>
+                      <th>商品口味</th>
+                      <th className="textRight">数量</th>
+                      <th className="textRight">小计</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedOrder.items && selectedOrder.items.map((item, idx) => (
+                      <tr key={item.id || idx}>
+                        <td>{item.product_name}</td>
+                        <td className="textRight">{item.quantity}</td>
+                        <td className="textRight">RM{Number(item.subtotal || 0).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
 
               <div className={styles.paymentSummaryTotals}>
                 <div className={styles.summaryRow}>
                   <span>商品小计</span>
-                  <span>RM{selectedOrder.subtotal?.toFixed(2) || '0.00'}</span>
+                  <span>RM{Number((isEditing ? editData.subtotal : selectedOrder.subtotal) || 0).toFixed(2)}</span>
                 </div>
-                {selectedOrder.discount > 0 && (
+                {Number(isEditing ? editData.discount : selectedOrder.discount) > 0 && (
                   <div className={`${styles.summaryRow} ${styles.textSuccess}`}>
                     <span>折扣扣减 ({selectedOrder.voucher_code || '优惠券'})</span>
-                    <span>-RM{selectedOrder.discount.toFixed(2)}</span>
+                    <span>-RM{Number((isEditing ? editData.discount : selectedOrder.discount) || 0).toFixed(2)}</span>
                   </div>
                 )}
-                {selectedOrder.delivery_fee > 0 && (
+                {Number(isEditing ? editData.delivery_fee : selectedOrder.delivery_fee) > 0 && (
                   <div className={styles.summaryRow}>
                     <span>
                       🚚 运费 Delivery Fee
-                      {selectedOrder.order_type === 'delivery' && (
+                      {(isEditing ? editData.order_type : selectedOrder.order_type) === 'delivery' && (
                         <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', marginLeft: '6px' }}>
-                          ({selectedOrder.delivery_method === 'lalamove' ? '🛵 Lalamove' : '🚗 亲送个人补贴'})
+                          ({(isEditing ? editData.delivery_method : selectedOrder.delivery_method) === 'lalamove' ? '🛵 Lalamove' : '🚗 亲送个人补贴'})
                         </span>
                       )}
                     </span>
-                    <span>RM{selectedOrder.delivery_fee.toFixed(2)}</span>
+                    <span>RM{Number((isEditing ? editData.delivery_fee : selectedOrder.delivery_fee) || 0).toFixed(2)}</span>
                   </div>
                 )}
                 <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
-                  <span>实付总额</span>
-                  <span>RM{selectedOrder.total.toFixed(2)}</span>
+                  <span>实付总额 Total</span>
+                  <span style={{ color: 'var(--color-primary)', fontWeight: 800 }}>RM{Number((isEditing ? editData.total : selectedOrder.total) || 0).toFixed(2)}</span>
                 </div>
                 <div className={styles.paymentStatusLine}>
                   <strong>付款状态:</strong> {selectedOrder.payment_status === 'verified' ? '已核验' : selectedOrder.payment_status === 'rejected' ? '已拒绝' : selectedOrder.payment_status === 'refunded' ? '已退款' : '待核验'}
@@ -914,6 +1423,333 @@ function OrdersContent() {
 
           </div>
         )}
+      </Modal>
+
+      {/* 手动录入新订单 Modal */}
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title="✍️ 手动录入新订单 (店内现场 / 电话预订 / 线下下单)"
+        maxWidth="720px"
+      >
+        <form onSubmit={handleCreateSubmit} className={styles.createOrderForm}>
+          {/* 1. 顾客基本信息 */}
+          <div className={styles.formSection}>
+            <h3 className={styles.formSectionTitle}>👤 顾客联系信息</h3>
+            <div className={styles.formGrid2}>
+              <div className={styles.formField}>
+                <label>顾客姓名 *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="例如: 张先生 / Alice"
+                  value={createFormData.customer_name}
+                  onChange={e => setCreateFormData({ ...createFormData, customer_name: e.target.value })}
+                />
+              </div>
+              <div className={styles.formField}>
+                <label>联系电话 *</label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="例如: 012-3456789"
+                  value={createFormData.phone}
+                  onChange={e => setCreateFormData({ ...createFormData, phone: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className={styles.formField}>
+              <label>电子邮箱 (选填，输入后自动关联或创建会员账户)</label>
+              <input
+                type="email"
+                placeholder="例如: customer@example.com"
+                value={createFormData.email}
+                onChange={e => setCreateFormData({ ...createFormData, email: e.target.value })}
+              />
+            </div>
+          </div>
+
+          {/* 2. 取货与配送方式 */}
+          <div className={styles.formSection}>
+            <h3 className={styles.formSectionTitle}>🚚 履约与配送方式</h3>
+            <div className={styles.formGrid2}>
+              <div className={styles.formField}>
+                <label>履约类型 *</label>
+                <select
+                  value={createFormData.order_type}
+                  onChange={e => setCreateFormData({
+                    ...createFormData,
+                    order_type: e.target.value,
+                    delivery_method: e.target.value === 'delivery' ? 'admin_delivery' : 'pickup',
+                    delivery_fee: e.target.value === 'delivery' ? '8.00' : '0.00'
+                  })}
+                >
+                  <option value="pickup">🛍️ 门店/摊位自取 (Pickup)</option>
+                  <option value="delivery">🚗 送货上门 (Delivery)</option>
+                </select>
+              </div>
+
+              {createFormData.order_type === 'pickup' ? (
+                <div className={styles.formField}>
+                  <label>预定自取时间 *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="例如: 今日 15:00 / 明天上午"
+                    value={createFormData.pickup_time}
+                    onChange={e => setCreateFormData({ ...createFormData, pickup_time: e.target.value })}
+                  />
+                </div>
+              ) : (
+                <div className={styles.formField}>
+                  <label>配送方式 *</label>
+                  <select
+                    value={createFormData.delivery_method}
+                    onChange={e => setCreateFormData({ ...createFormData, delivery_method: e.target.value })}
+                  >
+                    <option value="admin_delivery">🚗 团队专人亲送 (默认运费 RM8)</option>
+                    <option value="lalamove">🛵 Lalamove 跑腿即时配送</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {createFormData.order_type === 'delivery' && (
+              <div className={styles.formGrid2}>
+                <div className={styles.formField}>
+                  <label>送货地址 *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="详细送货地址、公寓门牌号等"
+                    value={createFormData.address}
+                    onChange={e => setCreateFormData({ ...createFormData, address: e.target.value })}
+                  />
+                </div>
+                <div className={styles.formField}>
+                  <label>配送费用 (RM)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="8.00"
+                    value={createFormData.delivery_fee}
+                    onChange={e => setCreateFormData({ ...createFormData, delivery_fee: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 3. 购买曲奇品项 */}
+          <div className={styles.formSection}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className={styles.formSectionTitle} style={{ margin: 0 }}>🍪 订购商品明细 *</h3>
+              <span style={{ fontSize: '0.82rem', color: 'var(--color-text-light)' }}>
+                共 {createFormData.items.reduce((s, it) => s + (it.quantity || 0), 0)} 片
+              </span>
+            </div>
+
+            {createFormData.items.length === 0 ? (
+              <div style={{ background: '#fff', border: '1px dashed #cbd5e1', borderRadius: '8px', padding: '16px', textAlign: 'center', color: '#64748b', fontSize: '0.88rem' }}>
+                还没有添加曲奇商品。请在下方选择口味并点击「+ 添加至订单」。
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {createFormData.items.map((item, idx) => (
+                  <div key={idx} className={styles.editItemCard}>
+                    <div style={{ flex: 1 }}>
+                      <strong>{item.name}</strong>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
+                        单价: {money(item.price)}
+                      </div>
+                    </div>
+                    <div className={styles.editItemControls}>
+                      <div className={styles.qtyControl}>
+                        <button
+                          type="button"
+                          className={styles.qtyBtn}
+                          onClick={() => handleCreateQtyChange(idx, -1)}
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          className={styles.qtyInput}
+                          value={item.quantity}
+                          onChange={e => {
+                            const val = parseInt(e.target.value, 10);
+                            if (!isNaN(val) && val > 0) {
+                              const updated = [...createFormData.items];
+                              updated[idx].quantity = val;
+                              updated[idx].subtotal = val * (Number(updated[idx].price) || 0);
+                              setCreateFormData({ ...createFormData, items: updated });
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className={styles.qtyBtn}
+                          onClick={() => handleCreateQtyChange(idx, 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className={styles.itemSubtotalText}>{money(item.subtotal)}</span>
+                      <button
+                        type="button"
+                        className={styles.deleteItemBtn}
+                        onClick={() => handleCreateDeleteItem(idx)}
+                        title="删除该品项"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 添加商品工具栏 */}
+            <div className={styles.addItemPanel}>
+              <select
+                className={styles.addItemSelect}
+                value={createSelectedProduct}
+                onChange={e => setCreateSelectedProduct(e.target.value)}
+              >
+                {products.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({money(p.price)})
+                  </option>
+                ))}
+              </select>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <input
+                  type="number"
+                  min="1"
+                  style={{ width: '60px', padding: '8px', borderRadius: '6px', border: '1px solid #86efac', textAlign: 'center', fontSize: '0.9rem' }}
+                  value={createItemQty}
+                  onChange={e => setCreateItemQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  title="添加数量"
+                />
+                <button
+                  type="button"
+                  className={styles.addItemBtn}
+                  onClick={handleCreateAddItem}
+                >
+                  + 添加至订单
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. 结算与状态设置 */}
+          <div className={styles.formSection}>
+            <h3 className={styles.formSectionTitle}>💰 结算与款项状态</h3>
+            <div className={styles.formGrid2}>
+              <div className={styles.formField}>
+                <label>付款方式 *</label>
+                <select
+                  value={createFormData.payment_method}
+                  onChange={e => setCreateFormData({ ...createFormData, payment_method: e.target.value })}
+                >
+                  <option value="cash">💵 现金付款 (Cash)</option>
+                  <option value="duitnow_qr">📱 DuitNow QR 扫码付款</option>
+                  <option value="bank_transfer">🏦 银行即时转账</option>
+                  <option value="other">💳 其他支付方式</option>
+                </select>
+              </div>
+              <div className={styles.formField}>
+                <label>付款状态 *</label>
+                <select
+                  value={createFormData.payment_status}
+                  onChange={e => setCreateFormData({ ...createFormData, payment_status: e.target.value })}
+                >
+                  <option value="verified">✅ 已付清 (Verified)</option>
+                  <option value="pending">⏳ 待付款 / 货到付款 (Pending)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className={styles.formGrid2}>
+              <div className={styles.formField}>
+                <label>订单初始状态 *</label>
+                <select
+                  value={createFormData.order_status}
+                  onChange={e => setCreateFormData({ ...createFormData, order_status: e.target.value })}
+                >
+                  <option value="preparing">🧑‍🍳 烘焙制作中 (Preparing)</option>
+                  <option value="ready_for_pickup">🛍️ 待自取 / 待发货 (Ready)</option>
+                  <option value="completed">✅ 已完成结单 (Completed)</option>
+                </select>
+              </div>
+              <div className={styles.formField}>
+                <label>折扣减免 (RM)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={createFormData.manual_discount}
+                  onChange={e => setCreateFormData({ ...createFormData, manual_discount: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className={styles.formField}>
+              <label>订单备注 / 员工说明</label>
+              <input
+                type="text"
+                placeholder="例如: 顾客现场现金结清 / 微信预定下午自取"
+                value={createFormData.staff_note}
+                onChange={e => setCreateFormData({ ...createFormData, staff_note: e.target.value })}
+              />
+            </div>
+
+            {/* 费用核算小计 */}
+            <div className={styles.orderCalcSummary}>
+              <div className={styles.calcRow}>
+                <span>商品小计 ({createFormData.items.reduce((s, it) => s + (it.quantity || 0), 0)} 片):</span>
+                <strong>{money(createSubtotal)}</strong>
+              </div>
+              {createDiscount > 0 && (
+                <div className={styles.calcRow} style={{ color: '#15803d' }}>
+                  <span>手动折扣减免:</span>
+                  <strong>- {money(createDiscount)}</strong>
+                </div>
+              )}
+              {createFormData.order_type === 'delivery' && (
+                <div className={styles.calcRow}>
+                  <span>配送费用:</span>
+                  <strong>+ {money(createDeliveryFee)}</strong>
+                </div>
+              )}
+              <div className={`${styles.calcRow} ${styles.calcRowTotal}`}>
+                <span>应付合计总额:</span>
+                <span style={{ color: '#ea580c', fontSize: '1.25rem' }}>{money(createTotal)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.modalActions}>
+            <button
+              type="button"
+              className="btn btnSecondary"
+              onClick={() => setIsCreateModalOpen(false)}
+              disabled={actionLoading}
+            >
+              取消
+            </button>
+            <button
+              type="submit"
+              className="btn btnPrimary"
+              disabled={actionLoading}
+              style={{ background: '#ea580c', borderColor: '#ea580c', padding: '10px 24px', fontSize: '0.95rem' }}
+            >
+              {actionLoading ? '正在创建...' : '✓ 确认创建手工订单'}
+            </button>
+          </div>
+        </form>
       </Modal>
 
       {/* Full Size Screenshot Lightbox */}

@@ -140,6 +140,22 @@ export async function PUT(request, { params }) {
     if (body.lalamove_receipt_url !== undefined) {
       updates.lalamove_receipt_url = body.lalamove_receipt_url;
     }
+    // Items and pricing updates
+    if (body.items !== undefined && Array.isArray(body.items)) {
+      updates.items = body.items;
+    }
+    if (body.subtotal !== undefined) {
+      updates.subtotal = Number(body.subtotal) || 0;
+    }
+    if (body.discount !== undefined) {
+      updates.discount = Number(body.discount) || 0;
+    }
+    if (body.delivery_fee !== undefined) {
+      updates.delivery_fee = Number(body.delivery_fee) || 0;
+    }
+    if (body.total !== undefined) {
+      updates.total = Number(body.total) || 0;
+    }
 
     const effectiveOrderType = updates.order_type !== undefined ? updates.order_type : existing.order_type;
     const effectiveDeliveryMethod = updates.delivery_method !== undefined ? updates.delivery_method : existing.delivery_method;

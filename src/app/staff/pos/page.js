@@ -1,5 +1,5 @@
 import BoothPOS from '@/components/BoothPOS/BoothPOS';
 
-export default function BoothPage() {
+export default function PosPage() {
   return <BoothPOS />;
 }

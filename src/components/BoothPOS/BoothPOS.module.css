@@ -1,0 +1,815 @@
+/* ==========================================================================
+   One Bite Cookie - Booth POS (摆摊收银系统) Modern Design System
+   ========================================================================== */
+
+.posContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Header & Session Bar */
+.sessionBar {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 14px);
+  padding: 16px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.sessionLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.boothStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.sessionInputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sessionInput {
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: #f8fafc;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.sessionInput:focus {
+  border-color: var(--color-primary);
+  background: white;
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.12);
+}
+
+.sessionActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btnAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: white;
+  color: var(--color-text);
+  transition: all 0.15s ease;
+}
+
+.btnAction:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.btnSaveSettle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btnSaveSettle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
+}
+
+/* ==========================================================================
+   Live Stats Bar (今日出摊战报)
+   ========================================================================== */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+
+.statCard {
+  background: white;
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.statLabel {
+  font-size: 0.76rem;
+  color: var(--color-text-light);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.statValue {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.5px;
+}
+
+.statSubtext {
+  font-size: 0.72rem;
+  color: var(--color-text-light);
+}
+
+/* ==========================================================================
+   Main POS Layout (Split Screen)
+   ========================================================================== */
+.posMain {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Left: Product Catalog Grid */
+.catalogCard {
+  background: white;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg, 14px);
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.catalogHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.catalogTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.productTile {
+  background: #fdfefe;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  user-select: none;
+}
+
+.productTile:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.1);
+  background: white;
+}
+
+.productTile:active {
+  transform: scale(0.97);
+}
+
+.productTileSoldOut {
+  opacity: 0.45;
+  background: #f1f5f9;
+  cursor: not-allowed;
+  border-color: #cbd5e1;
+}
+
+.productTileSoldOut:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: #cbd5e1;
+}
+
+.productIconBox {
+  width: 58px;
+  height: 58px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.productIconBox img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.productTileName {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 4px;
+  line-height: 1.25;
+}
+
+.productTilePrice {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.productTileStock {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+}
+
+.stockWarning {
+  background: #fef2f2;
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.tileBadgeAdded {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   Right: Register / Checkout Register
+   ========================================================================== */
+.registerCard {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 14px);
+  padding: 18px 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 20px;
+}
+
+.registerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.registerTitle {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnClearCart {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.btnClearCart:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+/* Cart Items List */
+.cartList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.cartEmpty {
+  text-align: center;
+  padding: 28px 16px;
+  color: var(--color-text-light);
+  font-size: 0.88rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px dashed #cbd5e1;
+}
+
+.cartItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #edf2f7;
+  gap: 10px;
+}
+
+.cartItemInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.cartItemName {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cartItemUnitPrice {
+  font-size: 0.76rem;
+  color: var(--color-text-light);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.stepperBtn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.1s ease;
+}
+
+.stepperBtn:hover {
+  background: #f1f5f9;
+}
+
+.stepperCount {
+  width: 24px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.cartItemTotal {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--color-text);
+  min-width: 58px;
+  text-align: right;
+}
+
+.cartItemDelete {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.cartItemDelete:hover {
+  color: #ef4444;
+}
+
+/* Discounts Section */
+.discountSection {
+  background: #fafaf9;
+  border: 1px solid var(--color-border-light);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.discountHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.discountChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.discountChip {
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.discountChip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.discountChipActive {
+  background: #fff7ed;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.customDiscountInput {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.customDiscountInput input {
+  padding: 5px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  width: 80px;
+}
+
+/* Payment Method & Totals */
+.paymentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.paymentTabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.paymentTabBtn {
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.paymentTabBtn:hover {
+  background: #f8fafc;
+}
+
+.paymentTabBtnActive {
+  background: #f0fdf4;
+  border-color: #10b981;
+  color: #047857;
+}
+
+/* Cash Calculator */
+.cashBox {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cashChips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cashChip {
+  padding: 3px 8px;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cashChip:hover {
+  border-color: var(--color-primary);
+}
+
+.cashRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+/* Receipt Totals Summary */
+.totalsCard {
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.86rem;
+  color: var(--color-text-light);
+}
+
+.grandTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border-light);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.grandTotalAmount {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.5px;
+}
+
+/* Checkout Big Button */
+.btnCharge {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btnCharge:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(22, 163, 74, 0.4);
+}
+
+.btnCharge:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Flavour Sales & Inventory Audit Table
+   ========================================================================== */
+.auditCard {
+  background: white;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg, 14px);
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.auditHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.auditTitle {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auditTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.auditTable th {
+  background: #f8fafc;
+  padding: 10px 14px;
+  font-weight: 600;
+  color: var(--color-text-light);
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.auditTable td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.soldHighlight {
+  font-weight: 800;
+  color: #16a34a;
+  background: #f0fdf4;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+/* ==========================================================================
+   Transaction Feed (今日收银明细)
+   ========================================================================== */
+.historyCard {
+  background: white;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg, 14px);
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.historyItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 10px;
+  gap: 12px;
+}
+
+.historyOrderNum {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: #fff7ed;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.historyItemsSummary {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.historyMeta {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  display: flex;
+  gap: 8px;
+}
+
+.historyAmount {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #15803d;
+  text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .posMain {
+    grid-template-columns: 1fr;
+  }
+  .registerCard {
+    position: static;
+  }
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .sessionBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

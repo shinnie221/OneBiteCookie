@@ -84,10 +84,15 @@ export function summarizeChannels(orders, records, from, to, financeRecords = []
             result.preorder += Number(order.total ?? order.total_amount) || 0;
         }
     }
+    const hasFinanceExpenses = Array.isArray(financeRecords) && financeRecords.some(item => (item.transactionType === '支出' || !item.transactionType) && Number(item.amount) > 0);
+
     for (const record of records) {
         if (!inRange(record.date) || !['booth', 'wholesale'].includes(record.channel)) continue;
         result[record.channel] += record.sales;
-        result.expenses += record.expenseTotal;
+        // Only add record.expenseTotal if financeRecords has no expenses, avoiding double-deducting booth expenses
+        if (!hasFinanceExpenses) {
+            result.expenses += record.expenseTotal;
+        }
         result.outstanding += record.outstanding;
     }
     if (Array.isArray(financeRecords)) {

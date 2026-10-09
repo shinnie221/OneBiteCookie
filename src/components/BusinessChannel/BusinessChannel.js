@@ -460,16 +460,6 @@ export default function BusinessChannel({ channel }) {
             </span>
           </div>
 
-          <div className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <span className={styles.statLabel}>{booth ? '售出曲奇总量' : '批发供货总量'}</span>
-              <span className={styles.statIcon}>🍪</span>
-            </div>
-            <strong className={styles.statValue}>{totalPiecesSold} 片</strong>
-            <span className={styles.statSubtext}>
-              {booth ? `准备出摊共 ${totalPiecesPrepared} 片` : `累计出库 ${totalPiecesSold} 片`}
-            </span>
-          </div>
         </div>
 
         <section className={styles.panel}>

@@ -48,6 +48,7 @@ export async function POST(request) {
       active,
       is_public,
       usage_limit,
+      monthly_limit,
       target_type,
       customer_email,
       customer_name
@@ -75,6 +76,7 @@ export async function POST(request) {
       active: active ? 1 : 0,
       is_public: is_public !== undefined ? Boolean(is_public) : true,
       usage_limit: usage_limit || 'unlimited',
+      monthly_limit: Math.max(1, parseInt(monthly_limit, 10) || 1),
       target_type: target_type || 'all',
       customer_email: customer_email ? customer_email.trim().toLowerCase() : null,
       customer_name: customer_name ? customer_name.trim() : null,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import styles from './page.module.css';
@@ -161,15 +162,34 @@ export default function CustomersPage() {
                           <div key={order.id} className={styles.orderItem}>
                             <div className={styles.orderHeader}>
                               <span className={styles.orderId}>{order.order_id}</span>
-                              <span
-                                className={styles.orderStatus}
-                                style={{
-                                  background: (statusColors[order.order_status] || statusColors.pending_verification).bg,
-                                  color: (statusColors[order.order_status] || statusColors.pending_verification).color,
-                                }}
-                              >
-                                {statusLabels[order.order_status] || order.order_status}
-                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span
+                                  className={styles.orderStatus}
+                                  style={{
+                                    background: (statusColors[order.order_status] || statusColors.pending_verification).bg,
+                                    color: (statusColors[order.order_status] || statusColors.pending_verification).color,
+                                  }}
+                                >
+                                  {statusLabels[order.order_status] || order.order_status}
+                                </span>
+                                <Link
+                                  href={`/staff/orders?order=${encodeURIComponent(order.order_id)}`}
+                                  style={{
+                                    fontSize: '0.78rem',
+                                    color: 'var(--color-primary)',
+                                    textDecoration: 'none',
+                                    fontWeight: 700,
+                                    background: 'var(--color-bg-alt)',
+                                    padding: '3px 8px',
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--color-border)',
+                                    whiteSpace: 'nowrap'
+                                  }}
+                                  title="在订单管理中打开完整详情"
+                                >
+                                  查看订单详情 ↗
+                                </Link>
+                              </div>
                             </div>
                             <div className={styles.orderMeta}>
                               <span>{new Date(order.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' })}</span>

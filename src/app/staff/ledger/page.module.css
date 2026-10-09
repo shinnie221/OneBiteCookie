@@ -386,17 +386,50 @@
 @media (max-width: 1024px) {
   .kpiGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 }
 
 @media (max-width: 640px) {
   .kpiGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .kpiCard {
+    padding: 12px 14px;
+    border-radius: 12px;
+    gap: 4px;
+  }
+  .kpiCard span {
+    font-size: 0.74rem;
+  }
+  .kpiCard strong {
+    font-size: 1.22rem;
+  }
+  .kpiCard small {
+    font-size: 0.68rem;
+    line-height: 1.25;
   }
   .controlPanel {
-    padding: 16px;
+    padding: 14px 12px;
   }
   .tableCard {
-    padding: 16px;
+    padding: 14px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .kpiCard {
+    padding: 10px 12px;
+  }
+  .kpiCard strong {
+    font-size: 1.15rem;
+  }
+  .kpiCard small {
+    font-size: 0.65rem;
   }
 }

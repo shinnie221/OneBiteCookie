@@ -58,6 +58,30 @@
   overflow-y: auto;
 }
 
+@media (max-width: 640px) {
+  .overlay {
+    padding: 10px 8px;
+  }
+  .modal {
+    border-radius: 16px;
+    max-height: 94vh;
+  }
+  .header {
+    padding: 14px 16px;
+  }
+  .header h2 {
+    font-size: 1.1rem;
+  }
+  .closeBtn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  .body {
+    padding: 16px 14px;
+  }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
