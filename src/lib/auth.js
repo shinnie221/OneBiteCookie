@@ -18,7 +18,7 @@ export function verifyAuth(request) {
 }
 
 export function signToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '180d' });
 }
 
 export function requireAuth(request) {

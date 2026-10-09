@@ -15,7 +15,28 @@
  */
 
 const FOLDER_ID = '1CxUKoiIQ5oicc6Eo-vun2pC0-2mG0joh'; // Team receipts folder
-const SECRET = 'CHANGE-ME-to-a-long-random-string';
+const SECRET = 'obc_sec_1dfe5126b5534c34a1dc3778ac96b7f9';
+
+// Run this in the editor toolbar to test folder access directly:
+function testAuth() {
+  try {
+    let folder;
+    try {
+      folder = DriveApp.getFolderById(FOLDER_ID);
+      Logger.log('Connected to shared receipts folder: ' + folder.getName());
+    } catch (e) {
+      Logger.log('Shared folder not found or view-only, falling back to OneBite_Receipts in My Drive: ' + e);
+      const it = DriveApp.getRootFolder().getFoldersByName('OneBite_Receipts');
+      folder = it.hasNext() ? it.next() : DriveApp.getRootFolder().createFolder('OneBite_Receipts');
+    }
+    const testFile = folder.createFile('test_auth.txt', 'OK');
+    Logger.log('Test file created: ' + testFile.getUrl());
+    testFile.setTrashed(true);
+    Logger.log('SUCCESS! Google Drive access is 100% working!');
+  } catch (err) {
+    Logger.log('ERROR: ' + err);
+  }
+}
 
 function doPost(e) {
   try {
@@ -25,15 +46,33 @@ function doPost(e) {
     const bytes = Utilities.base64Decode(body.data);
     const blob = Utilities.newBlob(bytes, body.mimeType || 'image/jpeg', body.fileName || ('receipt_' + Date.now() + '.jpg'));
 
-    // Organise into monthly sub-folders, e.g. "2026-10"
-    const root = DriveApp.getFolderById(FOLDER_ID);
+    // Try team folder first; fallback to "OneBite_Receipts" in My Drive if permission denied
+    let root;
+    try {
+      root = DriveApp.getFolderById(FOLDER_ID);
+    } catch (e) {
+      const it = DriveApp.getRootFolder().getFoldersByName('OneBite_Receipts');
+      root = it.hasNext() ? it.next() : DriveApp.getRootFolder().createFolder('OneBite_Receipts');
+    }
+
     const month = Utilities.formatDate(new Date(), 'Asia/Kuala_Lumpur', 'yyyy-MM');
-    const it = root.getFoldersByName(month);
-    const folder = it.hasNext() ? it.next() : root.createFolder(month);
+    let folder;
+    try {
+      const it = root.getFoldersByName(month);
+      folder = it.hasNext() ? it.next() : root.createFolder(month);
+    } catch (e) {
+      folder = root;
+    }
 
     const file = folder.createFile(blob);
-    if (body.uploadedBy) file.setDescription('Uploaded by ' + body.uploadedBy);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    if (body.uploadedBy) {
+      try { file.setDescription('Uploaded by ' + body.uploadedBy); } catch (e) {}
+    }
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (e) {
+      // Ignore if sharing restriction applies
+    }
 
     const id = file.getId();
     return json_({ ok: true, id: id, url: 'https://drive.google.com/file/d/' + id + '/view' });

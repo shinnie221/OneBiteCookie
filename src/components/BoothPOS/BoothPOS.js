@@ -78,9 +78,15 @@ export default function BoothPOS() {
   // Modals
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [isCloseBoothModalOpen, setIsCloseBoothModalOpen] = useState(false);
   const [isWasteModalOpen, setIsWasteModalOpen] = useState(false);
   const [selectedWasteItem, setSelectedWasteItem] = useState(null);
   const [wasteCountInput, setWasteCountInput] = useState('1');
+
+  // Multi-day Booth & History Filter States
+  const [isMultiDay, setIsMultiDay] = useState(false);
+  const [boothDaysTotal, setBoothDaysTotal] = useState(3);
+  const [historyTab, setHistoryTab] = useState('all'); // 'all' | 'cash' | 'qr'
 
   // New Expense Form State
   const [expenseForm, setExpenseForm] = useState({
@@ -175,6 +181,16 @@ export default function BoothPOS() {
     }
     return map;
   }, [transactions]);
+
+  // Transactions segregated by payment method
+  const cashTransactions = useMemo(() => transactions.filter(t => t.paymentMethod === 'cash'), [transactions]);
+  const qrTransactions = useMemo(() => transactions.filter(t => t.paymentMethod === 'qr'), [transactions]);
+
+  const displayTransactions = useMemo(() => {
+    if (historyTab === 'cash') return cashTransactions;
+    if (historyTab === 'qr') return qrTransactions;
+    return transactions;
+  }, [historyTab, cashTransactions, qrTransactions, transactions]);
 
   // Overall Live Stats
   const liveStats = useMemo(() => {
@@ -469,16 +485,16 @@ export default function BoothPOS() {
   };
 
   // =========================================================================
-  // Save & Settle Booth Session to business_records (Daily Settlement)
+  // Save & Settle Booth Session to business_records (Daily Save or Final End)
   // =========================================================================
-  const handleSaveBoothSession = async () => {
+  const handleSaveBoothSession = async (isFinalClose = false) => {
     if (!boothTitle.trim()) {
       toast.error('请填写摆摊名称或地点');
       return;
     }
 
-    if (transactions.length === 0) {
-      if (!confirm('今日尚未产生任何 POS 收银订单，确定要保存今日摆摊准备记录吗？')) {
+    if (transactions.length === 0 && !isFinalClose) {
+      if (!confirm('今日尚未产生任何 POS 收银订单，确定要保存摆摊记录吗？')) {
         return;
       }
     }
@@ -504,10 +520,11 @@ export default function BoothPOS() {
         items: itemsPayload,
         discount: liveStats.totalDiscount, // Total discount given calculated by POS!
         received: liveStats.netSales, // Exact money received
+        status: isFinalClose ? 'completed' : 'preparing',
         // Booth expenses are already saved in finance_records (成本支出). Do NOT copy them here,
         // otherwise the ledger deducts them twice. They are listed in the notes for reference only.
         expenses: [],
-        notes: `POS收银系统日结自动生成。完成 ${liveStats.orderCount} 笔订单，售出 ${liveStats.piecesSold} 片曲奇。现金 ${money(liveStats.cashSales)} / QR ${money(liveStats.qrSales)}。${boothExpenses.length ? `现场支出(已记入成本支出): ${boothExpenses.map(e => `${e.description} ${money(e.amount)}`).join('、')}。` : ''}${boothNotes ? `备注: ${boothNotes}` : ''}`.slice(0, 1000)
+        notes: `POS收银系统${isFinalClose ? '【最终收摊结单归档】' : '【阶段进度保存】'}。完成 ${liveStats.orderCount} 笔订单，售出 ${liveStats.piecesSold} 片曲奇。现金 ${money(liveStats.cashSales)} / QR ${money(liveStats.qrSales)}。${boothExpenses.length ? `现场支出(已记入成本支出): ${boothExpenses.map(e => `${e.description} ${money(e.amount)}`).join('、')}。` : ''}${boothNotes ? `备注: ${boothNotes}` : ''}`.slice(0, 1000)
       };
 
       const res = await authFetch('/api/business', {
@@ -527,9 +544,21 @@ export default function BoothPOS() {
         throw new Error(errData.error || '保存出摊记录失败');
       }
 
-      toast.success(`🎉 今日摆摊日结已成功保存！曲奇售出数量及折扣已自动录入流水账本！`);
+      if (isFinalClose) {
+        toast.success(`🎉 此次【${boothTitle}】摆摊活动已圆满结单！数据已归档至流水账本！`);
+        setIsCloseBoothModalOpen(false);
+        // Clear session so the next stall starts fresh
+        setTransactions([]);
+        setCart([]);
+        setBoothExpenses([]);
+        try {
+          localStorage.removeItem(storageKey);
+        } catch {}
+      } else {
+        toast.success(`💾 今日摆摊进度已保存！明天或稍后可继续在此收款。`);
+      }
     } catch (err) {
-      toast.error(err.message || '保存日结出错');
+      toast.error(err.message || '保存出摊记录出错');
     } finally {
       setSavingSession(false);
     }
@@ -649,12 +678,22 @@ export default function BoothPOS() {
 
               <button
                 type="button"
-                className={styles.btnSaveSettle}
-                onClick={handleSaveBoothSession}
+                className={styles.btnAction}
+                onClick={() => handleSaveBoothSession(false)}
                 disabled={savingSession}
-                title="将自动统计的曲奇售出数量及折扣同步至业务账本"
+                title="保存今日营业流水与剩余库存进度（明天可继续出摊收款）"
               >
-                {savingSession ? '⏳ 日结保存中...' : '💾 保存出摊日结'}
+                {savingSession ? '⏳ 保存中...' : '💾 保存今日进度'}
+              </button>
+
+              <button
+                type="button"
+                className={styles.btnSaveSettle}
+                onClick={() => setIsCloseBoothModalOpen(true)}
+                disabled={savingSession}
+                title="完成为期数天或今日的摆摊活动，最终结单并归档"
+              >
+                🏁 结束此次摆摊
               </button>
             </div>
           </div>
@@ -754,7 +793,7 @@ export default function BoothPOS() {
             </div>
 
             {/* Right: POS Cashier Register */}
-            <div className={styles.registerCard}>
+            <div id="pos-register-section" className={styles.registerCard}>
               <div className={styles.registerHeader}>
                 <h3 className={styles.registerTitle}>
                   <span>🧾 当前收银台</span>
@@ -1066,22 +1105,97 @@ export default function BoothPOS() {
 
           {/* Today's Transactions Feed */}
           <div className={styles.historyCard}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
-                🧾 今日收银订单流水 ({transactions.length} 笔)
-              </h3>
-              <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
-                倒序实时更新 · 可随时作废纠错
-              </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+              <div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 4px' }}>
+                  🧾 今日收银订单流水 ({transactions.length} 笔)
+                </h3>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-light)' }}>
+                  支持按现金 / QR 分类对账与作废撤单
+                </span>
+              </div>
+
+              {/* Subtotal summary cards */}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '6px 12px', borderRadius: '8px', fontSize: '0.82rem' }}>
+                  <span style={{ color: '#166534', fontWeight: 600 }}>💵 现金小计: </span>
+                  <strong style={{ color: '#15803d' }}>{money(liveStats.cashSales)}</strong>
+                  <span style={{ fontSize: '0.75rem', color: '#166534', marginLeft: 4 }}>({cashTransactions.length}笔)</span>
+                </div>
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '6px 12px', borderRadius: '8px', fontSize: '0.82rem' }}>
+                  <span style={{ color: '#1e40af', fontWeight: 600 }}>📱 QR 小计: </span>
+                  <strong style={{ color: '#1d4ed8' }}>{money(liveStats.qrSales)}</strong>
+                  <span style={{ fontSize: '0.75rem', color: '#1e40af', marginLeft: 4 }}>({qrTransactions.length}笔)</span>
+                </div>
+                <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', padding: '6px 12px', borderRadius: '8px', fontSize: '0.82rem' }}>
+                  <span style={{ color: '#9a3412', fontWeight: 600 }}>总营收: </span>
+                  <strong style={{ color: '#ea580c' }}>{money(liveStats.netSales)}</strong>
+                </div>
+              </div>
             </div>
 
-            {transactions.length === 0 ? (
+            {/* Payment Method Tabs */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 12, borderBottom: '1px solid #e2e8f0', paddingBottom: 8 }}>
+              <button
+                type="button"
+                className="btn"
+                style={{
+                  padding: '5px 12px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  borderRadius: '6px',
+                  background: historyTab === 'all' ? 'var(--color-primary)' : '#f1f5f9',
+                  color: historyTab === 'all' ? 'white' : 'var(--color-text)',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onClick={() => setHistoryTab('all')}
+              >
+                全部订单 ({transactions.length})
+              </button>
+              <button
+                type="button"
+                className="btn"
+                style={{
+                  padding: '5px 12px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  borderRadius: '6px',
+                  background: historyTab === 'cash' ? '#16a34a' : '#f1f5f9',
+                  color: historyTab === 'cash' ? 'white' : 'var(--color-text)',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onClick={() => setHistoryTab('cash')}
+              >
+                💵 现金流水 ({cashTransactions.length} 笔 · {money(liveStats.cashSales)})
+              </button>
+              <button
+                type="button"
+                className="btn"
+                style={{
+                  padding: '5px 12px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  borderRadius: '6px',
+                  background: historyTab === 'qr' ? '#2563eb' : '#f1f5f9',
+                  color: historyTab === 'qr' ? 'white' : 'var(--color-text)',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onClick={() => setHistoryTab('qr')}
+              >
+                📱 QR 转账 ({qrTransactions.length} 笔 · {money(liveStats.qrSales)})
+              </button>
+            </div>
+
+            {displayTransactions.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '30px', color: 'var(--color-text-light)', background: '#f8fafc', borderRadius: '10px' }}>
-                今日暂未完成收银订单。在上方点单并点击「确认收款」后，流水将实时展示于此。
+                {historyTab === 'cash' ? '今日暂无现金收款记录' : historyTab === 'qr' ? '今日暂无 QR 转账收款记录' : '今日暂无收银订单流水。点单并收款后将实时展示于此。'}
               </div>
             ) : (
               <div className={styles.historyList}>
-                {transactions.map(tx => (
+                {displayTransactions.map(tx => (
                   <div className={styles.historyItem} key={tx.id}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <span className={styles.historyOrderNum}>{tx.orderNumber}</span>
@@ -1092,10 +1206,10 @@ export default function BoothPOS() {
                         <div className={styles.historyMeta}>
                           <span>🕒 {tx.time}</span>
                           <span>·</span>
-                          <span>
+                          <span style={{ fontWeight: 600, color: tx.paymentMethod === 'cash' ? '#15803d' : '#2563eb' }}>
                             {tx.paymentMethod === 'cash'
-                              ? `💵 现金${tx.cashReceived ? ` 收 ${money(tx.cashReceived)} 找 ${money(tx.change || 0)}` : ''}`
-                              : tx.paymentMethod === 'qr' ? '📱 QR' : '💳 刷卡'}
+                              ? `💵 现金${tx.cashReceived ? ` (收 ${money(tx.cashReceived)} 找 ${money(tx.change || 0)})` : ''}`
+                              : '📱 QR 转账'}
                           </span>
                           {tx.discount > 0 && (
                             <>
@@ -1130,6 +1244,30 @@ export default function BoothPOS() {
               </div>
             )}
           </div>
+
+          {/* Mobile Bottom Sticky Quick Register Bar */}
+          {cart.length > 0 && (
+            <div className={styles.mobileFloatingCartBar}>
+              <div className={styles.mobileCartInfo}>
+                <span className={styles.mobileCartBadge}>
+                  🛒 已选 {cart.reduce((s, it) => s + it.quantity, 0)} 片
+                </span>
+                <span className={styles.mobileCartTotal}>
+                  {money(cartFinalTotal)}
+                </span>
+              </div>
+              <button
+                type="button"
+                className={styles.mobileCartBtn}
+                onClick={() => {
+                  const el = document.getElementById('pos-register-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                前往结算收款 ➔
+              </button>
+            </div>
+          )}
         </>
       )}
 
@@ -1331,6 +1469,65 @@ export default function BoothPOS() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal: Close & Settle Entire Multi-day Booth Event */}
+      <Modal
+        isOpen={isCloseBoothModalOpen}
+        onClose={() => setIsCloseBoothModalOpen(false)}
+        title="🏁 结束此次摆摊 (最终收摊结单归档)"
+        maxWidth="500px"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '12px 14px', borderRadius: '8px', fontSize: '0.85rem', color: '#991b1b' }}>
+            ⚠️ <strong>注意：</strong>如果本次摆摊为期数天（如3天市集），前两天请点击<strong>「💾 保存今日进度」</strong>继续出摊；只有在<strong>最后一天完全收摊</strong>时才点击此处结单归档！
+          </div>
+
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
+            <h4 style={{ margin: '0 0 10px', fontSize: '0.92rem', color: 'var(--color-text)' }}>
+              🎪 摆摊活动总账单 ({boothTitle})
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', fontSize: '0.84rem' }}>
+              <div>活动地点: <strong>{boothTitle}</strong></div>
+              <div>活动日期: <strong>{boothDate}</strong></div>
+              <div>售出曲奇: <strong style={{ color: '#16a34a' }}>{liveStats.piecesSold} 片</strong></div>
+              <div>订单总量: <strong>{liveStats.orderCount} 笔</strong></div>
+              <div>💵 现金实收: <strong style={{ color: '#15803d' }}>{money(liveStats.cashSales)}</strong></div>
+              <div>📱 QR 实收: <strong style={{ color: '#2563eb' }}>{money(liveStats.qrSales)}</strong></div>
+              <div>总销售额: <strong>{money(liveStats.grossSales)}</strong></div>
+              <div>折让优惠: <strong style={{ color: '#ea580c' }}>- {money(liveStats.totalDiscount)}</strong></div>
+              <div>现场支出: <strong style={{ color: '#dc2626' }}>{money(liveStats.expenseTotal)}</strong></div>
+              <div style={{ gridColumn: '1 / -1', paddingTop: 6, borderTop: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: '0.9rem' }}>活动最终净营收: </span>
+                <strong style={{ fontSize: '1.2rem', color: '#16a34a' }}>{money(liveStats.netProfit)}</strong>
+              </div>
+            </div>
+          </div>
+
+          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
+            点击确认后，系统将正式完结本次摆摊记录，自动录入后台「摆摊账本与历史」，并清空收银台准备下一场活动。
+          </p>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
+            <button
+              type="button"
+              className="btn btnSecondary"
+              onClick={() => setIsCloseBoothModalOpen(false)}
+              disabled={savingSession}
+            >
+              继续营业 (暂不结束)
+            </button>
+            <button
+              type="button"
+              className="btn"
+              style={{ background: '#dc2626', color: 'white', fontWeight: 700 }}
+              onClick={() => handleSaveBoothSession(true)}
+              disabled={savingSession}
+            >
+              {savingSession ? '正在结单归档...' : '🏁 确认结单并结束摆摊'}
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

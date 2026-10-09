@@ -791,6 +791,11 @@
   text-align: right;
 }
 
+/* Floating Mobile Register Cart Bar */
+.mobileFloatingCartBar {
+  display: none;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .posMain {
@@ -805,11 +810,142 @@
 }
 
 @media (max-width: 640px) {
-  .statsGrid {
-    grid-template-columns: repeat(2, 1fr);
+  .posContainer {
+    gap: 14px;
   }
+
   .sessionBar {
     flex-direction: column;
     align-items: stretch;
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .sessionLeft {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .sessionInputs {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .sessionInput {
+    width: 100% !important;
+  }
+
+  .sessionActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .btnAction, .btnSaveSettle {
+    justify-content: center;
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    text-align: center;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .statCard {
+    padding: 10px 12px;
+  }
+
+  .statValue {
+    font-size: 1.18rem;
+  }
+
+  .catalogCard, .registerCard, .auditCard, .historyCard {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .productTile {
+    padding: 10px 8px;
+  }
+
+  .productTileName {
+    font-size: 0.8rem;
+    min-height: 2.2em;
+  }
+
+  .productTilePrice {
+    font-size: 0.9rem;
+  }
+
+  .productTileStock {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+  }
+
+  .auditTable {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobileFloatingCartBar {
+    display: flex;
+    position: fixed;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    background: #1e293b;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    z-index: 999;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobileCartInfo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mobileCartBadge {
+    background: var(--color-primary);
+    color: white;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .mobileCartTotal {
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: #f8fafc;
+  }
+
+  .mobileCartBtn {
+    background: linear-gradient(135deg, #ea580c, #c2410c);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
   }
 }

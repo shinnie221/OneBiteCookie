@@ -8,6 +8,7 @@ import OrderStatusBadge from '@/components/OrderStatusBadge/OrderStatusBadge';
 import Modal from '@/components/Modal/Modal';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { money } from '@/lib/business.mjs';
+import { uploadReceipt, receiptPreviewUrl } from '@/lib/receiptUpload';
 import styles from './page.module.css';
 
 export default function OrdersPage() {
@@ -46,6 +47,7 @@ function OrdersContent() {
   // Edit mode states
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
+  const [uploadingLalamovePhoto, setUploadingLalamovePhoto] = useState(false);
 
   // Products catalog for editing items
   const [products, setProducts] = useState([]);
@@ -951,13 +953,97 @@ function OrdersContent() {
                             </div>
 
                             <div className={styles.editField}>
-                              <label>Lalamove 凭据链接 / 收据截图 (选填)</label>
-                              <input
-                                type="url"
-                                placeholder="https://... 或 Google Drive 链接"
-                                value={editData.lalamove_receipt_url}
-                                onChange={e => setEditData({ ...editData, lalamove_receipt_url: e.target.value })}
-                              />
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                <label style={{ margin: 0, fontWeight: 700 }}>📷 Lalamove 运费收据截图凭证</label>
+                                {editData.lalamove_receipt_url && (
+                                  <a
+                                    href={editData.lalamove_receipt_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ fontSize: '0.78rem', color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}
+                                  >
+                                    在新标签页打开原件 ↗
+                                  </a>
+                                )}
+                              </div>
+
+                              <div style={{ border: '2px dashed #cbd5e1', borderRadius: '10px', padding: '12px', textAlign: 'center', background: '#f8fafc' }}>
+                                <input
+                                  type="file"
+                                  id="orderLalamovePhotoInput"
+                                  accept="image/*"
+                                  capture="environment"
+                                  style={{ display: 'none' }}
+                                  disabled={uploadingLalamovePhoto}
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    setUploadingLalamovePhoto(true);
+                                    try {
+                                      const url = await uploadReceipt(file, authFetch, `lalamove_${selectedOrder?.order_id?.slice(-6) || 'receipt'}`);
+                                      setEditData(prev => ({ ...prev, lalamove_receipt_url: url }));
+                                      toast.success('Lalamove 截图凭单已保存！');
+                                    } catch (err) {
+                                      toast.error(err.message || '上传图片失败，请重试');
+                                    } finally {
+                                      setUploadingLalamovePhoto(false);
+                                      e.target.value = '';
+                                    }
+                                  }}
+                                />
+                                <label
+                                  htmlFor="orderLalamovePhotoInput"
+                                  className="btn btnSecondary"
+                                  style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}
+                                >
+                                  {uploadingLalamovePhoto ? '⏳ 正在上传中...' : '📷 拍照 / 上传 Lalamove 截图凭证'}
+                                </label>
+
+                                {editData.lalamove_receipt_url && (
+                                  <div style={{ marginTop: 10, position: 'relative', display: 'inline-block' }}>
+                                    <img
+                                      src={receiptPreviewUrl(editData.lalamove_receipt_url)}
+                                      alt="Lalamove 截图"
+                                      style={{ maxHeight: '140px', maxWidth: '100%', borderRadius: '8px', border: '1px solid #cbd5e1', cursor: 'zoom-in' }}
+                                      onClick={() => setFullScreenshotUrl(editData.lalamove_receipt_url)}
+                                      title="点击放大查看"
+                                    />
+                                    <button
+                                      type="button"
+                                      style={{
+                                        position: 'absolute',
+                                        top: -6,
+                                        right: -6,
+                                        background: '#ef4444',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '50%',
+                                        width: 22,
+                                        height: 22,
+                                        cursor: 'pointer',
+                                        fontSize: '11px',
+                                        lineHeight: '22px',
+                                        textAlign: 'center',
+                                        padding: 0
+                                      }}
+                                      title="移除截图"
+                                      onClick={() => setEditData(prev => ({ ...prev, lalamove_receipt_url: '' }))}
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div style={{ marginTop: 6 }}>
+                                <input
+                                  type="url"
+                                  placeholder="或粘贴已有的外部凭据 / Google Drive 链接"
+                                  value={editData.lalamove_receipt_url}
+                                  onChange={e => setEditData({ ...editData, lalamove_receipt_url: e.target.value })}
+                                  style={{ fontSize: '0.78rem', padding: '4px 8px' }}
+                                />
+                              </div>
                             </div>
                           </div>
                         )}
@@ -1001,11 +1087,25 @@ function OrdersContent() {
                               <div><strong>多出差额 (公款承担):</strong> <span className={styles.extraAmountHighlight}>RM {Math.max(0, (Number(selectedOrder.lalamove_cost) || 0) - 8).toFixed(2)}</span></div>
                               <div><strong>运费垫付人:</strong> {selectedOrder.lalamove_payer === 'Yunxuan' ? '🟣 Yunxuan个人先行垫付 (从公款报销)' : '🟢 Shinnie个人先行垫付 (从公款报销)'}</div>
                               {selectedOrder.lalamove_receipt_url && (
-                                <div style={{ gridColumn: '1 / -1' }}>
-                                  <strong>收据凭证: </strong>
-                                  <a href={selectedOrder.lalamove_receipt_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>
-                                    查看凭据链接 ↗
-                                  </a>
+                                <div style={{ gridColumn: '1 / -1', marginTop: 4 }}>
+                                  <div style={{ fontWeight: 700, marginBottom: 4 }}>📷 Lalamove 运费收据凭证:</div>
+                                  <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+                                    <img
+                                      src={receiptPreviewUrl(selectedOrder.lalamove_receipt_url)}
+                                      alt="Lalamove 收据凭证"
+                                      style={{ maxHeight: '120px', maxWidth: '100%', borderRadius: '8px', border: '1px solid #cbd5e1', cursor: 'zoom-in', objectFit: 'cover' }}
+                                      onClick={() => setFullScreenshotUrl(selectedOrder.lalamove_receipt_url)}
+                                      title="点击放大查看大图"
+                                    />
+                                    <a
+                                      href={selectedOrder.lalamove_receipt_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      style={{ color: 'var(--color-primary)', textDecoration: 'underline', fontSize: '0.78rem' }}
+                                    >
+                                      在新标签页打开原件 ↗
+                                    </a>
+                                  </div>
                                 </div>
                               )}
                             </div>
