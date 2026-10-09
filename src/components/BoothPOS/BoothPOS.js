@@ -36,11 +36,11 @@ function playCashChime() {
 }
 
 const DEFAULT_PRESET_ITEMS = [
-  { name: 'Original Cookie (经典原味)', unitPrice: 8.90, prepared: 50, waste: 0 },
-  { name: 'Dark Choc Sea Salt (黑巧海盐)', unitPrice: 9.90, prepared: 40, waste: 0 },
-  { name: 'Matcha White Choc (宇治抹茶白巧)', unitPrice: 9.90, prepared: 35, waste: 0 },
-  { name: 'Earl Grey Lavender (伯爵红茶薰衣草)', unitPrice: 9.90, prepared: 30, waste: 0 },
-  { name: 'Red Velvet Cream Cheese (红丝绒芝士)', unitPrice: 10.90, prepared: 25, waste: 0 },
+  { name: 'Original Cookie (经典原味)', unitPrice: 8.90, prepared: 20, waste: 0 },
+  { name: 'Dark Choc Sea Salt (黑巧海盐)', unitPrice: 9.90, prepared: 20, waste: 0 },
+  { name: 'Matcha White Choc (宇治抹茶白巧)', unitPrice: 9.90, prepared: 20, waste: 0 },
+  { name: 'Earl Grey Lavender (伯爵红茶薰衣草)', unitPrice: 9.90, prepared: 20, waste: 0 },
+  { name: 'Red Velvet Cream Cheese (红丝绒芝士)', unitPrice: 10.90, prepared: 20, waste: 0 },
 ];
 
 export default function BoothPOS() {
@@ -52,8 +52,9 @@ export default function BoothPOS() {
 
   // Booth Session Info
   const [boothDate, setBoothDate] = useState(businessDate());
-  const [boothTitle, setBoothTitle] = useState('市集快闪摊位');
+  const [boothTitle, setBoothTitle] = useState('');
   const [boothNotes, setBoothNotes] = useState('');
+  const [boothDays, setBoothDays] = useState(1); // Staff sets event duration (e.g. 1, 2, 3 days)
 
   // Products & Inventory
   const [products, setProducts] = useState([]);
@@ -84,8 +85,7 @@ export default function BoothPOS() {
   const [wasteCountInput, setWasteCountInput] = useState('1');
 
   // Multi-day Booth & History Filter States
-  const [isMultiDay, setIsMultiDay] = useState(false);
-  const [boothDaysTotal, setBoothDaysTotal] = useState(3);
+  const [customDaysMode, setCustomDaysMode] = useState(false);
   const [historyTab, setHistoryTab] = useState('all'); // 'all' | 'cash' | 'qr'
 
   // New Expense Form State
@@ -119,7 +119,7 @@ export default function BoothPOS() {
                 return {
                   name: p.name,
                   unitPrice: Number(p.price) || 8.90,
-                  prepared: existing ? existing.prepared : 40,
+                  prepared: existing ? existing.prepared : 20,
                   waste: existing ? existing.waste : 0,
                   image: p.image || null
                 };
@@ -136,7 +136,13 @@ export default function BoothPOS() {
             const parsed = JSON.parse(cached);
             if (parsed.transactions) setTransactions(parsed.transactions);
             if (parsed.inventory) setInventory(parsed.inventory);
-            if (parsed.boothTitle) setBoothTitle(parsed.boothTitle);
+            if (parsed.boothTitle !== undefined) setBoothTitle(parsed.boothTitle);
+            if (parsed.boothDays !== undefined) {
+              setBoothDays(parsed.boothDays);
+              if (![1, 2, 3, 4, 5, 6, 7, 10, 14, 30].includes(Number(parsed.boothDays))) {
+                setCustomDaysMode(true);
+              }
+            }
             if (parsed.boothExpenses) setBoothExpenses(parsed.boothExpenses);
           } catch (e) {
             console.warn('Failed to parse cached POS data:', e);
@@ -159,13 +165,14 @@ export default function BoothPOS() {
           transactions,
           inventory,
           boothTitle,
+          boothDays,
           boothExpenses
         }));
       } catch (e) {
         // quota exceeded or private mode
       }
     }
-  }, [transactions, inventory, boothTitle, boothExpenses, storageKey, loading]);
+  }, [transactions, inventory, boothTitle, boothDays, boothExpenses, storageKey, loading]);
 
   // =========================================================================
   // Derived Real-Time Statistics
@@ -217,12 +224,14 @@ export default function BoothPOS() {
     }
 
     const expenseTotal = boothExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    const wastePieces = inventory.reduce((sum, it) => sum + (Number(it.waste) || 0), 0);
 
     return {
       grossSales,
       totalDiscount,
       netSales,
       piecesSold,
+      wastePieces,
       orderCount: transactions.length,
       cashSales,
       qrSales,
@@ -230,7 +239,7 @@ export default function BoothPOS() {
       expenseTotal,
       netProfit: netSales - expenseTotal
     };
-  }, [transactions, boothExpenses]);
+  }, [transactions, boothExpenses, inventory]);
 
   // Cart Calculations
   const cartSubtotal = useMemo(() => {
@@ -390,24 +399,24 @@ export default function BoothPOS() {
   };
 
   // =========================================================================
-  // Samples / Waste Tasting Recording
+  // Samples / Waste Tasting Recording & Editing
   // =========================================================================
   const handleRecordWaste = () => {
     if (!selectedWasteItem) return;
     const count = parseInt(wasteCountInput, 10);
-    if (isNaN(count) || count <= 0) {
-      toast.error('请输入有效的试吃/损耗片数');
+    if (isNaN(count) || count < 0) {
+      toast.error('请输入有效的试吃/损耗片数（可为 0 或正整数）');
       return;
     }
 
     setInventory(prev => prev.map(it => {
       if (it.name === selectedWasteItem.name) {
-        return { ...it, waste: (it.waste || 0) + count };
+        return { ...it, waste: count };
       }
       return it;
     }));
 
-    toast.success(`已记录【${selectedWasteItem.name}】试吃/损耗 ${count} 片`);
+    toast.success(`已将【${selectedWasteItem.name}】试吃/损耗更新为 ${count} 片`);
     setIsWasteModalOpen(false);
     setSelectedWasteItem(null);
   };
@@ -517,6 +526,7 @@ export default function BoothPOS() {
         channel: 'booth',
         date: boothDate,
         title: boothTitle.trim(),
+        days: Number(boothDays) || 1,
         items: itemsPayload,
         discount: liveStats.totalDiscount, // Total discount given calculated by POS!
         received: liveStats.netSales, // Exact money received
@@ -524,7 +534,7 @@ export default function BoothPOS() {
         // Booth expenses are already saved in finance_records (成本支出). Do NOT copy them here,
         // otherwise the ledger deducts them twice. They are listed in the notes for reference only.
         expenses: [],
-        notes: `POS收银系统${isFinalClose ? '【最终收摊结单归档】' : '【阶段进度保存】'}。完成 ${liveStats.orderCount} 笔订单，售出 ${liveStats.piecesSold} 片曲奇。现金 ${money(liveStats.cashSales)} / QR ${money(liveStats.qrSales)}。${boothExpenses.length ? `现场支出(已记入成本支出): ${boothExpenses.map(e => `${e.description} ${money(e.amount)}`).join('、')}。` : ''}${boothNotes ? `备注: ${boothNotes}` : ''}`.slice(0, 1000)
+        notes: `POS收银系统${isFinalClose ? '【最终收摊结单归档】' : '【阶段进度保存】'}（共${boothDays || 1}天活动）。完成 ${liveStats.orderCount} 笔订单，售出 ${liveStats.piecesSold} 片曲奇。现金 ${money(liveStats.cashSales)} / QR ${money(liveStats.qrSales)}。${boothExpenses.length ? `现场支出(已记入成本支出): ${boothExpenses.map(e => `${e.description} ${money(e.amount)}`).join('、')}。` : ''}${boothNotes ? `备注: ${boothNotes}` : ''}`.slice(0, 1000)
       };
 
       const res = await authFetch('/api/business', {
@@ -545,12 +555,26 @@ export default function BoothPOS() {
       }
 
       if (isFinalClose) {
-        toast.success(`🎉 此次【${boothTitle}】摆摊活动已圆满结单！数据已归档至流水账本！`);
+        toast.success(`🎉 此次【${boothTitle || '市集摊位'}】摆摊已圆满结单！收银台已清空并归档至流水账本！`);
         setIsCloseBoothModalOpen(false);
-        // Clear session so the next stall starts fresh
+        // Clear everything: stall name/location, notes, cart, checkout inputs, transactions, and reset cookies to 20/each
         setTransactions([]);
         setCart([]);
         setBoothExpenses([]);
+        setBoothTitle('');
+        setBoothNotes('');
+        setBoothDays(1);
+        setCustomDaysMode(false);
+        setCashReceived('');
+        setOrderNote('');
+        setDiscountType('none');
+        setCustomDiscountValue('');
+        setPaymentMethod('cash');
+        setInventory(prev => prev.map(item => ({
+          ...item,
+          prepared: 20,
+          waste: 0
+        })));
         try {
           localStorage.removeItem(storageKey);
         } catch {}
@@ -649,11 +673,57 @@ export default function BoothPOS() {
                 <input
                   type="text"
                   className={styles.sessionInput}
-                  style={{ width: '220px' }}
+                  style={{ width: '200px' }}
                   placeholder="摆摊名称/地点 (如: 谷中城市集)"
                   value={boothTitle}
                   onChange={e => setBoothTitle(e.target.value)}
                 />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <select
+                    className={styles.sessionInput}
+                    style={{ fontWeight: 700, color: 'var(--color-primary)' }}
+                    value={customDaysMode ? 'custom' : boothDays}
+                    onChange={e => {
+                      const val = e.target.value;
+                      if (val === 'custom') {
+                        setCustomDaysMode(true);
+                      } else {
+                        setCustomDaysMode(false);
+                        setBoothDays(Number(val));
+                      }
+                    }}
+                    title="设置本次摆摊活动的总天数"
+                  >
+                    <option value={1}>🎪 单日摆摊 (1天)</option>
+                    <option value={2}>🎪 2天周末市集</option>
+                    <option value={3}>🎪 3天快闪市集</option>
+                    <option value={4}>🎪 4天展销活动</option>
+                    <option value={5}>🎪 5天节庆市集</option>
+                    <option value={6}>🎪 6天市集活动</option>
+                    <option value={7}>🎪 7天商场展销 (1周)</option>
+                    <option value={10}>🎪 10天长线展销</option>
+                    <option value={14}>🎪 14天两周展销</option>
+                    <option value={30}>🎪 30天全月摆摊</option>
+                    <option value="custom">✏️ 自定义天数...</option>
+                  </select>
+
+                  {customDaysMode && (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <input
+                        type="number"
+                        min="1"
+                        max="365"
+                        className={styles.sessionInput}
+                        style={{ width: '68px', fontWeight: 700, textAlign: 'center' }}
+                        value={boothDays}
+                        onChange={e => setBoothDays(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                        placeholder="天数"
+                        title="输入具体出摊天数"
+                      />
+                      <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text-light)' }}>天</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -721,7 +791,9 @@ export default function BoothPOS() {
               <strong className={styles.statValue} style={{ color: 'var(--color-primary)' }}>
                 {liveStats.piecesSold} <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>片</span>
               </strong>
-              <span className={styles.statSubtext}>已完成 {liveStats.orderCount} 笔收款</span>
+              <span className={styles.statSubtext}>
+                {liveStats.orderCount} 笔收款{liveStats.wastePieces > 0 ? ` · 试吃${liveStats.wastePieces}片` : ''}
+              </span>
             </div>
 
             <div className={styles.statCard}>
@@ -1072,7 +1144,33 @@ export default function BoothPOS() {
                             ✓ {sold} 片
                           </span>
                         </td>
-                        <td>{waste > 0 ? `${waste} 片` : '—'}</td>
+                        <td>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <input
+                              type="number"
+                              min="0"
+                              step="1"
+                              value={item.waste ?? 0}
+                              onChange={e => {
+                                const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                                setInventory(prev => prev.map((it, i) => i === idx ? { ...it, waste: val } : it));
+                              }}
+                              style={{
+                                width: '56px',
+                                padding: '4px 6px',
+                                borderRadius: '6px',
+                                border: '1px solid #cbd5e1',
+                                fontWeight: 700,
+                                textAlign: 'center',
+                                fontSize: '0.85rem',
+                                background: (item.waste || 0) > 0 ? '#fef3c7' : 'white',
+                                color: (item.waste || 0) > 0 ? '#b45309' : 'var(--color-text)'
+                              }}
+                              title="直接点击修改此口味试吃样品片数"
+                            />
+                            <span style={{ fontSize: '0.78rem', color: 'var(--color-text-light)' }}>片</span>
+                          </div>
+                        </td>
                         <td>
                           <strong style={{ color: remaining <= 5 ? '#dc2626' : 'var(--color-text)' }}>
                             {remaining} 片
@@ -1088,11 +1186,12 @@ export default function BoothPOS() {
                             style={{ fontSize: '0.75rem', padding: '3px 8px' }}
                             onClick={() => {
                               setSelectedWasteItem(item);
+                              setWasteCountInput(String(item.waste || 0));
                               setIsWasteModalOpen(true);
                             }}
-                            title="登记试吃赠送或损耗"
+                            title="修改或快速增减试吃样品数量"
                           >
-                            + 试吃/损耗
+                            ✏️ 调整试吃
                           </button>
                         </td>
                       </tr>
@@ -1275,19 +1374,19 @@ export default function BoothPOS() {
       <Modal
         isOpen={isPrepModalOpen}
         onClose={() => setIsPrepModalOpen(false)}
-        title="⚙️ 设置出摊准备数量 (Daily Prep Stock)"
-        maxWidth="520px"
+        title="⚙️ 设置出摊与试吃样品数量 (Daily Stock Setup)"
+        maxWidth="540px"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-light)' }}>
-            出摊前录入每种曲奇带来的总片数。收银系统将以此作为基准，自动扣减售出并展示实时剩余库存。
+            出摊前录入每种曲奇带来的总片数与预留试吃样品片数。系统将以此作为基准，自动扣减并展示实时剩余库存。
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: '360px', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: '380px', overflowY: 'auto' }}>
             {inventory.map((item, idx) => (
               <div
                 key={item.name}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: 10 }}
               >
                 <div>
                   <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>{item.name}</strong>
@@ -1296,25 +1395,57 @@ export default function BoothPOS() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    style={{ width: '80px', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 700, textAlign: 'center' }}
-                    value={item.prepared || 0}
-                    onChange={e => {
-                      const val = parseInt(e.target.value, 10) || 0;
-                      setInventory(prev => prev.map((it, i) => i === idx ? { ...it, prepared: val } : it));
-                    }}
-                  />
-                  <span style={{ fontSize: '0.82rem' }}>片</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--color-text-light)', fontWeight: 600 }}>出摊:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      style={{ width: '68px', padding: '5px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 700, textAlign: 'center' }}
+                      value={item.prepared || 0}
+                      onChange={e => {
+                        const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                        setInventory(prev => prev.map((it, i) => i === idx ? { ...it, prepared: val } : it));
+                      }}
+                      title="出摊准备片数"
+                    />
+                    <span style={{ fontSize: '0.8rem' }}>片</span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: '0.78rem', color: '#b45309', fontWeight: 600 }}>试吃:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      style={{ width: '60px', padding: '5px 8px', borderRadius: '6px', border: '1px solid #fcd34d', background: '#fef3c7', color: '#b45309', fontWeight: 700, textAlign: 'center' }}
+                      value={item.waste || 0}
+                      onChange={e => {
+                        const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                        setInventory(prev => prev.map((it, i) => i === idx ? { ...it, waste: val } : it));
+                      }}
+                      title="试吃样品/损耗片数"
+                    />
+                    <span style={{ fontSize: '0.8rem' }}>片</span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn btnSecondary"
+              style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+              onClick={() => {
+                setInventory(prev => prev.map(it => ({ ...it, prepared: 20, waste: 0 })));
+                toast.info('已恢复各口味准备量为 20 片/口味，试吃归零');
+              }}
+            >
+              🔄 重置为默认 (每种20片)
+            </button>
             <button type="button" className="btn btnPrimary" onClick={() => setIsPrepModalOpen(false)}>
               完成设置
             </button>
@@ -1322,38 +1453,86 @@ export default function BoothPOS() {
         </div>
       </Modal>
 
-      {/* Modal: Record Sample/Waste */}
+      {/* Modal: Record & Edit Sample/Waste */}
       <Modal
         isOpen={isWasteModalOpen}
         onClose={() => setIsWasteModalOpen(false)}
-        title={`登记试吃 / 损耗 · ${selectedWasteItem?.name || ''}`}
-        maxWidth="400px"
+        title={`登记 / 修改试吃样品数量 · ${selectedWasteItem?.name || ''}`}
+        maxWidth="440px"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-light)' }}>
-            客户现场试吃或破碎损耗不计入销售额，但会从剩余库存中扣除。
+            客户现场试吃或破碎损耗不计入销售额，但会从剩余库存中扣除。你可以<strong>直接修改总片数</strong>或使用快捷加减。
           </p>
 
           <div>
             <label style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', marginBottom: 6 }}>
-              试吃 / 损耗片数:
+              试吃 / 损耗总片数:
             </label>
-            <input
-              type="number"
-              min="1"
-              step="1"
-              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 700 }}
-              value={wasteCountInput}
-              onChange={e => setWasteCountInput(e.target.value)}
-            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                type="button"
+                className="btn btnSecondary"
+                style={{ padding: '6px 14px', fontWeight: 700, fontSize: '1rem' }}
+                onClick={() => setWasteCountInput(prev => String(Math.max(0, (parseInt(prev, 10) || 0) - 1)))}
+                title="减少 1 片"
+              >
+                - 1
+              </button>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 800, textAlign: 'center', fontSize: '1.2rem', color: '#b45309', background: '#fef3c7' }}
+                value={wasteCountInput}
+                onChange={e => setWasteCountInput(e.target.value)}
+                placeholder="0"
+              />
+              <button
+                type="button"
+                className="btn btnSecondary"
+                style={{ padding: '6px 14px', fontWeight: 700, fontSize: '1rem' }}
+                onClick={() => setWasteCountInput(prev => String((parseInt(prev, 10) || 0) + 1))}
+                title="增加 1 片"
+              >
+                + 1
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          {/* Quick preset chips */}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--color-text-light)' }}>快捷增减:</span>
+            {[
+              { label: '+2 片', delta: 2 },
+              { label: '+5 片', delta: 5 },
+              { label: '+10 片', delta: 10 },
+            ].map(chip => (
+              <button
+                key={chip.label}
+                type="button"
+                style={{ padding: '4px 10px', fontSize: '0.78rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer', fontWeight: 600 }}
+                onClick={() => setWasteCountInput(prev => String((parseInt(prev, 10) || 0) + chip.delta))}
+              >
+                {chip.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              style={{ padding: '4px 10px', fontSize: '0.78rem', borderRadius: '6px', border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontWeight: 600, marginLeft: 'auto' }}
+              onClick={() => setWasteCountInput('0')}
+              title="清空重置为 0 片"
+            >
+              清零 (0片)
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
             <button type="button" className="btn btnSecondary" onClick={() => setIsWasteModalOpen(false)}>
               取消
             </button>
             <button type="button" className="btn btnPrimary" onClick={handleRecordWaste}>
-              确认扣减库存
+              保存修改
             </button>
           </div>
         </div>
@@ -1485,12 +1664,14 @@ export default function BoothPOS() {
 
           <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
             <h4 style={{ margin: '0 0 10px', fontSize: '0.92rem', color: 'var(--color-text)' }}>
-              🎪 摆摊活动总账单 ({boothTitle})
+              🎪 摆摊活动总账单 ({boothTitle || '市集摊位'})
             </h4>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', fontSize: '0.84rem' }}>
-              <div>活动地点: <strong>{boothTitle}</strong></div>
-              <div>活动日期: <strong>{boothDate}</strong></div>
+              <div>摆摊名称/地点: <strong>{boothTitle || '（未命名）'}</strong></div>
+              <div>活动周期: <strong>共 {boothDays} 天</strong></div>
+              <div>出摊日期: <strong>{boothDate}</strong></div>
               <div>售出曲奇: <strong style={{ color: '#16a34a' }}>{liveStats.piecesSold} 片</strong></div>
+              <div>试吃/损耗: <strong style={{ color: '#b45309' }}>{liveStats.wastePieces || 0} 片</strong></div>
               <div>订单总量: <strong>{liveStats.orderCount} 笔</strong></div>
               <div>💵 现金实收: <strong style={{ color: '#15803d' }}>{money(liveStats.cashSales)}</strong></div>
               <div>📱 QR 实收: <strong style={{ color: '#2563eb' }}>{money(liveStats.qrSales)}</strong></div>
@@ -1504,8 +1685,8 @@ export default function BoothPOS() {
             </div>
           </div>
 
-          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
-            点击确认后，系统将正式完结本次摆摊记录，自动录入后台「摆摊账本与历史」，并清空收银台准备下一场活动。
+          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-light)', lineHeight: 1.5 }}>
+            💡 <strong>收摊重置说明：</strong>点击确认后，系统将正式完结本次摆摊并归档至后台账本。收银台将<strong>自动清空所有现场数据</strong>（包括摆摊名称/地点、现场交易与购物车），并将各曲奇口味初始准备量恢复为默认的 <strong>20片/口味</strong>，以便下次出摊直接使用。
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
