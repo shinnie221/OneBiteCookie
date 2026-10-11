@@ -308,6 +308,13 @@ export default function HomePage() {
               >
                 🛒 Cart / 购物车 ({totalQuantity})
               </Link>
+              <Link
+                href="/track"
+                className={styles.drawerLink}
+                onClick={() => setMenuDrawerOpen(false)}
+              >
+                🔍 Track Order / 订单追踪
+              </Link>
 
               {isAuthenticated && user?.role === 'customer' && (
                 <>

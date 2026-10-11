@@ -1,0 +1,327 @@
+.pageHeader {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 2.2rem;
+  font-family: var(--font-heading);
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: var(--color-text-light);
+  font-size: 1rem;
+}
+
+.searchCard {
+  background: white;
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--color-border-light);
+  padding: 24px;
+  max-width: 680px;
+  margin: 0 auto 36px;
+  box-shadow: var(--shadow-sm);
+}
+
+.searchTabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: 12px;
+}
+
+.tabBtn {
+  background: transparent;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 20px;
+  transition: all 0.2s;
+}
+
+.tabBtn.activeTab {
+  background: var(--color-primary-lighter);
+  color: var(--color-primary-dark);
+}
+
+.searchForm {
+  display: flex;
+  gap: 12px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  outline: none;
+  background: var(--color-bg);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.searchInput:focus {
+  border-color: var(--color-primary);
+  background: white;
+}
+
+.searchSubmitBtn {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 0 24px;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.searchSubmitBtn:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.searchSubmitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.resultsSection {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.orderCard {
+  background: white;
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--color-border-light);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+}
+
+.orderCardHeader {
+  padding: 18px 24px;
+  background: var(--color-bg-alt);
+  border-bottom: 1px solid var(--color-border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.orderId {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text);
+  font-family: monospace;
+}
+
+.orderDate {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  margin-top: 2px;
+}
+
+.timeline {
+  display: flex;
+  justify-content: space-between;
+  padding: 30px 24px 24px;
+  position: relative;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 48px;
+  left: 48px;
+  right: 48px;
+  height: 3px;
+  background: var(--color-border-light);
+  z-index: 1;
+}
+
+.timelineStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+}
+
+.stepIconWrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  transition: all 0.3s;
+}
+
+.timelineStep.completed .stepIconWrap {
+  border-color: var(--color-primary);
+  background: var(--color-primary-lighter);
+  color: var(--color-primary-dark);
+}
+
+.timelineStep.active .stepIconWrap {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 0 0 4px var(--color-primary-lighter);
+}
+
+.stepLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  max-width: 90px;
+}
+
+.timelineStep.active .stepLabel,
+.timelineStep.completed .stepLabel {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.orderDetails {
+  padding: 24px;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  border-bottom: 1px dashed var(--color-border-light);
+}
+
+.detailRow:last-child {
+  border-bottom: none;
+}
+
+.itemsList {
+  margin: 16px 0;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+
+.itemsTitle {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.92rem;
+  padding: 4px 0;
+  color: var(--color-text);
+}
+
+.whatsappBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-top: 18px;
+}
+
+.whatsappText {
+  font-size: 0.9rem;
+  color: #166534;
+  font-weight: 500;
+}
+
+.whatsappBtn {
+  background: #22c55e;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.whatsappBtn:hover {
+  background: #16a34a;
+}
+
+.errorBox {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.loginPrompt {
+  text-align: center;
+  margin-top: 24px;
+  color: var(--color-text-light);
+  font-size: 0.92rem;
+}
+
+.loginPrompt a {
+  color: var(--color-primary);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .title {
+    font-size: 1.7rem;
+  }
+  .searchForm {
+    flex-direction: column;
+  }
+  .searchSubmitBtn {
+    padding: 12px;
+  }
+  .timeline {
+    padding: 24px 12px 18px;
+  }
+  .timeline::before {
+    left: 24px;
+    right: 24px;
+  }
+  .stepLabel {
+    font-size: 0.72rem;
+  }
+  .stepIconWrap {
+    width: 34px;
+    height: 34px;
+    font-size: 0.95rem;
+  }
+}

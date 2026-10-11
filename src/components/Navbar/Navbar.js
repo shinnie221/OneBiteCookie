@@ -32,6 +32,7 @@ export default function Navbar() {
         <div className={`${styles.nav} ${mobileOpen ? styles.open : ''}`}>
           <Link href="/" className={styles.navLink} onClick={() => setMobileOpen(false)}>Home</Link>
           <Link href="/#menu" className={styles.navLink} onClick={() => setMobileOpen(false)}>Menu</Link>
+          <Link href="/track" className={styles.navLink} onClick={() => setMobileOpen(false)}>Track Order</Link>
           
           {isAuthenticated && user?.role === 'customer' && (
             <>
