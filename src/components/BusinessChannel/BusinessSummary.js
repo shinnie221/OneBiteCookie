@@ -9,8 +9,11 @@ export default function BusinessSummary({ refreshVersion = 0 }) {
   const { authFetch } = useAuth();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
-  const [from, setFrom] = useState(() => `${businessDate().slice(0, 7)}-01`);
-  const [to, setTo] = useState(() => businessDate());
+  const today = businessDate();
+  const thisMonthStart = `${today.slice(0, 7)}-01`;
+  const thisMonthEnd = `${today.slice(0, 7)}-31`;
+  const [from, setFrom] = useState(() => thisMonthStart);
+  const [to, setTo] = useState(() => today);
   useEffect(() => {
     let active = true;
     Promise.all(['/api/orders', '/api/business', '/api/finance'].map(async url => {
@@ -30,23 +33,61 @@ export default function BusinessSummary({ refreshVersion = 0 }) {
   return <section className={styles.summarySection} aria-label="业务营收简报">
     <div className={styles.summaryToolbar}>
       <div className={styles.dateRangePicker}>
+        <div className={styles.quickButtons}>
+          <button
+            type="button"
+            className={`${styles.quickBtn} ${from === today && to === today ? styles.quickBtnActive : ''}`}
+            onClick={() => { setFrom(today); setTo(today); }}
+            title="查看今日营收，与总结流水账本日流水对齐"
+          >
+            今日
+          </button>
+          <button
+            type="button"
+            className={`${styles.quickBtn} ${from === thisMonthStart && to === today ? styles.quickBtnActive : ''}`}
+            onClick={() => { setFrom(thisMonthStart); setTo(today); }}
+            title="查看本月1号至今天的累计营收"
+          >
+            本月至今
+          </button>
+          <button
+            type="button"
+            className={`${styles.quickBtn} ${from === thisMonthStart && to === thisMonthEnd ? styles.quickBtnActive : ''}`}
+            onClick={() => { setFrom(thisMonthStart); setTo(thisMonthEnd); }}
+            title="查看本月整月营收，与总结流水账本月流水对齐"
+          >
+            本月整月
+          </button>
+        </div>
         <label className={styles.dateField}><span>起始</span><input type="date" value={from} onChange={e => setFrom(e.target.value)} /></label>
         <span className={styles.dateSeparator}>至</span>
         <label className={styles.dateField}><span>结束</span><input type="date" value={to} onChange={e => setTo(e.target.value)} /></label>
       </div>
+      <Link href="/staff/ledger" className={styles.ledgerLink} title="前往查看流水账证明细与渠道明细">
+        前往总结流水账本 →
+      </Link>
     </div>
     {!valid && <p className={styles.error} role="alert">请选择有效的日期范围（起始日期必须早于或等于结束日期）。</p>}
     {error && <p className={styles.error} role="alert">{error}</p>}
     {!data && !error && <p style={{ fontSize: '0.85rem', color: 'var(--color-text-light)' }}>正在加载销售统计...</p>}
     {summary && <>
       <div className={styles.totalsGrid}>
-        <Link href="/staff/orders" className={styles.channelCard}>
+        <Link href="/staff/orders" className={styles.channelCard} title="线上商城已完成曲奇销售（已扣除配送费）">
           <div className={styles.channelHeader}>
-            <span className={styles.channelName}>线上预购</span>
+            <span className={styles.channelName}>线上预购 (曲奇)</span>
             <span className={styles.channelIcon}>▤</span>
           </div>
           <strong className={styles.channelAmount}>{money(summary.preorder)}</strong>
         </Link>
+        {summary.deliveryIncome > 0 && (
+          <Link href="/staff/expenses" className={styles.channelCard} title="Lalamove 等配送收入（合伙公款入账）">
+            <div className={styles.channelHeader}>
+              <span className={styles.channelName}>配送收入</span>
+              <span className={styles.channelIcon}>🛵</span>
+            </div>
+            <strong className={styles.channelAmount}>{money(summary.deliveryIncome)}</strong>
+          </Link>
+        )}
         <Link href="/staff/booth" className={styles.channelCard}>
           <div className={styles.channelHeader}>
             <span className={styles.channelName}>摆摊销售</span>

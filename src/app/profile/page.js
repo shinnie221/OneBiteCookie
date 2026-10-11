@@ -30,13 +30,19 @@ const initialAddressState = {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, isAuthenticated, loading: authLoading, authFetch } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, authFetch, logout } = useAuth();
   const toast = useToast();
 
   const [profileLoading, setProfileLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profile, setProfile] = useState({ name: '', email: '', phone: '' });
   const [addresses, setAddresses] = useState([]);
+
+  const handleLogout = () => {
+    logout();
+    toast.success('Logged out successfully.');
+    router.push('/');
+  };
 
   // Modal states for Address Add/Edit
   const [modalOpen, setModalOpen] = useState(false);
@@ -74,6 +80,7 @@ export default function ProfilePage() {
       router.push('/login');
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProfile();
   }, [isAuthenticated, authLoading, router, toast, loadProfile]);
 
@@ -241,6 +248,14 @@ export default function ProfilePage() {
               <span className={styles.profileBadge}>🍪 One Bite Member</span>
             </div>
           </div>
+          <button
+            type="button"
+            className={styles.logoutBtn}
+            onClick={handleLogout}
+            title="Log out of your account"
+          >
+            Log Out
+          </button>
         </header>
 
         {/* Section 1: Personal Information */}

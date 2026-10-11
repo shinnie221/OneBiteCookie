@@ -71,42 +71,124 @@ export function getOrderCompletionDate(order) {
     return dateVal ? businessDate(dateVal) : null;
 }
 
-export function summarizeChannels(orders, records, from, to, financeRecords = []) {
-    const inRange = date => date >= from && date <= to;
-    const result = { preorder: 0, booth: 0, wholesale: 0, expenses: 0, outstanding: 0, manualOrders: 0, generalExpenses: 0 };
-    for (const order of orders) {
-        if (order.is_manual_order) { result.manualOrders++; continue; }
-        const status = order.order_status || order.status;
-        if (status !== 'completed') continue;
-        const completionDate = getOrderCompletionDate(order);
-        if (!completionDate || !inRange(completionDate)) continue;
-        if (order.payment_status === 'verified') {
-            result.preorder += Number(order.total ?? order.total_amount) || 0;
-        }
+export function getOrderCookieSales(order) {
+    if (!order) return 0;
+    let amount = Number(order.total ?? order.total_amount) || 0;
+    // 管理员亲送的RM8配送费属于送货人个人补贴，不属于合伙公款，从销售营收中扣除
+    // Lalamove的RM8配送费由finance_records作为收入记录单独核算配送收入，避免重复统计
+    if (order.delivery_method === 'admin_delivery' || order.delivery_method === 'lalamove') {
+        const fee = Number(order.delivery_fee) || 8;
+        amount = Math.max(0, amount - fee);
     }
-    const hasFinanceExpenses = Array.isArray(financeRecords) && financeRecords.some(item => (item.transactionType === '支出' || !item.transactionType) && Number(item.amount) > 0);
+    return round(amount);
+}
 
-    for (const record of records) {
-        if (!inRange(record.date) || !['booth', 'wholesale'].includes(record.channel)) continue;
-        result[record.channel] += record.sales;
-        // Only add record.expenseTotal if financeRecords has no expenses, avoiding double-deducting booth expenses
-        if (!hasFinanceExpenses) {
-            result.expenses += record.expenseTotal;
+export function getBoothFinanceDates(financeRecords = []) {
+    const set = new Set();
+    if (Array.isArray(financeRecords)) {
+        for (const r of financeRecords) {
+            if (r.category === '摆摊支出' && r.orderType === 'Booth' && r.date) {
+                set.add(r.date);
+            }
         }
-        result.outstanding += record.outstanding;
     }
+    return set;
+}
+
+export function summarizeChannels(orders = [], records = [], from, to, financeRecords = []) {
+    const inRange = date => date >= from && date <= to;
+    const result = {
+        preorder: 0,
+        booth: 0,
+        wholesale: 0,
+        deliveryIncome: 0,
+        financeIncome: 0,
+        expenses: 0,
+        boothExpenses: 0,
+        wholesaleExpenses: 0,
+        generalExpenses: 0,
+        outstanding: 0,
+        manualOrders: 0,
+        orderPieces: 0,
+        orderCount: 0,
+        boothPieces: 0,
+        boothCount: 0,
+        wholesalePieces: 0,
+        wholesaleCount: 0,
+    };
+
+    const boothFinanceDates = getBoothFinanceDates(financeRecords);
+
+    // 1. Online Preorders
+    if (Array.isArray(orders)) {
+        for (const order of orders) {
+            if (order.is_manual_order) { result.manualOrders++; continue; }
+            const status = order.order_status || order.status;
+            if (status !== 'completed') continue;
+            const completionDate = getOrderCompletionDate(order);
+            if (!completionDate || !inRange(completionDate)) continue;
+            const isPaid = order.payment_status === 'verified' || !order.payment_status;
+            if (isPaid) {
+                result.orderCount++;
+                const amount = getOrderCookieSales(order);
+                result.preorder += amount;
+                const pieces = order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
+                result.orderPieces += pieces;
+            }
+        }
+    }
+
+    // 2. Channel Records (booth & wholesale)
+    if (Array.isArray(records)) {
+        for (const record of records) {
+            if (!inRange(record.date) || !['booth', 'wholesale'].includes(record.channel)) continue;
+            result[record.channel] += (record.sales || 0);
+
+            if (record.channel === 'booth') {
+                result.boothCount++;
+                const soldPieces = record.items?.reduce((is, it) => is + (it.quantity || 0), 0) || 0;
+                result.boothPieces += soldPieces;
+                const boothExpense = boothFinanceDates.has(record.date) ? 0 : (record.expenseTotal || 0);
+                result.boothExpenses += boothExpense;
+                result.expenses += boothExpense;
+            } else if (record.channel === 'wholesale') {
+                result.wholesaleCount++;
+                const pieces = record.items?.reduce((is, it) => is + (it.quantity || 0), 0) || 0;
+                result.wholesalePieces += pieces;
+                const wholesaleExpense = record.expenseTotal || 0;
+                result.wholesaleExpenses += wholesaleExpense;
+                result.expenses += wholesaleExpense;
+                result.outstanding += (record.outstanding || 0);
+            }
+        }
+    }
+
+    // 3. Finance Records (Raw materials, packaging, operational costs, delivery income, etc.)
     if (Array.isArray(financeRecords)) {
         for (const item of financeRecords) {
             if (!item.date || !inRange(item.date)) continue;
-            if (item.transactionType === '支出' || !item.transactionType) {
-                const amt = Number(item.amount) || 0;
+            const amt = Number(item.amount) || 0;
+            // 排除公款注资（资金池注资/充值，非营业收入或成本）
+            if (item.transactionType === '公款注资' || item.category === '公款注资') {
+                continue;
+            }
+            if (item.transactionType === '收入') {
+                result.financeIncome += amt;
+                if (item.category === '配送相关') {
+                    result.deliveryIncome += amt;
+                }
+            } else {
                 result.expenses += amt;
                 result.generalExpenses += amt;
             }
         }
     }
-    for (const key of ['preorder', 'booth', 'wholesale', 'expenses', 'outstanding', 'generalExpenses']) result[key] = round(result[key]);
-    result.total = round(result.preorder + result.booth + result.wholesale);
+
+    for (const key of ['preorder', 'booth', 'wholesale', 'deliveryIncome', 'financeIncome', 'expenses', 'boothExpenses', 'wholesaleExpenses', 'generalExpenses', 'outstanding']) {
+        result[key] = round(result[key]);
+    }
+    result.totalPieces = result.orderPieces + result.boothPieces + result.wholesalePieces;
+    result.total = round(result.preorder + result.booth + result.wholesale + result.financeIncome);
     result.net = round(result.total - result.expenses);
     return result;
 }

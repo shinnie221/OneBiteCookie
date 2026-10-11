@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, doc, runTransaction } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, runTransaction, updateDoc } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
@@ -175,5 +175,35 @@ export async function POST(request) {
   } catch (error) {
     console.error('POST /api/finance error:', error);
     return NextResponse.json({ error: 'Failed to create financial record' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request) {
+  try {
+    const user = verifyAuth(request);
+    if (!user || !['staff', 'admin'].includes(user.role)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { ids, claim_status } = body;
+    if (!Array.isArray(ids) || !ids.length || !claim_status) {
+      return NextResponse.json({ error: 'Invalid batch claim request' }, { status: 400 });
+    }
+
+    const now = new Date().toISOString();
+    await Promise.all(ids.map(id => {
+      const recordRef = doc(db, 'finance_records', id);
+      return updateDoc(recordRef, {
+        claim_status,
+        claimed_at: claim_status === 'claimed' ? now : null,
+        updated_at: now
+      });
+    }));
+
+    return NextResponse.json({ message: 'Batch updated successfully', count: ids.length });
+  } catch (error) {
+    console.error('PATCH /api/finance error:', error);
+    return NextResponse.json({ error: 'Failed to batch update' }, { status: 500 });
   }
 }

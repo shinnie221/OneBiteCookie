@@ -41,6 +41,23 @@ export default function Navbar() {
             <Link href="/staff/dashboard" className={styles.navLink} onClick={() => setMobileOpen(false)}>Staff Dashboard</Link>
           )}
 
+          {isAuthenticated && user?.role === 'customer' && (
+            <div className={styles.mobileAuthSection}>
+              <div className={styles.mobileAuthButtons}>
+                <button 
+                  type="button"
+                  className={styles.mobileLogoutBtn}
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleLogout();
+                  }}
+                >
+                  Log Out
+                </button>
+              </div>
+            </div>
+          )}
+
           {!isAuthenticated && (
             <div className={styles.mobileAuthSection}>
               <div className={styles.mobileAuthButtons}>
@@ -67,7 +84,7 @@ export default function Navbar() {
           {isAuthenticated ? (
             <>
               {user?.role === 'customer' ? (
-                <button onClick={handleLogout} className={styles.loginBtn}>Logout</button>
+                <Link href="/profile" className={styles.loginBtn}>Profile</Link>
               ) : (
                 <Link href="/staff/dashboard" className={styles.loginBtn}>Dashboard</Link>
               )}

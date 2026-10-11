@@ -92,3 +92,57 @@ test('general expenses (flour, butter, etc.) are included in total expenses and 
   assert.equal(summary.net, 97.5);
 });
 
+test('online order delivery fee, finance delivery income, and booth expense deduplication align with ledger', () => {
+  // Order with admin delivery (RM8 fee deducted from cookie revenue)
+  const adminDeliveryOrder = {
+    order_id: 'OB-1',
+    created_at: '2026-09-18T01:00:00Z',
+    completed_at: '2026-09-18T02:00:00Z',
+    order_status: 'completed',
+    payment_status: 'verified',
+    delivery_method: 'admin_delivery',
+    delivery_fee: 8,
+    total: 38, // 30 cookies + 8 delivery
+  };
+
+  // Order with Lalamove (RM8 fee deducted from cookie revenue)
+  const lalamoveOrder = {
+    order_id: 'OB-2',
+    created_at: '2026-09-18T03:00:00Z',
+    completed_at: '2026-09-18T04:00:00Z',
+    order_status: 'completed',
+    payment_status: 'verified',
+    delivery_method: 'lalamove',
+    delivery_fee: 8,
+    total: 48, // 40 cookies + 8 delivery
+  };
+
+  // Booth record on 2026-09-18 whose expense is already recorded by POS in finance_records
+  const boothRecord = normalizeBusinessRecord(booth());
+
+  const financeRecords = [
+    // POS booth expense on the same day -> booth's own expenseTotal (52.5) should NOT be double deducted
+    { id: 'f-booth', date: '2026-09-18', category: '摆摊支出', orderType: 'Booth', amount: 52.5, transactionType: '支出' },
+    // Lalamove delivery income into partnership fund -> should be counted in financeIncome and total sales
+    { id: 'f-delivery', date: '2026-09-18', category: '配送相关', amount: 8, transactionType: '收入' },
+    // Partner injection -> should NOT count as income or expense
+    { id: 'f-inject', date: '2026-09-18', category: '公款注资', amount: 500, transactionType: '公款注资' },
+  ];
+
+  const summary = summarizeChannels([adminDeliveryOrder, lalamoveOrder], [boothRecord], '2026-09-18', '2026-09-18', financeRecords);
+
+  // Preorder cookies: (38 - 8) + (48 - 8) = 70
+  assert.equal(summary.preorder, 70);
+  // Booth cookies: 260
+  assert.equal(summary.booth, 260);
+  // Delivery income: 8
+  assert.equal(summary.deliveryIncome, 8);
+  assert.equal(summary.financeIncome, 8);
+  // Total sales: 70 + 260 + 8 = 338
+  assert.equal(summary.total, 338);
+  // Expenses: booth own expense is deduplicated (0), finance expense is 52.5
+  assert.equal(summary.expenses, 52.5);
+  // Net revenue: 338 - 52.5 = 285.5
+  assert.equal(summary.net, 285.5);
+});
+

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { businessDate, money, getOrderCompletionDate } from '@/lib/business.mjs';
+import { businessDate, money, getOrderCompletionDate, getOrderCookieSales, getBoothFinanceDates } from '@/lib/business.mjs';
 import styles from './page.module.css';
 
 function getPreviousDay(dateStr) {
@@ -101,6 +101,8 @@ export default function LedgerPage() {
       if (order.is_manual_order) return false;
       const status = order.order_status || order.status;
       if (status !== 'completed') return false;
+      const isPaid = order.payment_status === 'verified' || !order.payment_status;
+      if (!isPaid) return false;
       const completionDate = getOrderCompletionDate(order);
       return completionDate && completionDate >= from && completionDate <= to;
     });
@@ -123,16 +125,7 @@ export default function LedgerPage() {
 
   // Calculations per channel
   const orderStats = useMemo(() => {
-    const totalSales = filteredOrders.reduce((sum, o) => {
-      let amount = Number(o.total ?? o.total_amount) || 0;
-      // 管理员亲送的RM8配送费属于送货人个人补贴，不属于合伙公款，从销售营收中扣除
-      // Lalamove的RM8配送费由finance_records作为收入记录单独核算配送收入，避免重复统计
-      if (o.delivery_method === 'admin_delivery' || o.delivery_method === 'lalamove') {
-        const fee = Number(o.delivery_fee) || 8;
-        amount = Math.max(0, amount - fee);
-      }
-      return sum + amount;
-    }, 0);
+    const totalSales = filteredOrders.reduce((sum, o) => sum + getOrderCookieSales(o), 0);
     const totalPieces = filteredOrders.reduce((sum, o) => sum + (o.items?.reduce((is, it) => is + (it.quantity || 0), 0) || 0), 0);
     return {
       count: filteredOrders.length,
@@ -147,13 +140,7 @@ export default function LedgerPage() {
 
   // Dates whose booth expenses were recorded directly in finance_records (成本支出) by the POS.
   // For those days the booth record's own expense list is a duplicate copy and must not be deducted again.
-  const boothFinanceDates = useMemo(() => {
-    const set = new Set();
-    for (const r of financeRecords) {
-      if (r.category === '摆摊支出' && r.orderType === 'Booth' && r.date) set.add(r.date);
-    }
-    return set;
-  }, [financeRecords]);
+  const boothFinanceDates = useMemo(() => getBoothFinanceDates(financeRecords), [financeRecords]);
   const boothOwnExpense = useCallback(b => (boothFinanceDates.has(b.date) ? 0 : (b.expenseTotal || 0)), [boothFinanceDates]);
 
   const boothStats = useMemo(() => {
@@ -251,10 +238,7 @@ export default function LedgerPage() {
     for (const o of filteredOrders) {
       const completionDate = getOrderCompletionDate(o) || (o.created_at ? businessDate(o.created_at) : '');
       const pieces = o.items?.reduce((s, it) => s + (it.quantity || 0), 0) || 0;
-      let amount = Number(o.total ?? o.total_amount) || 0;
-      if (o.delivery_method === 'admin_delivery' || o.delivery_method === 'lalamove') {
-        amount = Math.max(0, amount - (Number(o.delivery_fee) || 8));
-      }
+      const amount = getOrderCookieSales(o);
       let deliveryTag = '🛍️ 自取';
       if (o.order_type === 'delivery') {
         deliveryTag = o.delivery_method === 'lalamove' ? '🛵 Lalamove' : '🚗 亲送(补贴不入公款)';

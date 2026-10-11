@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { businessDate, money } from '@/lib/business.mjs';
@@ -24,6 +25,18 @@ const CATEGORIES = [
 ];
 
 export default function ExpensesPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner text="正在加载成本与公款支出..." />}>
+      <ExpensesContent />
+    </Suspense>
+  );
+}
+
+function ExpensesContent() {
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'all';
+  const initialPayer = searchParams.get('payer') || 'all';
+
   const { authFetch } = useAuth();
   const toast = useToast();
 
@@ -36,7 +49,9 @@ export default function ExpensesPage() {
   const [selectedMonth, setSelectedMonth] = useState(() => businessDate().slice(0, 7));
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('all'); // 'all' | 'pending_claims' | 'fund_injections'
+  const [activeTab, setActiveTab] = useState(initialTab === 'pending_claims' ? 'pending_claims' : 'all'); // 'all' | 'pending_claims' | 'fund_injections'
+  const [payerFilter, setPayerFilter] = useState(initialPayer);
+  const [selectedRecordIds, setSelectedRecordIds] = useState(new Set());
 
   // Photo & Screenshot Modal State
   const [previewReceiptRecord, setPreviewReceiptRecord] = useState(null);
@@ -138,7 +153,14 @@ export default function ExpensesPage() {
     let totalInjected = 0;
     let totalClaimed = 0;
     let totalPending = 0;
-    const pendingByPayer = {};
+    const pendingByPayer = {
+      Shinnie: 0,
+      Yunxuan: 0,
+      other: 0,
+    };
+    const shinniePendingRecords = [];
+    const yunxuanPendingRecords = [];
+    const otherPendingRecords = [];
 
     for (const r of records) {
       const amt = Number(r.amount) || 0;
@@ -152,23 +174,40 @@ export default function ExpensesPage() {
           totalClaimed += amt;
         } else if (isPending) {
           totalPending += amt;
-          const payer = r.paid_by || r.payer || '员工垫付';
-          pendingByPayer[payer] = (pendingByPayer[payer] || 0) + amt;
+          const rawPayer = r.paid_by || r.payer || '其他垫付';
+          if (rawPayer.includes('Yunxuan')) {
+            pendingByPayer.Yunxuan = (pendingByPayer.Yunxuan || 0) + amt;
+            yunxuanPendingRecords.push(r);
+          } else if (rawPayer.includes('Shinnie')) {
+            pendingByPayer.Shinnie = (pendingByPayer.Shinnie || 0) + amt;
+            shinniePendingRecords.push(r);
+          } else {
+            pendingByPayer.other = (pendingByPayer.other || 0) + amt;
+            otherPendingRecords.push(r);
+          }
         }
       }
     }
 
     const availableBalance = totalInjected - totalClaimed;
+    const shinniePendingTotal = Math.round(((pendingByPayer.Shinnie || 0) + Number.EPSILON) * 100) / 100;
+    const yunxuanPendingTotal = Math.round(((pendingByPayer.Yunxuan || 0) + Number.EPSILON) * 100) / 100;
+
     return {
       totalInjected,
       totalClaimed,
       availableBalance,
-      totalPending,
-      pendingByPayer
+      totalPending: Math.round((totalPending + Number.EPSILON) * 100) / 100,
+      pendingByPayer,
+      shinniePendingTotal,
+      yunxuanPendingTotal,
+      shinniePendingRecords,
+      yunxuanPendingRecords,
+      otherPendingRecords,
     };
   }, [records]);
 
-  // Filtered Records based on tab, month, category, search
+  // Filtered Records based on tab, month, category, search, payer
   const filteredRecords = useMemo(() => {
     return records.filter(record => {
       // Tab filter
@@ -178,6 +217,14 @@ export default function ExpensesPage() {
           (!record.claim_status && (record.paid_by === 'Shinnie' || record.paid_by === 'Yunxuan' || record.payer === 'Shinnie' || record.payer === 'Yunxuan'))
         );
         if (!isPending) return false;
+
+        // Payer sub-filter in pending_claims tab
+        if (payerFilter !== 'all') {
+          const rawPayer = record.paid_by || record.payer || '';
+          if (!rawPayer.toLowerCase().includes(payerFilter.toLowerCase())) {
+            return false;
+          }
+        }
       } else if (activeTab === 'fund_injections') {
         if (record.transactionType !== '公款注资' && record.category !== '公款注资') return false;
       } else {
@@ -185,8 +232,10 @@ export default function ExpensesPage() {
         if (record.transactionType && record.transactionType !== '支出') return false;
       }
 
-      // Month filter (only apply if activeTab !== 'fund_injections' or if selected)
-      if (selectedMonth && !record.date?.startsWith(selectedMonth)) return false;
+      // Month filter (only apply if activeTab !== 'fund_injections' and activeTab !== 'pending_claims')
+      if (activeTab !== 'pending_claims') {
+        if (selectedMonth && !record.date?.startsWith(selectedMonth)) return false;
+      }
 
       // Category filter (only in all expenses view)
       if (activeTab === 'all' && selectedCategory !== 'all' && record.category !== selectedCategory) return false;
@@ -202,7 +251,16 @@ export default function ExpensesPage() {
 
       return true;
     });
-  }, [records, activeTab, selectedMonth, selectedCategory, searchQuery]);
+  }, [records, activeTab, payerFilter, selectedMonth, selectedCategory, searchQuery]);
+
+  const selectedRecordsList = useMemo(() => {
+    return records.filter(r => selectedRecordIds.has(r.id));
+  }, [records, selectedRecordIds]);
+
+  const selectedRecordsTotal = useMemo(() => {
+    const sum = selectedRecordsList.reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
+    return Math.round((sum + Number.EPSILON) * 100) / 100;
+  }, [selectedRecordsList]);
 
   // KPI Calculations for active expense filter
   const stats = useMemo(() => {
@@ -278,10 +336,11 @@ export default function ExpensesPage() {
     setIsModalOpen(true);
   };
 
-  // Quick Claim Expense from 公款
+  // Quick Claim Expense from 公款 (单笔结款)
   const handleClaimExpense = async (record) => {
-    const payer = record.paid_by || record.payer || '垫付人';
-    if (!confirm(`确认要从公款中报销「${record.note || '此笔支出'}」共 ${money(record.amount)} 给【${payer}】吗？\n确认后系统将标记为已报销，并自动扣减公款可用余额。`)) {
+    const rawPayer = record.paid_by || record.payer || '垫付人';
+    const payer = rawPayer.includes('Yunxuan') ? 'Yunxuan' : rawPayer.includes('Shinnie') ? 'Shinnie' : rawPayer;
+    if (!confirm(`确认要从公款中报销「${record.note || '此笔支出'}」共 ${money(record.amount)} 给【${payer}】吗？\n确认后系统将标记为已从公款结款，并自动扣减公款可用余额。`)) {
       return;
     }
 
@@ -295,12 +354,69 @@ export default function ExpensesPage() {
         })
       });
 
-      if (!res.ok) throw new Error('报销处理失败');
-      toast.success(`已成功从公款报销 ${money(record.amount)} 给 ${payer}！`);
+      if (!res.ok) throw new Error('结款处理失败');
+      toast.success(`已成功从公款结款 ${money(record.amount)} 给【${payer}】！`);
       loadExpenses();
     } catch (err) {
-      toast.error(err.message || '报销处理出错');
+      toast.error(err.message || '结款处理出错');
     }
+  };
+
+  // Batch Claim Expenses from 公款 (批量结款)
+  const handleBatchClaim = async (targetRecords, payerLabel) => {
+    if (!targetRecords || !targetRecords.length) return;
+    const totalAmt = Math.round((targetRecords.reduce((sum, r) => sum + (Number(r.amount) || 0), 0) + Number.EPSILON) * 100) / 100;
+    const count = targetRecords.length;
+    const ids = targetRecords.map(r => r.id);
+
+    if (!confirm(`确认要从公款向【${payerLabel}】支付结算共 ${count} 笔垫付款项（总额 ${money(totalAmt)}）吗？\n确认后系统将标记为已从公款结款，并自动扣减公款可用余额。`)) {
+      return;
+    }
+
+    try {
+      const res = await authFetch('/api/finance', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ids,
+          claim_status: 'claimed'
+        })
+      });
+
+      if (!res.ok) throw new Error('批量结款处理失败');
+      toast.success(`🎉 已成功从公款结款 ${money(totalAmt)}（共 ${count} 笔）给【${payerLabel}】！`);
+      setSelectedRecordIds(new Set());
+      loadExpenses();
+    } catch (err) {
+      toast.error(err.message || '批量结款出错');
+    }
+  };
+
+  // 一键结清某位合伙人的全部垫付款
+  const handleSettleAllForPartner = (partnerName) => {
+    const targetRecords = partnerName === 'Shinnie' ? fundStats.shinniePendingRecords : fundStats.yunxuanPendingRecords;
+    if (!targetRecords || !targetRecords.length) {
+      toast.info(`${partnerName} 当前没有待从公款结清的垫付款项。`);
+      return;
+    }
+    handleBatchClaim(targetRecords, partnerName);
+  };
+
+  const handleToggleSelectAll = (list) => {
+    if (selectedRecordIds.size === list.length && list.length > 0) {
+      setSelectedRecordIds(new Set());
+    } else {
+      setSelectedRecordIds(new Set(list.map(r => r.id)));
+    }
+  };
+
+  const handleToggleRecord = (id) => {
+    setSelectedRecordIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   // Submit Expense Form (Create or Update)
@@ -516,9 +632,99 @@ export default function ExpensesPage() {
             </strong>
             <span className={styles.fundMetricSubtext}>
               {fundStats.totalPending > 0
-                ? `合伙人垫付待结算 (Shinnie: ${money(fundStats.pendingByPayer['Shinnie'] || 0)} · Yunxuan: ${money(fundStats.pendingByPayer['Yunxuan'] || 0)})`
+                ? `合伙人垫付待结算 (Shinnie: ${money(fundStats.shinniePendingTotal)} · Yunxuan: ${money(fundStats.yunxuanPendingTotal)})`
                 : '所有合伙人垫付账款均已报销清零'}
             </span>
+          </div>
+        </div>
+
+        {/* 合伙人个人垫付待结款对账中心 (Partner Advance & Settlement Hub) */}
+        <div className={styles.partnerReimburseSection}>
+          <div className={styles.partnerReimburseTitle}>
+            <span>👥 合伙人垫付未结款核算 (从公款拿钱)</span>
+            <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>
+              Shinnie / Yunxuan 个人先行垫付采购，在此核对金额后从公款资金池结算平账
+            </span>
+          </div>
+
+          <div className={styles.partnerReimburseGrid}>
+            {/* Shinnie 个人垫付卡片 */}
+            <div className={`${styles.partnerCard} ${styles.partnerCardShinnie}`}>
+              <div className={styles.partnerCardHeader}>
+                <span className={styles.partnerBadgeShinnie}>🟢 Shinnie 垫付</span>
+                <span className={styles.partnerPendingCount}>
+                  {fundStats.shinniePendingRecords.length > 0
+                    ? `共 ${fundStats.shinniePendingRecords.length} 笔待从公款拿钱`
+                    : '全部已结清 (无欠款)'}
+                </span>
+              </div>
+              <div className={styles.partnerCardBody}>
+                <span className={styles.partnerAmountLabel}>待从公款拿钱:</span>
+                <strong className={styles.partnerAmountValue} style={{ color: fundStats.shinniePendingTotal > 0 ? '#15803d' : '#64748b' }}>
+                  {money(fundStats.shinniePendingTotal)}
+                </strong>
+              </div>
+              <div className={styles.partnerCardActions}>
+                <button
+                  type="button"
+                  className={styles.btnSettleShinnie}
+                  disabled={fundStats.shinniePendingTotal <= 0}
+                  onClick={() => handleSettleAllForPartner('Shinnie')}
+                  title="一键将 Shinnie 所有待报销垫付款标记为已从公款结款"
+                >
+                  ⚡ 一键结清 Shinnie 全部 ({money(fundStats.shinniePendingTotal)})
+                </button>
+                <button
+                  type="button"
+                  className={styles.btnViewPayerOnly}
+                  onClick={() => {
+                    setActiveTab('pending_claims');
+                    setPayerFilter('Shinnie');
+                  }}
+                >
+                  查看待结清单 ({fundStats.shinniePendingRecords.length}) →
+                </button>
+              </div>
+            </div>
+
+            {/* Yunxuan 个人垫付卡片 */}
+            <div className={`${styles.partnerCard} ${styles.partnerCardYunxuan}`}>
+              <div className={styles.partnerCardHeader}>
+                <span className={styles.partnerBadgeYunxuan}>🟣 Yunxuan 垫付</span>
+                <span className={styles.partnerPendingCount}>
+                  {fundStats.yunxuanPendingRecords.length > 0
+                    ? `共 ${fundStats.yunxuanPendingRecords.length} 笔待从公款拿钱`
+                    : '全部已结清 (无欠款)'}
+                </span>
+              </div>
+              <div className={styles.partnerCardBody}>
+                <span className={styles.partnerAmountLabel}>待从公款拿钱:</span>
+                <strong className={styles.partnerAmountValue} style={{ color: fundStats.yunxuanPendingTotal > 0 ? '#7e22ce' : '#64748b' }}>
+                  {money(fundStats.yunxuanPendingTotal)}
+                </strong>
+              </div>
+              <div className={styles.partnerCardActions}>
+                <button
+                  type="button"
+                  className={styles.btnSettleYunxuan}
+                  disabled={fundStats.yunxuanPendingTotal <= 0}
+                  onClick={() => handleSettleAllForPartner('Yunxuan')}
+                  title="一键将 Yunxuan 所有待报销垫付款标记为已从公款结款"
+                >
+                  ⚡ 一键结清 Yunxuan 全部 ({money(fundStats.yunxuanPendingTotal)})
+                </button>
+                <button
+                  type="button"
+                  className={styles.btnViewPayerOnly}
+                  onClick={() => {
+                    setActiveTab('pending_claims');
+                    setPayerFilter('Yunxuan');
+                  }}
+                >
+                  查看待结清单 ({fundStats.yunxuanPendingRecords.length}) →
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -632,12 +838,73 @@ export default function ExpensesPage() {
 
       {/* Records Table */}
       <div className={styles.tableCard}>
+        {/* Payer Filter Sub-Bar when in pending_claims tab */}
+        {activeTab === 'pending_claims' && (
+          <div className={styles.payerSubTabs}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginRight: 4 }}>
+              待结款人筛选:
+            </span>
+            <button
+              type="button"
+              className={`${styles.payerSubTabBtn} ${payerFilter === 'all' ? styles.payerSubTabActive : ''}`}
+              onClick={() => { setPayerFilter('all'); setSelectedRecordIds(new Set()); }}
+            >
+              全部待从公款拿钱 ({fundStats.shinniePendingRecords.length + fundStats.yunxuanPendingRecords.length + fundStats.otherPendingRecords.length} 笔 · {money(fundStats.totalPending)})
+            </button>
+            <button
+              type="button"
+              className={`${styles.payerSubTabBtn} ${payerFilter === 'Shinnie' ? styles.payerSubTabActive : ''}`}
+              onClick={() => { setPayerFilter('Shinnie'); setSelectedRecordIds(new Set()); }}
+            >
+              🟢 仅看 Shinnie ({fundStats.shinniePendingRecords.length} 笔 · {money(fundStats.shinniePendingTotal)})
+            </button>
+            <button
+              type="button"
+              className={`${styles.payerSubTabBtn} ${payerFilter === 'Yunxuan' ? styles.payerSubTabActive : ''}`}
+              onClick={() => { setPayerFilter('Yunxuan'); setSelectedRecordIds(new Set()); }}
+            >
+              🟣 仅看 Yunxuan ({fundStats.yunxuanPendingRecords.length} 笔 · {money(fundStats.yunxuanPendingTotal)})
+            </button>
+          </div>
+        )}
+
+        {/* Batch Selection Action Bar */}
+        {activeTab === 'pending_claims' && selectedRecordIds.size > 0 && (
+          <div className={styles.batchActionBar}>
+            <div className={styles.batchActionInfo}>
+              <span>✓ 已勾选 <strong>{selectedRecordIds.size}</strong> 笔垫付支出</span>
+              <span>·</span>
+              <span>合计从公款支付结算：<strong style={{ color: '#16a34a', fontSize: '1.05rem' }}>{money(selectedRecordsTotal)}</strong></span>
+            </div>
+            <div className={styles.batchActionBtns}>
+              <button
+                type="button"
+                className={styles.btnBatchClaim}
+                onClick={() => handleBatchClaim(selectedRecordsList, payerFilter === 'all' ? '已选款项' : payerFilter)}
+              >
+                ⚡ 批量结算所选 ({money(selectedRecordsTotal)})
+              </button>
+              <button
+                type="button"
+                className={styles.btnBatchCancel}
+                onClick={() => setSelectedRecordIds(new Set())}
+              >
+                取消勾选
+              </button>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <LoadingSpinner text="正在加载明细..." />
         ) : filteredRecords.length === 0 ? (
           <div className={styles.emptyState}>
             {activeTab === 'pending_claims'
-              ? '🎉 太棒了！当前没有任何待从公款报销的垫付支出。'
+              ? payerFilter === 'Shinnie'
+                ? '🎉 太棒了！Shinnie 当前没有任何待从公款报销的垫付支出。'
+                : payerFilter === 'Yunxuan'
+                  ? '🎉 太棒了！Yunxuan 当前没有任何待从公款报销的垫付支出。'
+                  : '🎉 太棒了！当前没有任何待从公款报销的垫付支出。'
               : activeTab === 'fund_injections'
                 ? '当前时间段暂无公款注资记录。点击上方「💰 注入公款 (充值备用金)」添加第一笔合伙人注资。'
                 : '当前筛选条件下暂无成本支出记录。点击上方「+ 录入新成本支出」添加第一笔采购。'}
@@ -647,6 +914,17 @@ export default function ExpensesPage() {
             <table className={styles.table}>
               <thead>
                 <tr>
+                  {activeTab === 'pending_claims' && (
+                    <th className={styles.checkboxTh}>
+                      <input
+                        type="checkbox"
+                        className={styles.checkboxInput}
+                        checked={filteredRecords.length > 0 && selectedRecordIds.size === filteredRecords.length}
+                        onChange={() => handleToggleSelectAll(filteredRecords)}
+                        title="全选 / 取消全选当前列表"
+                      />
+                    </th>
+                  )}
                   <th>日期</th>
                   <th>类别</th>
                   <th>品项 / 费用说明</th>
@@ -666,7 +944,18 @@ export default function ExpensesPage() {
                   const payerName = item.paid_by || item.payer || (isInjection ? item.contributor : '公款账户');
 
                   return (
-                    <tr key={item.id}>
+                    <tr key={item.id} style={selectedRecordIds.has(item.id) ? { background: '#f0fdf4' } : undefined}>
+                      {activeTab === 'pending_claims' && (
+                        <td className={styles.checkboxTd}>
+                          <input
+                            type="checkbox"
+                            className={styles.checkboxInput}
+                            checked={selectedRecordIds.has(item.id)}
+                            onChange={() => handleToggleRecord(item.id)}
+                            title="勾选此项进行批量结款"
+                          />
+                        </td>
+                      )}
                       <td>
                         <strong>{item.date}</strong>
                       </td>
