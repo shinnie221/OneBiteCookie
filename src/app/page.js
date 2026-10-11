@@ -1,104 +1,364 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Navbar from '@/components/Navbar/Navbar';
-import Footer from '@/components/Footer/Footer';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import ProductCard from '@/components/ProductCard/ProductCard';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
+import { DEFAULT_BANNER, DEFAULT_AVATAR } from '@/lib/storefrontDefaults';
 import styles from './page.module.css';
 
 export default function HomePage() {
+  const router = useRouter();
+  const { totalQuantity, total } = useCart();
+  const { isAuthenticated, user, logout } = useAuth();
+
   const [products, setProducts] = useState([]);
+  const [settings, setSettings] = useState({
+    banner_image: '',
+    avatar_image: '',
+    store_name: 'Bakery Sora',
+    store_bio: 'Everything baked goods 🤎',
+    store_location: 'Philippines',
+    store_rating: '5 (2)',
+    currency_symbol: '₱',
+    cart_button_label: '购物车',
+  });
   const [loading, setLoading] = useState(true);
 
+  // UI States
+  const [menuDrawerOpen, setMenuDrawerOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
   useEffect(() => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        setProducts(data.products || []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    let isMounted = true;
+
+    Promise.all([
+      fetch('/api/products').then(r => r.ok ? r.json() : { products: [] }).catch(() => ({ products: [] })),
+      fetch('/api/settings').then(r => r.ok ? r.json() : { settings: {} }).catch(() => ({ settings: {} }))
+    ]).then(([prodData, settData]) => {
+      if (!isMounted) return;
+
+      if (prodData?.products) {
+        setProducts(prodData.products);
+      }
+
+      if (settData?.settings) {
+        setSettings(prev => ({
+          ...prev,
+          banner_image: settData.settings.banner_image || '',
+          avatar_image: settData.settings.avatar_image || '',
+          store_name: settData.settings.store_name || 'Bakery Sora',
+          store_bio: settData.settings.store_bio || 'Everything baked goods 🤎',
+          store_location: settData.settings.store_location || 'Philippines',
+          store_rating: settData.settings.store_rating || '5 (2)',
+          currency_symbol: settData.settings.currency_symbol || '₱',
+          cart_button_label: settData.settings.cart_button_label || '购物车',
+        }));
+      }
+      setLoading(false);
+    }).catch(() => {
+      if (isMounted) setLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  return (
-    <>
-      <Navbar />
+  // Filter products by search query
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery.trim()) return products;
+    const q = searchQuery.toLowerCase().trim();
+    return products.filter(p => 
+      p.name?.toLowerCase().includes(q) || 
+      p.description?.toLowerCase().includes(q)
+    );
+  }, [products, searchQuery]);
 
-      {/* Hero Section */}
-      <section className={styles.hero}>
-        <div className={styles.heroContent}>
-          <div className={styles.heroBadge}>🍪 Freshly Baked Daily</div>
-          <h1 className={styles.heroTitle}>
-            Every cookie tells a story.<br />
-            <span className={styles.heroAccent}>One Bite</span> is all it takes.
-          </h1>
-          <p className={styles.heroSubtitle}>
-            Handcrafted premium cookies made with the finest ingredients.
-            Order online and pick up or get them delivered to your door.
-          </p>
+  const isStaffUser = isAuthenticated && user && user.role !== 'customer';
+  const currencySymbol = settings.currency_symbol || '₱';
+
+  return (
+    <div className={styles.storefrontWrapper}>
+      {/* 1. Quick Staff Toolbar (visible to store owner / staff) */}
+      {isStaffUser && (
+        <div className={styles.staffQuickBar}>
+          <span>👋 管理员模式已开启</span>
+          <Link href="/staff/storefront" className={styles.staffQuickBtn}>
+            🎨 更换店铺外观与图片
+          </Link>
         </div>
-        <div className={styles.heroVisual}>
-          <div className={styles.floatingCookie} style={{ animationDelay: '0s' }}>🍪</div>
-          <div className={styles.floatingCookie} style={{ animationDelay: '1s' }}>🍪</div>
-          <div className={styles.floatingCookie} style={{ animationDelay: '2s' }}>🍪</div>
+      )}
+
+      {/* 2. Top Navigation Bar (Take.app Style) */}
+      <header className={styles.topNav}>
+        <button 
+          type="button" 
+          className={styles.navIconButton}
+          onClick={() => setMenuDrawerOpen(true)}
+          aria-label="Open navigation menu"
+        >
+          ☰
+        </button>
+
+        <div className={styles.navCenterTitle}>
+          {settings.store_name || 'Bakery Sora'}
+        </div>
+
+        <div className={styles.navActions}>
+          <button 
+            type="button" 
+            className={styles.navIconButton}
+            onClick={() => setSearchOpen(prev => !prev)}
+            aria-label="Toggle search bar"
+          >
+            🔍
+          </button>
+
+          <Link href="/cart" className={styles.cartBagButton} aria-label="View Cart">
+            🛍️
+            {totalQuantity > 0 && (
+              <span className={styles.cartCountBadge}>{totalQuantity}</span>
+            )}
+          </Link>
+        </div>
+      </header>
+
+      {/* 3. Search Bar Dropdown */}
+      {searchOpen && (
+        <div className={styles.searchBar}>
+          <div className={styles.searchInputWrap}>
+            <input 
+              type="text" 
+              className={styles.searchInput}
+              placeholder="Search cookies by flavor or ingredients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+            {searchQuery && (
+              <button 
+                type="button" 
+                className={styles.searchClearBtn}
+                onClick={() => setSearchQuery('')}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 4. Hero Banner Card */}
+      <section className={styles.heroContainer}>
+        <div className={styles.heroBannerCard}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src={settings.banner_image || DEFAULT_BANNER} 
+            alt="Bakery Banner" 
+            className={styles.heroBannerImg}
+          />
+        </div>
+
+        {/* Circular Avatar / Logo overlapping banner */}
+        <div className={styles.avatarWrapper}>
+          <div className={styles.avatarCircle}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src={settings.avatar_image || DEFAULT_AVATAR} 
+              alt="Bakery Avatar Logo" 
+              className={styles.avatarImg}
+            />
+          </div>
         </div>
       </section>
 
-      {/* Mobile Divider */}
-      <div className={styles.mobileDivider} aria-hidden="true" />
+      {/* 5. Store Information */}
+      <section className={styles.storeInfo}>
+        <h1 className={styles.storeTitle}>
+          {settings.store_name || 'Bakery Sora'}
+        </h1>
 
-      {/* Menu Section */}
-      <section id="menu" className={styles.menu}>
-        <div className={styles.menuHeader}>
-          <h2 className={styles.sectionTitle}>Our Cookies</h2>
-          <p className={styles.sectionSubtitle}>Choose your favorites and build your perfect cookie box</p>
+        <div className={styles.ratingRow}>
+          <span className={styles.ratingStar}>⭐</span>
+          <span>{settings.store_rating || '5 (2)'}</span>
+          <span className={styles.ratingArrow}>&gt;</span>
+        </div>
+
+        <div className={styles.locationBadgeWrap}>
+          <span className={styles.locationBadge}>
+            📍 {settings.store_location || 'Philippines'}
+          </span>
+        </div>
+      </section>
+
+      {/* 6. Bio / Slogan Card */}
+      <div className={styles.bioCard}>
+        {settings.store_bio || 'Everything baked goods 🤎'}
+      </div>
+
+      {/* 7. Product Menu Section */}
+      <section className={styles.menuSection} id="menu">
+        <div className={styles.categoryHeader}>
+          <h2 className={styles.categoryTitle}>Cookies</h2>
+          <span className={styles.categoryCount}>
+            {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
+          </span>
         </div>
 
         {loading ? (
-          <LoadingSpinner text="Loading our fresh cookies..." />
-        ) : products.length === 0 ? (
-          <p className={styles.emptyMenu}>No cookies available right now. Check back soon!</p>
+          <LoadingSpinner text="Loading freshly baked cookies..." />
+        ) : filteredProducts.length === 0 ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>🍪</div>
+            <p>
+              {searchQuery 
+                ? `No cookies found matching "${searchQuery}"` 
+                : 'No cookies available at the moment. Please check back later!'}
+            </p>
+          </div>
         ) : (
-          <div className={styles.productGrid}>
-            {products.map(product => (
-              <ProductCard key={product.id} product={product} />
+          <div className={styles.productList}>
+            {filteredProducts.map(product => (
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                currencySymbol={currencySymbol}
+              />
             ))}
           </div>
         )}
       </section>
 
-      {/* How it works */}
-      <section className={styles.howItWorks}>
-        <h2 className={styles.sectionTitle}>How It Works</h2>
-        <div className={styles.steps}>
-          <div className={styles.step}>
-            <div className={styles.stepNumber}>1</div>
-            <h3>Pick Your Cookies</h3>
-            <p>Browse our menu and add your favorites to the cart</p>
-          </div>
-          <div className={styles.stepArrow}>→</div>
-          <div className={styles.step}>
-            <div className={styles.stepNumber}>2</div>
-            <h3>Checkout</h3>
-            <p>Fill in your details and review your order</p>
-          </div>
-          <div className={styles.stepArrow}>→</div>
-          <div className={styles.step}>
-            <div className={styles.stepNumber}>3</div>
-            <h3>Pay via QR</h3>
-            <p>Scan our QR code and upload payment proof</p>
-          </div>
-          <div className={styles.stepArrow}>→</div>
-          <div className={styles.step}>
-            <div className={styles.stepNumber}>4</div>
-            <h3>Enjoy!</h3>
-            <p>Pick up or receive your cookies fresh and warm</p>
-          </div>
+      {/* 8. Floating Bottom Sticky Cart Bar */}
+      {totalQuantity > 0 && (
+        <div className={styles.floatingCartContainer}>
+          <Link href="/cart" className={styles.floatingCartBar}>
+            <div className={styles.cartQtyCircle}>{totalQuantity}</div>
+            <div className={styles.cartBarLabel}>
+              {settings.cart_button_label || '购物车'}
+            </div>
+            <div className={styles.cartBarPrice}>
+              {currencySymbol}{total.toFixed(2)}
+            </div>
+          </Link>
         </div>
-      </section>
+      )}
 
-      <Footer />
-    </>
+      {/* 9. Slide-out Navigation Drawer Menu */}
+      {menuDrawerOpen && (
+        <>
+          <div 
+            className={styles.drawerOverlay} 
+            onClick={() => setMenuDrawerOpen(false)}
+          />
+          <aside className={styles.drawerMenu}>
+            <div className={styles.drawerHeader}>
+              <span className={styles.drawerTitle}>
+                {settings.store_name || 'Bakery Sora'}
+              </span>
+              <button 
+                type="button" 
+                className={styles.drawerCloseBtn}
+                onClick={() => setMenuDrawerOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className={styles.drawerLinks}>
+              <Link 
+                href="/" 
+                className={styles.drawerLink} 
+                onClick={() => setMenuDrawerOpen(false)}
+              >
+                🏠 Home / 首页
+              </Link>
+              <Link 
+                href="/cart" 
+                className={styles.drawerLink} 
+                onClick={() => setMenuDrawerOpen(false)}
+              >
+                🛒 Cart / 购物车 ({totalQuantity})
+              </Link>
+
+              {isAuthenticated && user?.role === 'customer' && (
+                <>
+                  <Link 
+                    href="/orders" 
+                    className={styles.drawerLink} 
+                    onClick={() => setMenuDrawerOpen(false)}
+                  >
+                    📦 My Orders / 历史订单
+                  </Link>
+                  <Link 
+                    href="/profile" 
+                    className={styles.drawerLink} 
+                    onClick={() => setMenuDrawerOpen(false)}
+                  >
+                    👤 Profile / 个人资料
+                  </Link>
+                </>
+              )}
+
+              {isStaffUser && (
+                <>
+                  <Link 
+                    href="/staff/dashboard" 
+                    className={`${styles.drawerLink} ${styles.drawerHighlight}`} 
+                    onClick={() => setMenuDrawerOpen(false)}
+                  >
+                    📊 Staff Dashboard / 管理后台
+                  </Link>
+                  <Link 
+                    href="/staff/storefront" 
+                    className={`${styles.drawerLink} ${styles.drawerHighlight}`} 
+                    onClick={() => setMenuDrawerOpen(false)}
+                  >
+                    🎨 更换店铺外观与图片
+                  </Link>
+                  <Link 
+                    href="/staff/products" 
+                    className={styles.drawerLink} 
+                    onClick={() => setMenuDrawerOpen(false)}
+                  >
+                    🍪 曲奇商品及图片管理
+                  </Link>
+                </>
+              )}
+            </div>
+
+            <div className={styles.drawerFooter}>
+              {isAuthenticated ? (
+                <button 
+                  type="button" 
+                  className={styles.drawerLogoutBtn}
+                  onClick={() => {
+                    setMenuDrawerOpen(false);
+                    logout();
+                    router.push('/');
+                  }}
+                >
+                  Log Out / 退出登录
+                </button>
+              ) : (
+                <Link 
+                  href="/login" 
+                  className="btn btnPrimary" 
+                  style={{ display: 'block', textAlign: 'center' }}
+                  onClick={() => setMenuDrawerOpen(false)}
+                >
+                  Sign In / 登录或注册
+                </Link>
+              )}
+            </div>
+          </aside>
+        </>
+      )}
+    </div>
   );
 }

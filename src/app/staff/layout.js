@@ -25,6 +25,7 @@ const NAV_GROUPS = [
   {
     label: '店铺管理', items: [
       { path: '/staff/products', label: '曲奇菜单', icon: '◇' },
+      { path: '/staff/storefront', label: '店铺外观与图片', icon: '🎨' },
       { path: '/staff/settings', label: '系统设置', icon: '⚙' },
     ]
   },

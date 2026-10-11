@@ -13,6 +13,13 @@ export default function SettingsPage() {
       <section className={styles.panel}>
         <h2>店铺与运营配置</h2>
         <div className={styles.history}>
+          <Link className={styles.historyRow} href="/staff/storefront">
+            <div>
+              <strong>🎨 店铺外观与橱窗设置 (Storefront & Images)</strong>
+              <p>自定义前台大横幅、圆形Logo、店名、标语及商品展示风格</p>
+            </div>
+            <span>前往 →</span>
+          </Link>
           <Link className={styles.historyRow} href="/staff/qr-payment">
             <div>
               <strong>店铺信息与收款设置</strong>
