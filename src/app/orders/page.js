@@ -100,8 +100,8 @@ export default function OrdersPage() {
         <div className={styles.trackContainer}>
           <div className={styles.topBar}>
             <div>
-              <h1 className={styles.pageTitle}>Order History & Tracking</h1>
-              <p className={styles.pageSubtitle}>Track live status and view past orders</p>
+              <h1 className={styles.pageTitle}>My Orders</h1>
+              <p className={styles.pageSubtitle}>View your order history and track order progress</p>
             </div>
             {orders.length > 0 && (
               <button 

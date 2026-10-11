@@ -117,10 +117,8 @@ export default function HomePage() {
         {/* Desktop Nav Links */}
         <nav className={styles.desktopNavLinks}>
           <Link href="/" className={styles.desktopNavLink}>Home</Link>
-          <Link href="/#menu" className={styles.desktopNavLink}>Our Menu</Link>
-          {isAuthenticated && user?.role === 'customer' && (
-            <Link href="/orders" className={styles.desktopNavLink}>My Orders</Link>
-          )}
+          <Link href="/#menu" className={styles.desktopNavLink}>Menu</Link>
+          <Link href="/orders" className={styles.desktopNavLink}>My Orders</Link>
           {isStaffUser && (
             <Link href="/staff/dashboard" className={styles.desktopNavLink}>Staff Dashboard</Link>
           )}
@@ -301,6 +299,20 @@ export default function HomePage() {
                 🏠 Home / 首页
               </Link>
               <Link
+                href="/#menu"
+                className={styles.drawerLink}
+                onClick={() => setMenuDrawerOpen(false)}
+              >
+                🍪 Menu / 菜单
+              </Link>
+              <Link
+                href="/orders"
+                className={styles.drawerLink}
+                onClick={() => setMenuDrawerOpen(false)}
+              >
+                📦 My Orders / 历史订单
+              </Link>
+              <Link
                 href="/cart"
                 className={styles.drawerLink}
                 onClick={() => setMenuDrawerOpen(false)}
@@ -309,22 +321,13 @@ export default function HomePage() {
               </Link>
 
               {isAuthenticated && user?.role === 'customer' && (
-                <>
-                  <Link
-                    href="/orders"
-                    className={styles.drawerLink}
-                    onClick={() => setMenuDrawerOpen(false)}
-                  >
-                    📦 My Orders / 历史订单
-                  </Link>
-                  <Link
-                    href="/profile"
-                    className={styles.drawerLink}
-                    onClick={() => setMenuDrawerOpen(false)}
-                  >
-                    👤 Profile / 个人资料
-                  </Link>
-                </>
+                <Link
+                  href="/profile"
+                  className={styles.drawerLink}
+                  onClick={() => setMenuDrawerOpen(false)}
+                >
+                  👤 Profile / 个人资料
+                </Link>
               )}
 
               {isStaffUser && (
