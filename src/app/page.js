@@ -22,9 +22,7 @@ export default function HomePage() {
     avatar_image: '',
     store_name: 'Bakery Sora',
     store_bio: 'Everything baked goods 🤎',
-    store_location: 'Philippines',
-    store_rating: '5 (2)',
-    currency_symbol: '₱',
+    currency_symbol: 'RM',
     cart_button_label: '购物车',
   });
   const [loading, setLoading] = useState(true);
@@ -54,9 +52,7 @@ export default function HomePage() {
           avatar_image: settData.settings.avatar_image || '',
           store_name: settData.settings.store_name || 'Bakery Sora',
           store_bio: settData.settings.store_bio || 'Everything baked goods 🤎',
-          store_location: settData.settings.store_location || 'Philippines',
-          store_rating: settData.settings.store_rating || '5 (2)',
-          currency_symbol: settData.settings.currency_symbol || '₱',
+          currency_symbol: settData.settings.currency_symbol || 'RM',
           cart_button_label: settData.settings.cart_button_label || '购物车',
         }));
       }
@@ -74,8 +70,8 @@ export default function HomePage() {
   const filteredProducts = useMemo(() => {
     if (!searchQuery.trim()) return products;
     const q = searchQuery.toLowerCase().trim();
-    return products.filter(p => 
-      p.name?.toLowerCase().includes(q) || 
+    return products.filter(p =>
+      p.name?.toLowerCase().includes(q) ||
       p.description?.toLowerCase().includes(q)
     );
   }, [products, searchQuery]);
@@ -98,8 +94,8 @@ export default function HomePage() {
       {/* 2. Top Navigation Bar (Adaptive Mobile & Laptop) */}
       <header className={styles.topNav}>
         <div className={styles.navLeft}>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className={`${styles.navIconButton} ${styles.mobileOnly}`}
             onClick={() => setMenuDrawerOpen(true)}
             aria-label="Open navigation menu"
@@ -133,8 +129,8 @@ export default function HomePage() {
 
         {/* Right Actions */}
         <div className={styles.navActions}>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className={styles.navIconButton}
             onClick={() => setSearchOpen(prev => !prev)}
             aria-label="Toggle search bar"
@@ -171,8 +167,8 @@ export default function HomePage() {
       {searchOpen && (
         <div className={styles.searchBar}>
           <div className={styles.searchInputWrap}>
-            <input 
-              type="text" 
+            <input
+              type="text"
               className={styles.searchInput}
               placeholder="Search cookies by flavor or ingredients..."
               value={searchQuery}
@@ -180,8 +176,8 @@ export default function HomePage() {
               autoFocus
             />
             {searchQuery && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className={styles.searchClearBtn}
                 onClick={() => setSearchQuery('')}
               >
@@ -196,9 +192,9 @@ export default function HomePage() {
       <section className={styles.heroContainer}>
         <div className={styles.heroBannerCard}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img 
-            src={settings.banner_image || DEFAULT_BANNER} 
-            alt="Bakery Banner" 
+          <img
+            src={settings.banner_image || DEFAULT_BANNER}
+            alt="Bakery Banner"
             className={styles.heroBannerImg}
           />
         </div>
@@ -207,9 +203,9 @@ export default function HomePage() {
         <div className={styles.avatarWrapper}>
           <div className={styles.avatarCircle}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              src={settings.avatar_image || DEFAULT_AVATAR} 
-              alt="Bakery Avatar Logo" 
+            <img
+              src={settings.avatar_image || DEFAULT_AVATAR}
+              alt="Bakery Avatar Logo"
               className={styles.avatarImg}
             />
           </div>
@@ -228,11 +224,7 @@ export default function HomePage() {
           <span className={styles.ratingArrow}>&gt;</span>
         </div>
 
-        <div className={styles.locationBadgeWrap}>
-          <span className={styles.locationBadge}>
-            📍 {settings.store_location || 'Philippines'}
-          </span>
-        </div>
+
       </section>
 
       {/* 6. Bio / Slogan Card */}
@@ -255,17 +247,17 @@ export default function HomePage() {
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>🍪</div>
             <p>
-              {searchQuery 
-                ? `No cookies found matching "${searchQuery}"` 
+              {searchQuery
+                ? `No cookies found matching "${searchQuery}"`
                 : 'No cookies available at the moment. Please check back later!'}
             </p>
           </div>
         ) : (
           <div className={styles.productList}>
             {filteredProducts.map(product => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
+              <ProductCard
+                key={product.id}
+                product={product}
                 currencySymbol={currencySymbol}
               />
             ))}
@@ -291,8 +283,8 @@ export default function HomePage() {
       {/* 9. Slide-out Navigation Drawer Menu */}
       {menuDrawerOpen && (
         <>
-          <div 
-            className={styles.drawerOverlay} 
+          <div
+            className={styles.drawerOverlay}
             onClick={() => setMenuDrawerOpen(false)}
           />
           <aside className={styles.drawerMenu}>
@@ -300,8 +292,8 @@ export default function HomePage() {
               <span className={styles.drawerTitle}>
                 {settings.store_name || 'Bakery Sora'}
               </span>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className={styles.drawerCloseBtn}
                 onClick={() => setMenuDrawerOpen(false)}
               >
@@ -310,16 +302,16 @@ export default function HomePage() {
             </div>
 
             <div className={styles.drawerLinks}>
-              <Link 
-                href="/" 
-                className={styles.drawerLink} 
+              <Link
+                href="/"
+                className={styles.drawerLink}
                 onClick={() => setMenuDrawerOpen(false)}
               >
                 🏠 Home / 首页
               </Link>
-              <Link 
-                href="/cart" 
-                className={styles.drawerLink} 
+              <Link
+                href="/cart"
+                className={styles.drawerLink}
                 onClick={() => setMenuDrawerOpen(false)}
               >
                 🛒 Cart / 购物车 ({totalQuantity})
@@ -327,16 +319,16 @@ export default function HomePage() {
 
               {isAuthenticated && user?.role === 'customer' && (
                 <>
-                  <Link 
-                    href="/orders" 
-                    className={styles.drawerLink} 
+                  <Link
+                    href="/orders"
+                    className={styles.drawerLink}
                     onClick={() => setMenuDrawerOpen(false)}
                   >
                     📦 My Orders / 历史订单
                   </Link>
-                  <Link 
-                    href="/profile" 
-                    className={styles.drawerLink} 
+                  <Link
+                    href="/profile"
+                    className={styles.drawerLink}
                     onClick={() => setMenuDrawerOpen(false)}
                   >
                     👤 Profile / 个人资料
@@ -346,23 +338,23 @@ export default function HomePage() {
 
               {isStaffUser && (
                 <>
-                  <Link 
-                    href="/staff/dashboard" 
-                    className={`${styles.drawerLink} ${styles.drawerHighlight}`} 
+                  <Link
+                    href="/staff/dashboard"
+                    className={`${styles.drawerLink} ${styles.drawerHighlight}`}
                     onClick={() => setMenuDrawerOpen(false)}
                   >
                     📊 Staff Dashboard / 管理后台
                   </Link>
-                  <Link 
-                    href="/staff/storefront" 
-                    className={`${styles.drawerLink} ${styles.drawerHighlight}`} 
+                  <Link
+                    href="/staff/storefront"
+                    className={`${styles.drawerLink} ${styles.drawerHighlight}`}
                     onClick={() => setMenuDrawerOpen(false)}
                   >
                     🎨 更换店铺外观与图片
                   </Link>
-                  <Link 
-                    href="/staff/products" 
-                    className={styles.drawerLink} 
+                  <Link
+                    href="/staff/products"
+                    className={styles.drawerLink}
                     onClick={() => setMenuDrawerOpen(false)}
                   >
                     🍪 曲奇商品及图片管理
@@ -373,8 +365,8 @@ export default function HomePage() {
 
             <div className={styles.drawerFooter}>
               {isAuthenticated ? (
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className={styles.drawerLogoutBtn}
                   onClick={() => {
                     setMenuDrawerOpen(false);
@@ -385,9 +377,9 @@ export default function HomePage() {
                   Log Out / 退出登录
                 </button>
               ) : (
-                <Link 
-                  href="/login" 
-                  className="btn btnPrimary" 
+                <Link
+                  href="/login"
+                  className="btn btnPrimary"
                   style={{ display: 'block', textAlign: 'center' }}
                   onClick={() => setMenuDrawerOpen(false)}
                 >

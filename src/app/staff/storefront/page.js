@@ -6,11 +6,11 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { uploadImageToImgBB } from '@/lib/imgbb';
-import { 
-  DEFAULT_BANNER, 
-  DEFAULT_AVATAR, 
-  PRESET_BANNERS, 
-  PRESET_AVATARS 
+import {
+  DEFAULT_BANNER,
+  DEFAULT_AVATAR,
+  PRESET_BANNERS,
+  PRESET_AVATARS
 } from '@/lib/storefrontDefaults';
 import styles from './page.module.css';
 
@@ -31,9 +31,8 @@ export default function StorefrontSettingsPage() {
     avatar_image: '',
     store_name: 'Bakery Sora',
     store_bio: 'Everything baked goods 🤎',
-    store_location: 'Philippines',
     store_rating: '5 (2)',
-    currency_symbol: '₱',
+    currency_symbol: 'RM',
     cart_button_label: '购物车',
   });
 
@@ -51,9 +50,7 @@ export default function StorefrontSettingsPage() {
             avatar_image: data.settings.avatar_image || '',
             store_name: data.settings.store_name || 'Bakery Sora',
             store_bio: data.settings.store_bio || 'Everything baked goods 🤎',
-            store_location: data.settings.store_location || 'Philippines',
-            store_rating: data.settings.store_rating || '5 (2)',
-            currency_symbol: data.settings.currency_symbol || '₱',
+            currency_symbol: data.settings.currency_symbol || 'RM',
             cart_button_label: data.settings.cart_button_label || '购物车',
           }));
         }
@@ -201,23 +198,23 @@ export default function StorefrontSettingsPage() {
               <div className={styles.uploadSection}>
                 <div className={styles.bannerPreviewBox}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={activeBanner} 
-                    alt="店铺横幅预览" 
-                    className={styles.bannerPreviewImg} 
+                  <img
+                    src={activeBanner}
+                    alt="店铺横幅预览"
+                    className={styles.bannerPreviewImg}
                   />
                 </div>
 
                 <div className={styles.actionButtons}>
-                  <input 
-                    type="file" 
+                  <input
+                    type="file"
                     ref={bannerFileRef}
                     onChange={handleBannerFileSelect}
                     accept="image/*"
                     className={styles.hiddenInput}
                   />
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => bannerFileRef.current?.click()}
                     className={`${styles.btnAction} ${styles.btnActionPrimary}`}
                     disabled={uploadingBanner}
@@ -225,8 +222,8 @@ export default function StorefrontSettingsPage() {
                     {uploadingBanner ? '正在上传...' : '📷 上传新横幅图片'}
                   </button>
                   {formData.banner_image && (
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => setFormData(prev => ({ ...prev, banner_image: '' }))}
                       className={styles.btnActionReset}
                     >
@@ -237,12 +234,12 @@ export default function StorefrontSettingsPage() {
 
                 <div className={styles.formGroup} style={{ marginTop: '10px' }}>
                   <label htmlFor="banner_image">或者粘贴图片网址 (URL)</label>
-                  <input 
-                    type="url" 
-                    id="banner_image" 
-                    name="banner_image" 
-                    value={formData.banner_image} 
-                    onChange={handleInputChange} 
+                  <input
+                    type="url"
+                    id="banner_image"
+                    name="banner_image"
+                    value={formData.banner_image}
+                    onChange={handleInputChange}
                     placeholder="https://example.com/banner.jpg"
                   />
                 </div>
@@ -251,8 +248,8 @@ export default function StorefrontSettingsPage() {
                   <div className={styles.presetTitle}>精选预设横幅（点击一键应用）：</div>
                   <div className={styles.presetGrid}>
                     {PRESET_BANNERS.map(b => (
-                      <div 
-                        key={b.id} 
+                      <div
+                        key={b.id}
                         className={`${styles.presetCard} ${formData.banner_image === b.url ? styles.presetCardActive : ''}`}
                         onClick={() => setFormData(prev => ({ ...prev, banner_image: b.url }))}
                       >
@@ -279,23 +276,23 @@ export default function StorefrontSettingsPage() {
                 <div className={styles.avatarPreviewRow}>
                   <div className={styles.avatarPreviewBox}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img 
-                      src={activeAvatar} 
-                      alt="品牌圆形Logo预览" 
-                      className={styles.avatarPreviewImg} 
+                    <img
+                      src={activeAvatar}
+                      alt="品牌圆形Logo预览"
+                      className={styles.avatarPreviewImg}
                     />
                   </div>
 
                   <div className={styles.actionButtons}>
-                    <input 
-                      type="file" 
+                    <input
+                      type="file"
                       ref={avatarFileRef}
                       onChange={handleAvatarFileSelect}
                       accept="image/*"
                       className={styles.hiddenInput}
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => avatarFileRef.current?.click()}
                       className={`${styles.btnAction} ${styles.btnActionPrimary}`}
                       disabled={uploadingAvatar}
@@ -303,8 +300,8 @@ export default function StorefrontSettingsPage() {
                       {uploadingAvatar ? '正在上传...' : '📷 上传圆形Logo'}
                     </button>
                     {formData.avatar_image && (
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => setFormData(prev => ({ ...prev, avatar_image: '' }))}
                         className={styles.btnActionReset}
                       >
@@ -316,12 +313,12 @@ export default function StorefrontSettingsPage() {
 
                 <div className={styles.formGroup} style={{ marginTop: '12px' }}>
                   <label htmlFor="avatar_image">或者粘贴Logo图片网址 (URL)</label>
-                  <input 
-                    type="url" 
-                    id="avatar_image" 
-                    name="avatar_image" 
-                    value={formData.avatar_image} 
-                    onChange={handleInputChange} 
+                  <input
+                    type="url"
+                    id="avatar_image"
+                    name="avatar_image"
+                    value={formData.avatar_image}
+                    onChange={handleInputChange}
                     placeholder="https://example.com/logo.png"
                   />
                 </div>
@@ -330,8 +327,8 @@ export default function StorefrontSettingsPage() {
                   <div className={styles.presetTitle}>精选预设Logo（点击一键应用）：</div>
                   <div className={styles.presetGrid}>
                     {PRESET_AVATARS.map(a => (
-                      <div 
-                        key={a.id} 
+                      <div
+                        key={a.id}
                         className={`${styles.presetCard} ${formData.avatar_image === a.url ? styles.presetCardActive : ''}`}
                         onClick={() => setFormData(prev => ({ ...prev, avatar_image: a.url }))}
                       >
@@ -357,80 +354,40 @@ export default function StorefrontSettingsPage() {
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
                   <label htmlFor="store_name">店铺名称 (Store Name) *</label>
-                  <input 
-                    type="text" 
-                    id="store_name" 
-                    name="store_name" 
-                    value={formData.store_name} 
-                    onChange={handleInputChange} 
+                  <input
+                    type="text"
+                    id="store_name"
+                    name="store_name"
+                    value={formData.store_name}
+                    onChange={handleInputChange}
                     placeholder="例如：Bakery Sora 或 One Bite"
-                    required 
+                    required
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="store_location">所在地标签 (Location Tag)</label>
-                  <input 
-                    type="text" 
-                    id="store_location" 
-                    name="store_location" 
-                    value={formData.store_location} 
-                    onChange={handleInputChange} 
-                    placeholder="例如：Philippines 或 Malaysia"
+                  <label htmlFor="store_bio">店铺公告标语胶囊 (Bio / Slogan)</label>
+                  <input
+                    type="text"
+                    id="store_bio"
+                    name="store_bio"
+                    value={formData.store_bio}
+                    onChange={handleInputChange}
+                    placeholder="例如：Everything baked goods 🤎"
                   />
-                </div>
-              </div>
-
-              <div className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="store_rating">评分与评价数 (Rating Text)</label>
-                  <input 
-                    type="text" 
-                    id="store_rating" 
-                    name="store_rating" 
-                    value={formData.store_rating} 
-                    onChange={handleInputChange} 
-                    placeholder="例如：5 (2) 或 4.9 (128)"
-                  />
-                  <div className={styles.helpText}>前台将展示为 ⭐ {formData.store_rating || '5 (2)'} &gt;</div>
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="currency_symbol">货币符号 (Currency)</label>
-                  <input 
-                    type="text" 
-                    id="currency_symbol" 
-                    name="currency_symbol" 
-                    value={formData.currency_symbol} 
-                    onChange={handleInputChange} 
-                    placeholder="₱ 或 RM 或 $"
+                  <label htmlFor="cart_button_label">底部购物车常驻条文字</label>
+                  <input
+                    type="text"
+                    id="cart_button_label"
+                    name="cart_button_label"
+                    value={formData.cart_button_label}
+                    onChange={handleInputChange}
+                    placeholder="购物车 或 View Cart"
                   />
                 </div>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label htmlFor="store_bio">店铺公告标语胶囊 (Bio / Slogan)</label>
-                <input 
-                  type="text" 
-                  id="store_bio" 
-                  name="store_bio" 
-                  value={formData.store_bio} 
-                  onChange={handleInputChange} 
-                  placeholder="例如：Everything baked goods 🤎"
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label htmlFor="cart_button_label">底部购物车常驻条文字</label>
-                <input 
-                  type="text" 
-                  id="cart_button_label" 
-                  name="cart_button_label" 
-                  value={formData.cart_button_label} 
-                  onChange={handleInputChange} 
-                  placeholder="购物车 或 View Cart"
-                />
-              </div>
             </section>
 
             {/* Product photos hint */}
@@ -445,9 +402,9 @@ export default function StorefrontSettingsPage() {
             </div>
 
             <div className={styles.saveBar}>
-              <button 
-                type="submit" 
-                className={styles.saveBtn} 
+              <button
+                type="submit"
+                className={styles.saveBtn}
                 disabled={saving || uploadingBanner || uploadingAvatar}
               >
                 {saving ? '正在保存中...' : '💾 保存所有外观更改'}
@@ -470,11 +427,11 @@ export default function StorefrontSettingsPage() {
                   <span>🔍</span>
                   <span style={{ position: 'relative' }}>
                     🛍️
-                    <span style={{ 
-                      position: 'absolute', top: '-4px', right: '-6px', 
-                      background: '#2c1d0f', color: '#fff', fontSize: '0.6rem', 
-                      borderRadius: '50%', width: '14px', height: '14px', 
-                      display: 'flex', alignItems: 'center', justifyContent: 'center' 
+                    <span style={{
+                      position: 'absolute', top: '-4px', right: '-6px',
+                      background: '#2c1d0f', color: '#fff', fontSize: '0.6rem',
+                      borderRadius: '50%', width: '14px', height: '14px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>2</span>
                   </span>
                 </div>
@@ -501,11 +458,6 @@ export default function StorefrontSettingsPage() {
                   <div className={styles.mockupRating}>
                     ⭐ {formData.store_rating || '5 (2)'} &gt;
                   </div>
-                  <div>
-                    <span className={styles.mockupLocation}>
-                      📍 {formData.store_location || 'Philippines'}
-                    </span>
-                  </div>
                 </div>
 
                 {/* Bio Pill */}
@@ -525,10 +477,10 @@ export default function StorefrontSettingsPage() {
                       {formData.currency_symbol || '₱'}120.00
                     </div>
                   </div>
-                  <div style={{ 
-                    width: '50px', height: '50px', borderRadius: '8px', 
-                    background: '#e8decb', display: 'flex', alignItems: 'center', 
-                    justifyContent: 'center', fontSize: '1.4rem' 
+                  <div style={{
+                    width: '50px', height: '50px', borderRadius: '8px',
+                    background: '#e8decb', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', fontSize: '1.4rem'
                   }}>
                     🍪
                   </div>
