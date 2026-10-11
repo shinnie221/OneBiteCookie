@@ -427,23 +427,7 @@
   font-size: 1.15rem;
   font-weight: 800;
   color: #111;
-  margin-bottom: 4px;
-}
-
-.mockupRating {
-  font-size: 0.78rem;
-  color: #333;
-  margin-bottom: 6px;
-}
-
-.mockupLocation {
-  display: inline-block;
-  background: #f2f2f2;
-  color: #555;
-  font-size: 0.72rem;
-  padding: 3px 10px;
-  border-radius: 20px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .mockupBioPill {

@@ -14,7 +14,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isCartOrProfile = pathname?.startsWith('/cart') || pathname?.startsWith('/profile');
+  const isCartOrProfile = pathname?.startsWith('/cart') || pathname?.startsWith('/profile') || pathname?.startsWith('/checkout') || pathname?.startsWith('/payment');
 
   const handleLogout = () => {
     logout();

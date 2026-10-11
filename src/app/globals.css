@@ -96,6 +96,12 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 60vh;
 }
 
+@media (max-width: 600px) {
+  .pageContainer {
+    padding: 20px 14px 40px;
+  }
+}
+
 .card {
   background: white;
   border-radius: var(--radius-xl);

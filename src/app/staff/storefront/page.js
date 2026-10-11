@@ -31,7 +31,6 @@ export default function StorefrontSettingsPage() {
     avatar_image: '',
     store_name: 'Bakery Sora',
     store_bio: 'Everything baked goods 🤎',
-    store_rating: '5 (2)',
     currency_symbol: 'RM',
     cart_button_label: '购物车',
   });
@@ -348,7 +347,7 @@ export default function StorefrontSettingsPage() {
             <section className={styles.card}>
               <div className={styles.cardHeader}>
                 <h2>3. 店铺信息与文字文案</h2>
-                <p>调整店名、评分、所在地标签及公告胶囊。</p>
+                <p>调整店名、店铺公告标语及购物车常驻条文字。</p>
               </div>
 
               <div className={styles.formGrid}>
@@ -366,28 +365,41 @@ export default function StorefrontSettingsPage() {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="store_bio">店铺公告标语胶囊 (Bio / Slogan)</label>
+                  <label htmlFor="currency_symbol">货币符号 (Currency)</label>
                   <input
                     type="text"
-                    id="store_bio"
-                    name="store_bio"
-                    value={formData.store_bio}
+                    id="currency_symbol"
+                    name="currency_symbol"
+                    value={formData.currency_symbol}
                     onChange={handleInputChange}
-                    placeholder="例如：Everything baked goods 🤎"
+                    placeholder="RM 或 ₱ 或 $"
                   />
                 </div>
+              </div>
 
-                <div className={styles.formGroup}>
-                  <label htmlFor="cart_button_label">底部购物车常驻条文字</label>
-                  <input
-                    type="text"
-                    id="cart_button_label"
-                    name="cart_button_label"
-                    value={formData.cart_button_label}
-                    onChange={handleInputChange}
-                    placeholder="购物车 或 View Cart"
-                  />
-                </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="store_bio">店铺公告标语胶囊 (Bio / Slogan)</label>
+                <input
+                  type="text"
+                  id="store_bio"
+                  name="store_bio"
+                  value={formData.store_bio}
+                  onChange={handleInputChange}
+                  placeholder="例如：Everything baked goods 🤎"
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="cart_button_label">底部购物车常驻条文字</label>
+                <input
+                  type="text"
+                  id="cart_button_label"
+                  name="cart_button_label"
+                  value={formData.cart_button_label}
+                  onChange={handleInputChange}
+                  placeholder="购物车 或 View Cart"
+                />
+              </div>
             </section>
 
             {/* Product photos hint */}
@@ -455,9 +467,6 @@ export default function StorefrontSettingsPage() {
                 {/* Store Info */}
                 <div className={styles.mockupInfo}>
                   <div className={styles.mockupTitle}>{formData.store_name || 'Bakery Sora'}</div>
-                  <div className={styles.mockupRating}>
-                    ⭐ {formData.store_rating || '5 (2)'} &gt;
-                  </div>
                 </div>
 
                 {/* Bio Pill */}

@@ -63,15 +63,15 @@
   font-family: var(--font-heading);
   font-size: 1.15rem;
   font-weight: 800;
-  color: var(--color-text);
+  color: var(--color-primary);
   letter-spacing: -0.2px;
 }
 
 .addBtn {
-  background: #2d1c10;
+  background: var(--color-primary);
   color: white;
   border: none;
-  padding: 6px 14px;
+  padding: 7px 16px;
   border-radius: 20px;
   font-weight: 600;
   font-size: 0.82rem;
@@ -84,7 +84,7 @@
 }
 
 .addBtn:hover {
-  background: #482f1d;
+  background: var(--color-primary-dark);
   transform: scale(1.02);
 }
 
@@ -103,8 +103,8 @@
   display: flex;
   align-items: center;
   gap: 0;
-  background: #f6f1eb;
-  border: 1px solid var(--color-border);
+  background: white;
+  border: 1.5px solid var(--color-primary);
   border-radius: 20px;
   overflow: hidden;
 }
@@ -114,7 +114,7 @@
   height: 28px;
   border: none;
   background: transparent;
-  color: #2d1c10;
+  color: var(--color-primary);
   font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
@@ -126,7 +126,7 @@
 }
 
 .qtyBtn:hover:not(:disabled) {
-  background: #2d1c10;
+  background: var(--color-primary);
   color: white;
 }
 

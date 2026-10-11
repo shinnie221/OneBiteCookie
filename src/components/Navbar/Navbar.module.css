@@ -176,6 +176,10 @@
     z-index: 999;
   }
 
+  .loginBtn {
+    display: none;
+  }
+
   .nav.open {
     display: flex;
   }

@@ -217,14 +217,6 @@ export default function HomePage() {
         <h1 className={styles.storeTitle}>
           {settings.store_name || 'Bakery Sora'}
         </h1>
-
-        <div className={styles.ratingRow}>
-          <span className={styles.ratingStar}>⭐</span>
-          <span>{settings.store_rating || '5 (2)'}</span>
-          <span className={styles.ratingArrow}>&gt;</span>
-        </div>
-
-
       </section>
 
       {/* 6. Bio / Slogan Card */}
