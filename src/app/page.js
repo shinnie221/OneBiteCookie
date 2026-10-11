@@ -79,6 +79,29 @@ export default function HomePage() {
   const isStaffUser = isAuthenticated && user && user.role !== 'customer';
   const currencySymbol = settings.currency_symbol || '₱';
 
+  const scrollToMenu = (e) => {
+    if (e) e.preventDefault();
+    const menuEl = document.getElementById('menu');
+    if (menuEl) {
+      menuEl.scrollIntoView({ behavior: 'smooth' });
+      if (typeof window !== 'undefined') {
+        window.history.pushState(null, '', '#menu');
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#menu') {
+      const timer = setTimeout(() => {
+        const menuEl = document.getElementById('menu');
+        if (menuEl) {
+          menuEl.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   return (
     <div className={styles.storefrontWrapper}>
       {/* 1. Quick Staff Toolbar (visible to store owner / staff) */}
@@ -117,7 +140,7 @@ export default function HomePage() {
         {/* Desktop Nav Links */}
         <nav className={styles.desktopNavLinks}>
           <Link href="/" className={styles.desktopNavLink}>Home</Link>
-          <Link href="/#menu" className={styles.desktopNavLink}>Menu</Link>
+          <a href="#menu" className={styles.desktopNavLink} onClick={scrollToMenu}>Menu</a>
           <Link href="/orders" className={styles.desktopNavLink}>My Orders</Link>
           {isStaffUser && (
             <Link href="/staff/dashboard" className={styles.desktopNavLink}>Staff Dashboard</Link>
@@ -298,13 +321,16 @@ export default function HomePage() {
               >
                 🏠 Home / 首页
               </Link>
-              <Link
-                href="/#menu"
+              <a
+                href="#menu"
                 className={styles.drawerLink}
-                onClick={() => setMenuDrawerOpen(false)}
+                onClick={(e) => {
+                  setMenuDrawerOpen(false);
+                  scrollToMenu(e);
+                }}
               >
                 🍪 Menu / 菜单
-              </Link>
+              </a>
               <Link
                 href="/orders"
                 className={styles.drawerLink}

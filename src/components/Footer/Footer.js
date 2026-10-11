@@ -1,7 +1,20 @@
+'use client';
+
 import Link from 'next/link';
 import styles from './Footer.module.css';
 
 export default function Footer() {
+  const handleMenuClick = (e) => {
+    if (typeof window !== 'undefined' && window.location.pathname === '/') {
+      e.preventDefault();
+      const menuEl = document.getElementById('menu');
+      if (menuEl) {
+        menuEl.scrollIntoView({ behavior: 'smooth' });
+        window.history.pushState(null, '', '#menu');
+      }
+    }
+  };
+
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>
@@ -17,7 +30,7 @@ export default function Footer() {
           <div className={styles.links}>
             <h4>Quick Links</h4>
             <Link href="/">Home</Link>
-            <Link href="/#menu">Menu</Link>
+            <Link href="/#menu" onClick={handleMenuClick}>Menu</Link>
             <Link href="/orders">My Orders</Link>
           </div>
 

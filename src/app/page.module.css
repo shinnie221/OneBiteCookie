@@ -370,6 +370,7 @@
 .menuSection {
   padding: 12px 18px 90px;
   flex: 1;
+  scroll-margin-top: 80px;
 }
 
 .categoryHeader {

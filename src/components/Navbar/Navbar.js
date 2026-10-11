@@ -21,6 +21,20 @@ export default function Navbar() {
     router.push('/');
   };
 
+  const handleMenuClick = (e) => {
+    setMobileOpen(false);
+    if (pathname === '/') {
+      e.preventDefault();
+      const menuEl = document.getElementById('menu');
+      if (menuEl) {
+        menuEl.scrollIntoView({ behavior: 'smooth' });
+        if (typeof window !== 'undefined') {
+          window.history.pushState(null, '', '#menu');
+        }
+      }
+    }
+  };
+
   return (
     <nav className={styles.navbar}>
       <div className={styles.container}>
@@ -31,7 +45,7 @@ export default function Navbar() {
 
         <div className={`${styles.nav} ${mobileOpen ? styles.open : ''}`}>
           <Link href="/" className={styles.navLink} onClick={() => setMobileOpen(false)}>Home</Link>
-          <Link href="/#menu" className={styles.navLink} onClick={() => setMobileOpen(false)}>Menu</Link>
+          <Link href="/#menu" className={styles.navLink} onClick={handleMenuClick}>Menu</Link>
           <Link href="/orders" className={styles.navLink} onClick={() => setMobileOpen(false)}>My Orders</Link>
 
           {isAuthenticated && user?.role !== 'customer' && (
