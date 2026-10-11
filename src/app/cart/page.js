@@ -7,7 +7,6 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Navbar from '@/components/Navbar/Navbar';
-import Footer from '@/components/Footer/Footer';
 import styles from './page.module.css';
 
 export default function CartPage() {
@@ -23,24 +22,23 @@ export default function CartPage() {
 
   // Fetch available visible vouchers on mount and when authentication changes
   useEffect(() => {
-    fetchPublicVouchers();
-  }, [isAuthenticated]);
+    let isMounted = true;
+    const fetchFn = isAuthenticated ? authFetch : fetch;
+    fetchFn('/api/vouchers/public')
+      .then(res => res.ok ? res.json() : { vouchers: [] })
+      .then(data => {
+        if (!isMounted) return;
+        if (data.vouchers) setPublicVouchers(data.vouchers);
+        setLoadingVouchers(false);
+      })
+      .catch(() => {
+        if (isMounted) setLoadingVouchers(false);
+      });
 
-  const fetchPublicVouchers = async () => {
-    setLoadingVouchers(true);
-    try {
-      const fetchFn = isAuthenticated ? authFetch : fetch;
-      const res = await fetchFn('/api/vouchers/public');
-      const data = await res.json();
-      if (res.ok && data.vouchers) {
-        setPublicVouchers(data.vouchers);
-      }
-    } catch (error) {
-      console.error('Failed to load available vouchers:', error);
-    } finally {
-      setLoadingVouchers(false);
-    }
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, authFetch]);
 
   const applyVoucherCode = async (codeToApply) => {
     const code = (codeToApply || voucherCode).trim();
@@ -87,7 +85,7 @@ export default function CartPage() {
           <div className={styles.emptyCart}>
             <div className={styles.emptyIcon}>🛒</div>
             <h2>Your cart is empty</h2>
-            <p>Looks like you haven't added any cookies yet.</p>
+            <p>Looks like you haven&apos;t added any cookies yet.</p>
             <Link href="/" className="btn btnPrimary mt2">Browse Menu</Link>
           </div>
         ) : (
@@ -270,8 +268,6 @@ export default function CartPage() {
           </div>
         )}
       </main>
-      
-      <Footer />
     </>
   );
 }

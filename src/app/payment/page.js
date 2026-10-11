@@ -6,7 +6,6 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Navbar from '@/components/Navbar/Navbar';
-import Footer from '@/components/Footer/Footer';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import styles from './page.module.css';
 
@@ -200,7 +199,6 @@ export default function PaymentPage() {
         <main className="pageContainer" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <LoadingSpinner text="Preparing payment..." />
         </main>
-        <Footer />
       </>
     );
   }
@@ -298,8 +296,6 @@ export default function PaymentPage() {
           </div>
         </div>
       </main>
-      
-      <Footer />
     </>
   );
 }

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
@@ -12,6 +12,9 @@ export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+
+  const isCartOrProfile = pathname?.startsWith('/cart') || pathname?.startsWith('/profile');
 
   const handleLogout = () => {
     logout();
@@ -74,23 +77,27 @@ export default function Navbar() {
         </div>
 
         <div className={styles.actions}>
-          <Link href="/cart" className={styles.cartBtn} aria-label="Cart">
-            🛒
-            {totalQuantity > 0 && (
-              <span className={styles.badge}>{totalQuantity}</span>
-            )}
-          </Link>
-          
-          {isAuthenticated ? (
-            <>
-              {user?.role === 'customer' ? (
-                <Link href="/profile" className={styles.loginBtn}>Profile</Link>
-              ) : (
-                <Link href="/staff/dashboard" className={styles.loginBtn}>Dashboard</Link>
+          {!isCartOrProfile && (
+            <Link href="/cart" className={styles.cartBtn} aria-label="Cart">
+              🛒
+              {totalQuantity > 0 && (
+                <span className={styles.badge}>{totalQuantity}</span>
               )}
-            </>
-          ) : (
-            <Link href="/login" className={styles.loginBtn}>Sign In</Link>
+            </Link>
+          )}
+          
+          {!isCartOrProfile && (
+            isAuthenticated ? (
+              <>
+                {user?.role === 'customer' ? (
+                  <Link href="/profile" className={styles.loginBtn}>Profile</Link>
+                ) : (
+                  <Link href="/staff/dashboard" className={styles.loginBtn}>Dashboard</Link>
+                )}
+              </>
+            ) : (
+              <Link href="/login" className={styles.loginBtn}>Sign In</Link>
+            )
           )}
 
           <button 

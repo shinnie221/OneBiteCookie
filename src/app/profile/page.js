@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Navbar from '@/components/Navbar/Navbar';
-import Footer from '@/components/Footer/Footer';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import {
   ADDRESS_LABELS,
@@ -228,7 +227,6 @@ export default function ProfilePage() {
         <main className={styles.container}>
           <LoadingSpinner text="Loading your profile..." />
         </main>
-        <Footer />
       </>
     );
   }
@@ -628,8 +626,6 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-
-      <Footer />
     </>
   );
 }

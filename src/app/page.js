@@ -7,6 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import ProductCard from '@/components/ProductCard/ProductCard';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
+import Footer from '@/components/Footer/Footer';
 import { DEFAULT_BANNER, DEFAULT_AVATAR } from '@/lib/storefrontDefaults';
 import styles from './page.module.css';
 
@@ -94,21 +95,43 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* 2. Top Navigation Bar (Take.app Style) */}
+      {/* 2. Top Navigation Bar (Adaptive Mobile & Laptop) */}
       <header className={styles.topNav}>
-        <button 
-          type="button" 
-          className={styles.navIconButton}
-          onClick={() => setMenuDrawerOpen(true)}
-          aria-label="Open navigation menu"
-        >
-          ☰
-        </button>
+        <div className={styles.navLeft}>
+          <button 
+            type="button" 
+            className={`${styles.navIconButton} ${styles.mobileOnly}`}
+            onClick={() => setMenuDrawerOpen(true)}
+            aria-label="Open navigation menu"
+          >
+            ☰
+          </button>
 
-        <div className={styles.navCenterTitle}>
+          <Link href="/" className={styles.desktopBrand}>
+            <span>🍪</span>
+            <span>{settings.store_name || 'Bakery Sora'}</span>
+          </Link>
+        </div>
+
+        {/* Mobile Center Title */}
+        <div className={`${styles.navCenterTitle} ${styles.mobileOnly}`}>
           {settings.store_name || 'Bakery Sora'}
         </div>
 
+        {/* Desktop Nav Links */}
+        <nav className={styles.desktopNavLinks}>
+          <Link href="/" className={styles.desktopNavLink}>Home</Link>
+          <Link href="/#menu" className={styles.desktopNavLink}>Our Menu</Link>
+          <Link href="/track" className={styles.desktopNavLink}>Track Order</Link>
+          {isAuthenticated && user?.role === 'customer' && (
+            <Link href="/orders" className={styles.desktopNavLink}>My Orders</Link>
+          )}
+          {isStaffUser && (
+            <Link href="/staff/dashboard" className={styles.desktopNavLink}>Staff Dashboard</Link>
+          )}
+        </nav>
+
+        {/* Right Actions */}
         <div className={styles.navActions}>
           <button 
             type="button" 
@@ -125,6 +148,22 @@ export default function HomePage() {
               <span className={styles.cartCountBadge}>{totalQuantity}</span>
             )}
           </Link>
+
+          {isAuthenticated ? (
+            user?.role === 'customer' ? (
+              <Link href="/profile" className={styles.desktopAuthBtn}>
+                👤 Profile
+              </Link>
+            ) : (
+              <Link href="/staff/dashboard" className={styles.desktopAuthBtn}>
+                ⚙️ Dashboard
+              </Link>
+            )
+          ) : (
+            <Link href="/login" className={styles.desktopAuthBtn}>
+              Sign In
+            </Link>
+          )}
         </div>
       </header>
 
@@ -359,6 +398,9 @@ export default function HomePage() {
           </aside>
         </>
       )}
+
+      {/* 10. Footer (Home Page Only) */}
+      <Footer />
     </div>
   );
 }

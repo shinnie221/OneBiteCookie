@@ -7,7 +7,6 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Navbar from '@/components/Navbar/Navbar';
-import Footer from '@/components/Footer/Footer';
 import {
   formatFullAddress,
   isStateDeliverable,
@@ -568,8 +567,6 @@ export default function CheckoutPage() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </>
   );
 }

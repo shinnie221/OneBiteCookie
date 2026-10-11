@@ -1,21 +1,22 @@
 /* ========================================
    Take.app / Boutique Storefront Style
+   Supports both Mobile View & Laptop View
    ======================================== */
 
 .storefrontWrapper {
-  max-width: 600px;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
   min-height: 100vh;
   background: #ffffff;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.04);
   position: relative;
   display: flex;
   flex-direction: column;
 }
 
-@media (min-width: 768px) {
-  body {
-    background: #f7f3ee;
+@media (min-width: 1280px) {
+  .storefrontWrapper {
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.04);
   }
 }
 
@@ -23,22 +24,22 @@
 .staffQuickBar {
   background: #2d1c10;
   color: #fff;
-  padding: 8px 16px;
-  font-size: 0.82rem;
+  padding: 8px 24px;
+  font-size: 0.85rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: sticky;
   top: 0;
-  z-index: 90;
+  z-index: 95;
 }
 
 .staffQuickBtn {
   background: #a0714f;
   color: white;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 8px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
   text-decoration: none;
   transition: background 0.2s;
@@ -48,7 +49,9 @@
   background: #b5825d;
 }
 
-/* Storefront Top Header Bar */
+/* ========================================
+   Top Navigation Bar (Adaptive Mobile & Laptop)
+   ======================================== */
 .topNav {
   display: flex;
   align-items: center;
@@ -60,6 +63,19 @@
   backdrop-filter: blur(10px);
   z-index: 80;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+  .topNav {
+    padding: 16px 32px;
+  }
+}
+
+/* Left Section */
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .navIconButton {
@@ -80,17 +96,56 @@
   background: #f5ede4;
 }
 
+/* Mobile Center Title */
 .navCenterTitle {
-  font-size: 0.92rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #333;
   letter-spacing: -0.2px;
 }
 
+/* Desktop Brand Logo */
+.desktopBrand {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #2d1c10;
+  text-decoration: none;
+  font-family: var(--font-heading);
+}
+
+.desktopBrand:hover {
+  color: var(--color-primary);
+}
+
+/* Desktop Center Nav Links */
+.desktopNavLinks {
+  display: none;
+  align-items: center;
+  gap: 28px;
+}
+
+.desktopNavLink {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #55483d;
+  text-decoration: none;
+  transition: color 0.2s;
+  position: relative;
+  padding: 4px 0;
+}
+
+.desktopNavLink:hover {
+  color: var(--color-primary);
+}
+
+/* Right Actions */
 .navActions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .cartBagButton {
@@ -102,6 +157,7 @@
   padding: 4px 8px;
   display: flex;
   align-items: center;
+  text-decoration: none;
 }
 
 .cartCountBadge {
@@ -122,9 +178,43 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.desktopAuthBtn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: #f5ede4;
+  color: #2d1c10;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.desktopAuthBtn:hover {
+  background: #ebe0d3;
+  color: var(--color-primary);
+}
+
+@media (min-width: 768px) {
+  .mobileOnly {
+    display: none !important;
+  }
+  .desktopBrand {
+    display: flex;
+  }
+  .desktopNavLinks {
+    display: flex;
+  }
+  .desktopAuthBtn {
+    display: inline-flex;
+  }
+}
+
 /* Expandable Search Input */
 .searchBar {
-  padding: 8px 18px 12px;
+  padding: 8px 24px 14px;
   background: #ffffff;
   border-bottom: 1px solid #f0eae1;
 }
@@ -133,14 +223,16 @@
   position: relative;
   display: flex;
   align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .searchInput {
   width: 100%;
-  padding: 9px 36px 9px 14px;
+  padding: 10px 38px 10px 16px;
   border: 1.5px solid var(--color-border);
   border-radius: 20px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   background: #fbf8f4;
   outline: none;
   transition: all 0.2s;
@@ -154,15 +246,17 @@
 
 .searchClearBtn {
   position: absolute;
-  right: 12px;
+  right: 14px;
   background: transparent;
   border: none;
   color: #888;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   cursor: pointer;
 }
 
-/* Storefront Hero Card */
+/* ========================================
+   Storefront Hero Card
+   ======================================== */
 .heroContainer {
   padding: 16px 18px 8px;
 }
@@ -257,13 +351,13 @@
   color: #55483d;
   font-size: 0.8rem;
   font-weight: 500;
-  padding: 4px 12px;
+  padding: 4px 14px;
   border-radius: 20px;
 }
 
 /* Bio Announcement Pill Card */
 .bioCard {
-  margin: 0 18px 16px;
+  margin: 0 18px 20px;
   background: #ffffff;
   border: 1px solid #ede5db;
   border-radius: 16px;
@@ -275,7 +369,38 @@
   box-shadow: 0 2px 8px rgba(45, 27, 14, 0.03);
 }
 
-/* Menu Section */
+/* Laptop View Enhancements for Hero */
+@media (min-width: 768px) {
+  .heroContainer {
+    padding: 24px 32px 10px;
+  }
+  .heroBannerCard {
+    height: 300px;
+    border-radius: 30px;
+  }
+  .avatarWrapper {
+    margin-top: -56px;
+  }
+  .avatarCircle {
+    width: 110px;
+    height: 110px;
+    border-width: 5px;
+  }
+  .storeTitle {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+  }
+  .bioCard {
+    max-width: 520px;
+    margin: 0 auto 24px;
+    font-size: 0.98rem;
+    padding: 14px 24px;
+  }
+}
+
+/* ========================================
+   Menu Section (1 Col Mobile, 2 Col Laptop)
+   ======================================== */
 .menuSection {
   padding: 12px 18px 90px;
   flex: 1;
@@ -285,19 +410,20 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   padding-bottom: 6px;
+  border-bottom: 1px solid #f2ece4;
 }
 
 .categoryTitle {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #1a1a1a;
   letter-spacing: -0.2px;
 }
 
 .categoryCount {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: #887d72;
 }
 
@@ -305,6 +431,20 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+@media (min-width: 768px) {
+  .menuSection {
+    padding: 20px 32px 100px;
+  }
+  .categoryTitle {
+    font-size: 1.6rem;
+  }
+  .productList {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
 }
 
 .emptyState {
@@ -318,7 +458,9 @@
   margin-bottom: 8px;
 }
 
-/* Floating Bottom Sticky Cart Pill */
+/* ========================================
+   Floating Bottom Sticky Cart Pill
+   ======================================== */
 .floatingCartContainer {
   position: fixed;
   bottom: 24px;
@@ -342,7 +484,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px 0 12px;
+  padding: 0 22px 0 12px;
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.28);
   cursor: pointer;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
@@ -393,7 +535,9 @@
   white-space: nowrap;
 }
 
-/* Slide-out Navigation Drawer */
+/* ========================================
+   Slide-out Navigation Drawer
+   ======================================== */
 .drawerOverlay {
   position: fixed;
   inset: 0;

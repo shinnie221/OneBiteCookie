@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar/Navbar';
-import Footer from '@/components/Footer/Footer';
 import OrderStatusBadge from '@/components/OrderStatusBadge/OrderStatusBadge';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import styles from './page.module.css';
@@ -333,7 +332,6 @@ export default function OrdersPage() {
           )}
         </div>
       </main>
-      <Footer />
     </>
   );
 }
