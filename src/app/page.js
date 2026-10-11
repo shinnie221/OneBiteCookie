@@ -118,7 +118,6 @@ export default function HomePage() {
         <nav className={styles.desktopNavLinks}>
           <Link href="/" className={styles.desktopNavLink}>Home</Link>
           <Link href="/#menu" className={styles.desktopNavLink}>Our Menu</Link>
-          <Link href="/track" className={styles.desktopNavLink}>Track Order</Link>
           {isAuthenticated && user?.role === 'customer' && (
             <Link href="/orders" className={styles.desktopNavLink}>My Orders</Link>
           )}
@@ -307,13 +306,6 @@ export default function HomePage() {
                 onClick={() => setMenuDrawerOpen(false)}
               >
                 🛒 Cart / 购物车 ({totalQuantity})
-              </Link>
-              <Link
-                href="/track"
-                className={styles.drawerLink}
-                onClick={() => setMenuDrawerOpen(false)}
-              >
-                🔍 Track Order / 订单追踪
               </Link>
 
               {isAuthenticated && user?.role === 'customer' && (

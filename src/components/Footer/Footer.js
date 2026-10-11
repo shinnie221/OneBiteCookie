@@ -18,7 +18,6 @@ export default function Footer() {
             <h4>Quick Links</h4>
             <Link href="/">Home</Link>
             <Link href="/#menu">Our Menu</Link>
-            <Link href="/track">Track Order</Link>
           </div>
 
           <div className={styles.contact}>
