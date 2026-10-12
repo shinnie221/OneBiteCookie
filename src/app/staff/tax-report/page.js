@@ -15,6 +15,7 @@ import {
   calculateProfitAndLoss,
   calculateInventoryStatus,
   exportToExcel,
+  exportMultiSheetExcel,
   exportToCSV
 } from '@/lib/taxReport.mjs';
 import styles from './page.module.css';
@@ -280,47 +281,180 @@ function TaxReportContent() {
     return { total, deductible, capital, count: filteredExpenses.length };
   }, [filteredExpenses]);
 
+  // Channel Separated Datasets
+  const onlineSales = useMemo(() => {
+    return filteredSales.filter(tx => tx.channel === 'Online Pre-order' || tx.channel === 'Manual POS');
+  }, [filteredSales]);
+
+  const boothSales = useMemo(() => {
+    return filteredSales.filter(tx => tx.channel === 'Booth / Market');
+  }, [filteredSales]);
+
+  const supplierSales = useMemo(() => {
+    return filteredSales.filter(tx => tx.channel === 'Wholesale');
+  }, [filteredSales]);
+
+  // Channel Sub-totals
+  const onlineTotals = useMemo(() => {
+    let gross = 0, discount = 0, delivery = 0, refunds = 0, net = 0, pieces = 0;
+    for (const tx of onlineSales) {
+      if (tx.isPaidCompleted) {
+        gross += tx.subtotal;
+        discount += tx.discount;
+        delivery += tx.deliveryFee;
+        refunds += tx.refundAmount;
+        net += tx.netAmount;
+        pieces += tx.totalQuantity;
+      }
+    }
+    return { gross, discount, delivery, refunds, net, pieces, count: onlineSales.length };
+  }, [onlineSales]);
+
+  const boothTotals = useMemo(() => {
+    let gross = 0, discount = 0, net = 0, pieces = 0;
+    for (const tx of boothSales) {
+      if (tx.isPaidCompleted) {
+        gross += tx.subtotal;
+        discount += tx.discount;
+        net += tx.netAmount;
+        pieces += tx.totalQuantity;
+      }
+    }
+    return { gross, discount, net, pieces, count: boothSales.length };
+  }, [boothSales]);
+
+  const supplierTotals = useMemo(() => {
+    let gross = 0, discount = 0, invoiced = 0, received = 0, outstanding = 0, pieces = 0;
+    for (const tx of supplierSales) {
+      if (tx.isPaidCompleted) {
+        gross += tx.subtotal;
+        discount += tx.discount;
+        invoiced += tx.totalAmount;
+        received += tx.netAmount;
+        outstanding += (tx.outstanding || 0);
+        pieces += tx.totalQuantity;
+      }
+    }
+    return { gross, discount, invoiced, received, outstanding, pieces, count: supplierSales.length };
+  }, [supplierSales]);
+
   // Export handlers
   const handleExportSales = () => {
-    const headers = [
+    // 1. Online headers and rows
+    const onlineHeaders = [
       'Transaction Date (DD/MM/YYYY)',
-      'Order ID / Ref',
+      'Order ID',
       'Channel',
-      'Customer Name & Contact',
-      'Cookie Flavours & Quantities Sold',
-      'Total Pieces Sold',
-      'Gross Subtotal (RM)',
-      'Discounts (RM)',
-      'Delivery Charges (RM)',
-      'Refunds (RM)',
-      'Net Sales Amount (RM)',
+      'Customer Name',
+      'Contact Phone',
+      'Cookie Flavours & Quantities',
+      'Pieces Sold',
+      'Subtotal (RM)',
+      'Discount (RM)',
+      'Delivery Fee (RM)',
+      'Net Amount (RM)',
       'Payment Method',
       'Payment Status',
-      'Transaction Slip / Ref No.',
+      'Refund (RM)',
+      'Slip / Ref No.',
       'Staff Notes'
     ];
-
-    const rows = filteredSales.map(tx => [
+    const onlineRows = onlineSales.map(tx => [
       formatMYDate(tx.date),
       tx.id,
       tx.channel,
-      tx.customer,
+      tx.customerName,
+      tx.phone,
       tx.flavourSummary,
       tx.totalQuantity,
       tx.subtotal.toFixed(2),
       tx.discount.toFixed(2),
       tx.deliveryFee.toFixed(2),
-      tx.refundAmount.toFixed(2),
       tx.netAmount.toFixed(2),
       tx.paymentMethod,
       tx.paymentStatus,
+      tx.refundAmount.toFixed(2),
       tx.transactionRef,
       tx.notes
     ]);
 
-    const filename = `OneBite_Sales_Report_${dateFrom}_to_${dateTo}`;
-    exportToExcel(filename, 'Sales Report', headers, rows);
-    toast.success('销售报表已导出为 Excel (.xlsx) 表格文件');
+    // 2. Booth headers and rows
+    const boothHeaders = [
+      'Booth Date (DD/MM/YYYY)',
+      'Booth ID',
+      'Event / Location Venue',
+      'Flavours Prepared & Sold',
+      'Pieces Sold',
+      'Gross Sales (RM)',
+      'Discount (RM)',
+      'Net Amount Received (RM)',
+      'Payment Method',
+      'Status',
+      'Settlement Ref'
+    ];
+    const boothRows = boothSales.map(tx => [
+      formatMYDate(tx.date),
+      tx.id,
+      tx.customerName,
+      tx.flavourSummary,
+      tx.totalQuantity,
+      tx.subtotal.toFixed(2),
+      tx.discount.toFixed(2),
+      tx.netAmount.toFixed(2),
+      tx.paymentMethod,
+      tx.paymentStatus,
+      tx.transactionRef
+    ]);
+
+    // 3. Supplier headers and rows
+    const supplierHeaders = [
+      'Supply Date (DD/MM/YYYY)',
+      'Invoice / Wholesale ID',
+      'Partner Store / Buyer',
+      'Contact Phone',
+      'Flavours & Quantities Supplied',
+      'Pieces Supplied',
+      'Wholesale Subtotal (RM)',
+      'Discount (RM)',
+      'Invoiced Total (RM)',
+      'Amount Received (RM)',
+      'Outstanding Receivables (RM)',
+      'Payment Status',
+      'Notes'
+    ];
+    const supplierRows = supplierSales.map(tx => [
+      formatMYDate(tx.date),
+      tx.id,
+      tx.customerName,
+      tx.phone,
+      tx.flavourSummary,
+      tx.totalQuantity,
+      tx.subtotal.toFixed(2),
+      tx.discount.toFixed(2),
+      tx.totalAmount.toFixed(2),
+      tx.netAmount.toFixed(2),
+      (tx.outstanding || 0).toFixed(2),
+      tx.paymentStatus,
+      tx.notes
+    ]);
+
+    if (channelFilter === 'online') {
+      exportToExcel(`OneBite_Online_Orders_${dateFrom}_to_${dateTo}`, 'Online Orders', onlineHeaders, onlineRows);
+      toast.success('线上预购报表已导出为 Excel (.xlsx) 表格文件');
+    } else if (channelFilter === 'booth') {
+      exportToExcel(`OneBite_Booth_Sales_${dateFrom}_to_${dateTo}`, 'Booth Sales', boothHeaders, boothRows);
+      toast.success('集市摆摊报表已导出为 Excel (.xlsx) 表格文件');
+    } else if (channelFilter === 'supplier') {
+      exportToExcel(`OneBite_Supplier_Wholesale_${dateFrom}_to_${dateTo}`, 'Supplier & Wholesale', supplierHeaders, supplierRows);
+      toast.success('供货商与批发报表已导出为 Excel (.xlsx) 表格文件');
+    } else {
+      exportMultiSheetExcel(`OneBite_Sales_Report_All_Sections_${dateFrom}_to_${dateTo}`, [
+        { sheetName: 'Online Orders', headers: onlineHeaders, rows: onlineRows },
+        { sheetName: 'Booth Sales', headers: boothHeaders, rows: boothRows },
+        { sheetName: 'Supplier & Wholesale', headers: supplierHeaders, rows: supplierRows },
+      ]);
+      toast.success('全渠道销售报表（含线上预购、集市摆摊、供货商批发3个独立工作表）已导出为 Excel (.xlsx) 文件');
+    }
   };
 
   const handleExportExpenses = () => {
@@ -748,171 +882,431 @@ function TaxReportContent() {
                 </div>
               </div>
 
-              {/* Sales Filters Toolbar */}
-              <div className={styles.tableCard}>
-                <div className={styles.tableHeaderBar}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <h3 className={styles.tableTitle}>
-                      详细销售交易明细
-                      <span className={styles.tableCountBadge}>{filteredSales.length} 笔交易</span>
-                    </h3>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-                    {/* Search */}
-                    <input
-                      type="text"
-                      placeholder="搜索订单号 / 顾客 / 口味..."
-                      className={styles.dateInput}
-                      style={{ width: '180px' }}
-                      value={salesSearch}
-                      onChange={e => setSalesSearch(e.target.value)}
-                    />
-
-                    {/* Channel */}
-                    <select
-                      className={styles.filterSelect}
-                      value={channelFilter}
-                      onChange={e => setChannelFilter(e.target.value)}
-                    >
-                      <option value="all">所有销售渠道</option>
-                      <option value="Online Pre-order">线上预购 (Online)</option>
-                      <option value="Booth / Market">摆摊集市 (Booth)</option>
-                      <option value="Wholesale">批发供货 (Wholesale)</option>
-                      <option value="Manual POS">人工补录 (POS)</option>
-                    </select>
-
-                    {/* Payment Method */}
-                    <select
-                      className={styles.filterSelect}
-                      value={paymentMethodFilter}
-                      onChange={e => setPaymentMethodFilter(e.target.value)}
-                    >
-                      <option value="all">所有付款方式</option>
-                      <option value="duitnow_qr">DuitNow QR</option>
-                      <option value="bank_transfer">银行转账 (Bank)</option>
-                      <option value="cash">现金 (Cash)</option>
-                    </select>
-
-                    {/* Payment Status */}
-                    <select
-                      className={styles.filterSelect}
-                      value={paymentStatusFilter}
-                      onChange={e => setPaymentStatusFilter(e.target.value)}
-                    >
-                      <option value="all">所有付款状态</option>
-                      <option value="completed">已付清 / 已验证 (Verified)</option>
-                      <option value="pending">待付款 / 待审核 (Pending)</option>
-                      <option value="refunded">已退款 (Refunded)</option>
-                      <option value="cancelled">已取消 (Cancelled)</option>
-                    </select>
-                  </div>
+              {/* Channel Sub-Navigation & Filters Toolbar */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <div className={styles.channelNav} style={{ marginBottom: 0 }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#553c2e', marginRight: '0.25rem' }}>
+                    销售渠道分区:
+                  </span>
+                  <button
+                    type="button"
+                    className={`${styles.channelNavBtn} ${channelFilter === 'all' ? styles.channelNavBtnActive : ''}`}
+                    onClick={() => setChannelFilter('all')}
+                  >
+                    🔘 全部渠道汇总 ({filteredSales.length})
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.channelNavBtn} ${channelFilter === 'online' ? styles.channelNavBtnActive : ''}`}
+                    onClick={() => setChannelFilter('online')}
+                  >
+                    🛒 线上预购订单 ({onlineSales.length})
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.channelNavBtn} ${channelFilter === 'booth' ? styles.channelNavBtnActive : ''}`}
+                    onClick={() => setChannelFilter('booth')}
+                  >
+                    🎪 集市摆摊销售 ({boothSales.length})
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.channelNavBtn} ${channelFilter === 'supplier' ? styles.channelNavBtnActive : ''}`}
+                    onClick={() => setChannelFilter('supplier')}
+                  >
+                    🏭 供应商与批发 ({supplierSales.length})
+                  </button>
                 </div>
 
-                <div className={styles.tableWrapper}>
-                  <table className={styles.dataTable}>
-                    <thead>
-                      <tr>
-                        <th>交易日期 (DD/MM/YYYY)</th>
-                        <th>订单编号</th>
-                        <th>渠道 / 顾客信息</th>
-                        <th>售出曲奇口味与数量</th>
-                        <th>总件数</th>
-                        <th>折扣</th>
-                        <th>配送费</th>
-                        <th>实付总额</th>
-                        <th>付款方式</th>
-                        <th>付款状态</th>
-                        <th>退款记录</th>
-                        <th>流水/转账凭证号</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredSales.length === 0 ? (
-                        <tr>
-                          <td colSpan={12} style={{ textAlign: 'center', padding: '2.5rem', color: '#888' }}>
-                            没有符合筛选条件的销售记录。
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredSales.map((tx, idx) => (
-                          <tr key={`${tx.source}-${tx.rawId || tx.id}-${idx}`}>
-                            <td style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>
-                              {formatMYDate(tx.date)}
-                            </td>
-                            <td style={{ fontFamily: 'monospace', fontWeight: 600, color: '#3b2219' }}>
-                              {tx.id}
-                            </td>
-                            <td>
-                              <div style={{ fontWeight: 600 }}>{tx.customerName}</div>
-                              <div style={{ fontSize: '0.75rem', color: '#777' }}>
-                                {tx.channel} {tx.phone !== '-' ? `· ${tx.phone}` : ''}
-                              </div>
-                            </td>
-                            <td style={{ maxWidth: '240px', fontSize: '0.8rem', lineHeight: 1.3 }}>
-                              {tx.flavourSummary}
-                            </td>
-                            <td style={{ textAlign: 'center', fontWeight: 600 }}>
-                              {tx.totalQuantity} 块
-                            </td>
-                            <td style={{ color: tx.discount > 0 ? '#b91c1c' : '#888' }}>
-                              {tx.discount > 0 ? `-${formatMYR(tx.discount)}` : '-'}
-                            </td>
-                            <td style={{ color: tx.deliveryFee > 0 ? '#15803d' : '#888' }}>
-                              {tx.deliveryFee > 0 ? `+${formatMYR(tx.deliveryFee)}` : '-'}
-                            </td>
-                            <td style={{ fontWeight: 700, color: '#1e3a8a', fontSize: '0.92rem' }}>
-                              {formatMYR(tx.netAmount)}
-                            </td>
-                            <td>
-                              <span className={styles.methodBadge}>
-                                {tx.paymentMethod.includes('cash')
-                                  ? '💵 现金'
-                                  : tx.paymentMethod.includes('bank')
-                                  ? '🏦 银行转账'
-                                  : '📱 DuitNow QR'}
-                              </span>
-                            </td>
-                            <td>
-                              {tx.isPaidCompleted ? (
-                                <span className={`${styles.badge} ${styles.badgeSuccess}`}>已完成入账</span>
-                              ) : tx.isRefunded ? (
-                                <span className={`${styles.badge} ${styles.badgeDanger}`}>已退款</span>
-                              ) : tx.isCancelled ? (
-                                <span className={`${styles.badge} ${styles.badgeNeutral}`}>已取消</span>
-                              ) : (
-                                <span className={`${styles.badge} ${styles.badgeWarning}`}>待确认/审核</span>
-                              )}
-                            </td>
-                            <td style={{ color: tx.refundAmount > 0 ? '#b91c1c' : '#888' }}>
-                              {tx.refundAmount > 0 ? formatMYR(tx.refundAmount) : '-'}
-                            </td>
-                            <td style={{ fontSize: '0.78rem', color: '#555', maxWidth: '140px', wordBreak: 'break-all' }}>
-                              {tx.transactionRef}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                    {filteredSales.length > 0 && (
-                      <tfoot className={styles.tfootSummary}>
-                        <tr>
-                          <td colSpan={4} style={{ textAlign: 'right', paddingRight: '1rem' }}>
-                            合计汇总 (Total Paid Sales):
-                          </td>
-                          <td style={{ textAlign: 'center' }}>{salesTotals.totalQty} 块</td>
-                          <td style={{ color: '#b91c1c' }}>-{formatMYR(salesTotals.discount)}</td>
-                          <td style={{ color: '#15803d' }}>+{formatMYR(salesTotals.delivery)}</td>
-                          <td style={{ color: '#1e3a8a', fontSize: '1rem' }}>{formatMYR(salesTotals.net)}</td>
-                          <td colSpan={2}></td>
-                          <td style={{ color: '#b91c1c' }}>{formatMYR(salesTotals.refunds)}</td>
-                          <td></td>
-                        </tr>
-                      </tfoot>
-                    )}
-                  </table>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                  <input
+                    type="text"
+                    placeholder="搜索单号 / 顾客 / 口味..."
+                    className={styles.dateInput}
+                    style={{ width: '180px' }}
+                    value={salesSearch}
+                    onChange={e => setSalesSearch(e.target.value)}
+                  />
+
+                  <select
+                    className={styles.filterSelect}
+                    value={paymentMethodFilter}
+                    onChange={e => setPaymentMethodFilter(e.target.value)}
+                  >
+                    <option value="all">所有付款方式</option>
+                    <option value="duitnow_qr">DuitNow QR</option>
+                    <option value="bank_transfer">银行转账 (Bank)</option>
+                    <option value="cash">现金 (Cash)</option>
+                  </select>
+
+                  <select
+                    className={styles.filterSelect}
+                    value={paymentStatusFilter}
+                    onChange={e => setPaymentStatusFilter(e.target.value)}
+                  >
+                    <option value="all">所有付款状态</option>
+                    <option value="completed">已付清 / 已验证 (Verified)</option>
+                    <option value="pending">待付款 / 待审核 (Pending)</option>
+                    <option value="refunded">已退款 (Refunded)</option>
+                    <option value="cancelled">已取消 (Cancelled)</option>
+                  </select>
                 </div>
               </div>
+
+              {/* ===================================================
+                  SECTION 1: ONLINE ORDERS (线上预购订单)
+                 =================================================== */}
+              {(channelFilter === 'all' || channelFilter === 'online') && (
+                <div className={styles.tableCard}>
+                  <div className={styles.sectionBanner}>
+                    <div>
+                      <h4 className={styles.sectionBannerTitle}>
+                        🛒 线上预购订单明细 (Online Pre-orders & Delivery)
+                      </h4>
+                      <p className={styles.sectionBannerSub}>
+                        顾客网站在线自助下单、预购自取及 Lalamove / 管理员亲送订单记录
+                      </p>
+                    </div>
+                    <div className={styles.sectionQuickStats}>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>实收净额</span>
+                        <span className={styles.statItemVal} style={{ color: '#1e3a8a' }}>{formatMYR(onlineTotals.net)}</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>订单数</span>
+                        <span className={styles.statItemVal}>{onlineTotals.count} 笔</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>已售出</span>
+                        <span className={styles.statItemVal}>{onlineTotals.pieces} 块</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>代收运费</span>
+                        <span className={styles.statItemVal} style={{ color: '#15803d' }}>+{formatMYR(onlineTotals.delivery)}</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>折扣优惠</span>
+                        <span className={styles.statItemVal} style={{ color: '#b91c1c' }}>-{formatMYR(onlineTotals.discount)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.dataTable}>
+                      <thead>
+                        <tr>
+                          <th>交易日期 (DD/MM/YYYY)</th>
+                          <th>订单编号</th>
+                          <th>顾客姓名与电话</th>
+                          <th>订购口味与件数明细</th>
+                          <th>总件数</th>
+                          <th>折扣</th>
+                          <th>配送费</th>
+                          <th>实付总额</th>
+                          <th>付款方式</th>
+                          <th>付款状态</th>
+                          <th>退款记录</th>
+                          <th>转账凭证 / 单号</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {onlineSales.length === 0 ? (
+                          <tr>
+                            <td colSpan={12} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
+                              暂无符合条件的线上预购订单。
+                            </td>
+                          </tr>
+                        ) : (
+                          onlineSales.map((tx, idx) => (
+                            <tr key={`online-${tx.rawId || tx.id}-${idx}`}>
+                              <td style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{formatMYDate(tx.date)}</td>
+                              <td style={{ fontFamily: 'monospace', fontWeight: 600, color: '#3b2219' }}>{tx.id}</td>
+                              <td>
+                                <div style={{ fontWeight: 600 }}>{tx.customerName}</div>
+                                <div style={{ fontSize: '0.75rem', color: '#777' }}>{tx.phone}</div>
+                              </td>
+                              <td style={{ maxWidth: '240px', fontSize: '0.8rem', lineHeight: 1.3 }}>{tx.flavourSummary}</td>
+                              <td style={{ textAlign: 'center', fontWeight: 600 }}>{tx.totalQuantity} 块</td>
+                              <td style={{ color: tx.discount > 0 ? '#b91c1c' : '#888' }}>
+                                {tx.discount > 0 ? `-${formatMYR(tx.discount)}` : '-'}
+                              </td>
+                              <td style={{ color: tx.deliveryFee > 0 ? '#15803d' : '#888' }}>
+                                {tx.deliveryFee > 0 ? `+${formatMYR(tx.deliveryFee)}` : '-'}
+                              </td>
+                              <td style={{ fontWeight: 700, color: '#1e3a8a', fontSize: '0.92rem' }}>
+                                {formatMYR(tx.netAmount)}
+                              </td>
+                              <td>
+                                <span className={styles.methodBadge}>
+                                  {tx.paymentMethod.includes('cash')
+                                    ? '💵 现金'
+                                    : tx.paymentMethod.includes('bank')
+                                    ? '🏦 银行转账'
+                                    : '📱 DuitNow QR'}
+                                </span>
+                              </td>
+                              <td>
+                                {tx.isPaidCompleted ? (
+                                  <span className={`${styles.badge} ${styles.badgeSuccess}`}>已完成入账</span>
+                                ) : tx.isRefunded ? (
+                                  <span className={`${styles.badge} ${styles.badgeDanger}`}>已退款</span>
+                                ) : tx.isCancelled ? (
+                                  <span className={`${styles.badge} ${styles.badgeNeutral}`}>已取消</span>
+                                ) : (
+                                  <span className={`${styles.badge} ${styles.badgeWarning}`}>待确认/审核</span>
+                                )}
+                              </td>
+                              <td style={{ color: tx.refundAmount > 0 ? '#b91c1c' : '#888' }}>
+                                {tx.refundAmount > 0 ? formatMYR(tx.refundAmount) : '-'}
+                              </td>
+                              <td style={{ fontSize: '0.78rem', color: '#555', maxWidth: '140px', wordBreak: 'break-all' }}>
+                                {tx.transactionRef}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                      {onlineSales.length > 0 && (
+                        <tfoot className={styles.tfootSummary}>
+                          <tr>
+                            <td colSpan={4} style={{ textAlign: 'right', paddingRight: '1rem' }}>
+                              线上订单小计 (Online Subtotal):
+                            </td>
+                            <td style={{ textAlign: 'center' }}>{onlineTotals.pieces} 块</td>
+                            <td style={{ color: '#b91c1c' }}>-{formatMYR(onlineTotals.discount)}</td>
+                            <td style={{ color: '#15803d' }}>+{formatMYR(onlineTotals.delivery)}</td>
+                            <td style={{ color: '#1e3a8a', fontSize: '0.98rem' }}>{formatMYR(onlineTotals.net)}</td>
+                            <td colSpan={2}></td>
+                            <td style={{ color: '#b91c1c' }}>{formatMYR(onlineTotals.refunds)}</td>
+                            <td></td>
+                          </tr>
+                        </tfoot>
+                      )}
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ===================================================
+                  SECTION 2: BOOTH SALES (集市摆摊销售)
+                 =================================================== */}
+              {(channelFilter === 'all' || channelFilter === 'booth') && (
+                <div className={styles.tableCard}>
+                  <div className={styles.sectionBanner}>
+                    <div>
+                      <h4 className={styles.sectionBannerTitle}>
+                        🎪 集市摆摊销售明细 (Pop-up Market & Booth Sales)
+                      </h4>
+                      <p className={styles.sectionBannerSub}>
+                        线下集市活动、大学快闪摊位现场 POS 收银及曲奇售卖盘点
+                      </p>
+                    </div>
+                    <div className={styles.sectionQuickStats}>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>集市入账</span>
+                        <span className={styles.statItemVal} style={{ color: '#1e3a8a' }}>{formatMYR(boothTotals.net)}</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>出摊场次</span>
+                        <span className={styles.statItemVal}>{boothTotals.count} 场</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>售出总件数</span>
+                        <span className={styles.statItemVal}>{boothTotals.pieces} 块</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>现场折扣</span>
+                        <span className={styles.statItemVal} style={{ color: '#b91c1c' }}>-{formatMYR(boothTotals.discount)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.dataTable}>
+                      <thead>
+                        <tr>
+                          <th>出摊日期 (DD/MM/YYYY)</th>
+                          <th>集市单号</th>
+                          <th>集市地点 / 活动场地</th>
+                          <th>现场备货与售出明细</th>
+                          <th>售出总件数</th>
+                          <th>销售毛额</th>
+                          <th>现场折扣</th>
+                          <th>实收金额</th>
+                          <th>收款方式</th>
+                          <th>结单状态</th>
+                          <th>流水结算凭证</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {boothSales.length === 0 ? (
+                          <tr>
+                            <td colSpan={11} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
+                              暂无符合条件的集市摆摊销售记录。
+                            </td>
+                          </tr>
+                        ) : (
+                          boothSales.map((tx, idx) => (
+                            <tr key={`booth-${tx.rawId || tx.id}-${idx}`}>
+                              <td style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{formatMYDate(tx.date)}</td>
+                              <td style={{ fontFamily: 'monospace', fontWeight: 600, color: '#3b2219' }}>{tx.id}</td>
+                              <td style={{ fontWeight: 600, color: '#4a2818' }}>{tx.customerName}</td>
+                              <td style={{ maxWidth: '280px', fontSize: '0.8rem', lineHeight: 1.3 }}>{tx.flavourSummary}</td>
+                              <td style={{ textAlign: 'center', fontWeight: 600 }}>{tx.totalQuantity} 块</td>
+                              <td style={{ color: '#555' }}>{formatMYR(tx.subtotal)}</td>
+                              <td style={{ color: tx.discount > 0 ? '#b91c1c' : '#888' }}>
+                                {tx.discount > 0 ? `-${formatMYR(tx.discount)}` : '-'}
+                              </td>
+                              <td style={{ fontWeight: 700, color: '#1e3a8a', fontSize: '0.92rem' }}>
+                                {formatMYR(tx.netAmount)}
+                              </td>
+                              <td>
+                                <span className={styles.methodBadge}>📱 DuitNow QR / 现金</span>
+                              </td>
+                              <td>
+                                <span className={`${styles.badge} ${styles.badgeSuccess}`}>
+                                  {tx.orderStatus === 'completed' ? '已结单入账' : '摆摊进行中'}
+                                </span>
+                              </td>
+                              <td style={{ fontSize: '0.78rem', color: '#555' }}>{tx.transactionRef}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                      {boothSales.length > 0 && (
+                        <tfoot className={styles.tfootSummary}>
+                          <tr>
+                            <td colSpan={4} style={{ textAlign: 'right', paddingRight: '1rem' }}>
+                              集市摆摊小计 (Booth Subtotal):
+                            </td>
+                            <td style={{ textAlign: 'center' }}>{boothTotals.pieces} 块</td>
+                            <td>{formatMYR(boothTotals.gross)}</td>
+                            <td style={{ color: '#b91c1c' }}>-{formatMYR(boothTotals.discount)}</td>
+                            <td style={{ color: '#1e3a8a', fontSize: '0.98rem' }}>{formatMYR(boothTotals.net)}</td>
+                            <td colSpan={3}></td>
+                          </tr>
+                        </tfoot>
+                      )}
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ===================================================
+                  SECTION 3: SUPPLIER & WHOLESALE (供货商与批发合作)
+                 =================================================== */}
+              {(channelFilter === 'all' || channelFilter === 'supplier') && (
+                <div className={styles.tableCard}>
+                  <div className={styles.sectionBanner}>
+                    <div>
+                      <h4 className={styles.sectionBannerTitle}>
+                        🏭 供应商与批发合作明细 (Supplier & Wholesale Partner Sales)
+                      </h4>
+                      <p className={styles.sectionBannerSub}>
+                        咖啡厅、合作烘焙店、供货商大宗批量供货及 B2B 结算账单
+                      </p>
+                    </div>
+                    <div className={styles.sectionQuickStats}>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>批发供货总额</span>
+                        <span className={styles.statItemVal} style={{ color: '#3b2219' }}>{formatMYR(supplierTotals.invoiced)}</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>已收账款</span>
+                        <span className={styles.statItemVal} style={{ color: '#1e3a8a' }}>{formatMYR(supplierTotals.received)}</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>尚欠应收款</span>
+                        <span className={styles.statItemVal} style={{ color: supplierTotals.outstanding > 0 ? '#b91c1c' : '#15803d' }}>
+                          {formatMYR(supplierTotals.outstanding)}
+                        </span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>合作商户</span>
+                        <span className={styles.statItemVal}>{supplierTotals.count} 家</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <span className={styles.statItemLabel}>供货曲奇</span>
+                        <span className={styles.statItemVal}>{supplierTotals.pieces} 块</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.dataTable}>
+                      <thead>
+                        <tr>
+                          <th>供货日期 (DD/MM/YYYY)</th>
+                          <th>批发单号</th>
+                          <th>合作店铺 / 供货商名称</th>
+                          <th>负责人电话</th>
+                          <th>供货口味与数量明细</th>
+                          <th>供货总件数</th>
+                          <th>批发总额</th>
+                          <th>优惠折扣</th>
+                          <th>实收账款</th>
+                          <th>尚欠应收款</th>
+                          <th>结款状态</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {supplierSales.length === 0 ? (
+                          <tr>
+                            <td colSpan={11} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
+                              暂无符合条件的供应商/批发供货记录。
+                            </td>
+                          </tr>
+                        ) : (
+                          supplierSales.map((tx, idx) => (
+                            <tr key={`supplier-${tx.rawId || tx.id}-${idx}`}>
+                              <td style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{formatMYDate(tx.date)}</td>
+                              <td style={{ fontFamily: 'monospace', fontWeight: 600, color: '#3b2219' }}>{tx.id}</td>
+                              <td style={{ fontWeight: 700, color: '#3b2219' }}>{tx.customerName}</td>
+                              <td style={{ color: '#666' }}>{tx.phone}</td>
+                              <td style={{ maxWidth: '280px', fontSize: '0.8rem', lineHeight: 1.3 }}>{tx.flavourSummary}</td>
+                              <td style={{ textAlign: 'center', fontWeight: 600 }}>{tx.totalQuantity} 块</td>
+                              <td style={{ color: '#555' }}>{formatMYR(tx.totalAmount)}</td>
+                              <td style={{ color: tx.discount > 0 ? '#b91c1c' : '#888' }}>
+                                {tx.discount > 0 ? `-${formatMYR(tx.discount)}` : '-'}
+                              </td>
+                              <td style={{ fontWeight: 700, color: '#1e3a8a', fontSize: '0.92rem' }}>
+                                {formatMYR(tx.netAmount)}
+                              </td>
+                              <td style={{ fontWeight: 700, color: (tx.outstanding || 0) > 0 ? '#b91c1c' : '#15803d' }}>
+                                {(tx.outstanding || 0) > 0 ? formatMYR(tx.outstanding) : '已结清'}
+                              </td>
+                              <td>
+                                {(tx.outstanding || 0) > 0 ? (
+                                  <span className={`${styles.badge} ${styles.badgeWarning}`}>部分付款/未结清</span>
+                                ) : (
+                                  <span className={`${styles.badge} ${styles.badgeSuccess}`}>全额结清</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                      {supplierSales.length > 0 && (
+                        <tfoot className={styles.tfootSummary}>
+                          <tr>
+                            <td colSpan={5} style={{ textAlign: 'right', paddingRight: '1rem' }}>
+                              批发供货小计 (Supplier & Wholesale Subtotal):
+                            </td>
+                            <td style={{ textAlign: 'center' }}>{supplierTotals.pieces} 块</td>
+                            <td>{formatMYR(supplierTotals.invoiced)}</td>
+                            <td></td>
+                            <td style={{ color: '#1e3a8a', fontSize: '0.98rem' }}>{formatMYR(supplierTotals.received)}</td>
+                            <td style={{ color: supplierTotals.outstanding > 0 ? '#b91c1c' : '#15803d' }}>
+                              {formatMYR(supplierTotals.outstanding)}
+                            </td>
+                            <td></td>
+                          </tr>
+                        </tfoot>
+                      )}
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -12,6 +12,7 @@ import {
   PRESET_BANNERS,
   PRESET_AVATARS
 } from '@/lib/storefrontDefaults';
+import ImageCropperModal from '@/components/ImageCropperModal/ImageCropperModal';
 import styles from './page.module.css';
 
 export default function StorefrontSettingsPage() {
@@ -22,6 +23,13 @@ export default function StorefrontSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  // Image Cropper States
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropTarget, setCropTarget] = useState('banner'); // 'banner' | 'avatar'
+  const [cropImageSrc, setCropImageSrc] = useState('');
+  const [pendingFile, setPendingFile] = useState(null);
+  const [isCroppingProcessing, setIsCroppingProcessing] = useState(false);
 
   const bannerFileRef = useRef(null);
   const avatarFileRef = useRef(null);
@@ -71,42 +79,34 @@ export default function StorefrontSettingsPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Upload or replace banner file
-  const handleBannerFileSelect = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error('图片大小不能超过 8MB');
-      return;
-    }
-
-    setUploadingBanner(true);
+  // Upload and set image helper
+  const uploadAndApplyImage = async (fileOrBlob, fallbackDataUrl, target) => {
+    let finalUrl = '';
     try {
-      let finalUrl = '';
-      try {
-        finalUrl = await uploadImageToImgBB(file);
-      } catch {
-        // Fallback to local Data URL
+      finalUrl = await uploadImageToImgBB(fileOrBlob);
+    } catch {
+      if (fallbackDataUrl) {
+        finalUrl = fallbackDataUrl;
+      } else {
         finalUrl = await new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = (ev) => resolve(ev.target.result);
-          reader.readAsDataURL(file);
+          reader.readAsDataURL(fileOrBlob);
         });
       }
+    }
 
+    if (target === 'banner') {
       setFormData(prev => ({ ...prev, banner_image: finalUrl }));
-      toast.success('横幅图片已选取并更新预览');
-    } catch {
-      toast.error('上传图片时出错');
-    } finally {
-      setUploadingBanner(false);
-      if (bannerFileRef.current) bannerFileRef.current.value = '';
+      toast.success('横幅背景图片已成功裁剪并应用！');
+    } else {
+      setFormData(prev => ({ ...prev, avatar_image: finalUrl }));
+      toast.success('圆形Logo已成功裁剪并应用！');
     }
   };
 
-  // Upload or replace avatar file
-  const handleAvatarFileSelect = async (e) => {
+  // Open cropper for new file upload
+  const handleBannerFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -115,27 +115,77 @@ export default function StorefrontSettingsPage() {
       return;
     }
 
-    setUploadingAvatar(true);
-    try {
-      let finalUrl = '';
-      try {
-        finalUrl = await uploadImageToImgBB(file);
-      } catch {
-        // Fallback to local Data URL
-        finalUrl = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (ev) => resolve(ev.target.result);
-          reader.readAsDataURL(file);
-        });
-      }
+    const objectUrl = URL.createObjectURL(file);
+    setCropTarget('banner');
+    setCropImageSrc(objectUrl);
+    setPendingFile(file);
+    setCropModalOpen(true);
+    if (bannerFileRef.current) bannerFileRef.current.value = '';
+  };
 
-      setFormData(prev => ({ ...prev, avatar_image: finalUrl }));
-      toast.success('头像/Logo已选取并更新预览');
-    } catch {
-      toast.error('上传图片时出错');
+  const handleAvatarFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error('图片大小不能超过 8MB');
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setCropTarget('avatar');
+    setCropImageSrc(objectUrl);
+    setPendingFile(file);
+    setCropModalOpen(true);
+    if (avatarFileRef.current) avatarFileRef.current.value = '';
+  };
+
+  // Open cropper to crop existing / active image
+  const handleOpenCropModal = (target, currentSrc) => {
+    if (!currentSrc) {
+      toast.info('请先上传或选择一张图片后再进行裁剪');
+      return;
+    }
+    setCropTarget(target);
+    setCropImageSrc(currentSrc);
+    setPendingFile(null);
+    setCropModalOpen(true);
+  };
+
+  // Confirm cropped image handler
+  const handleConfirmCrop = async (croppedBlob, croppedDataUrl) => {
+    setIsCroppingProcessing(true);
+    try {
+      const filename = `${cropTarget}_cropped_${Date.now()}.jpg`;
+      const croppedFile = new File([croppedBlob], filename, { type: 'image/jpeg' });
+      await uploadAndApplyImage(croppedFile, croppedDataUrl, cropTarget);
+      setCropModalOpen(false);
+      setPendingFile(null);
+    } catch (err) {
+      console.error('Cropped image upload error:', err);
+      toast.error('保存裁剪图片失败，请重试');
     } finally {
-      setUploadingAvatar(false);
-      if (avatarFileRef.current) avatarFileRef.current.value = '';
+      setIsCroppingProcessing(false);
+    }
+  };
+
+  // Skip crop handler: uploads the raw pending file without cropping
+  const handleSkipCrop = async () => {
+    if (!pendingFile) {
+      setCropModalOpen(false);
+      return;
+    }
+    setIsCroppingProcessing(true);
+    try {
+      await uploadAndApplyImage(pendingFile, null, cropTarget);
+      setCropModalOpen(false);
+      setPendingFile(null);
+      toast.success(cropTarget === 'banner' ? '已直接使用原图作为横幅' : '已直接使用原图作为Logo');
+    } catch (err) {
+      console.error('Skip crop upload error:', err);
+      toast.error('上传图片失败');
+    } finally {
+      setIsCroppingProcessing(false);
     }
   };
 
@@ -220,6 +270,14 @@ export default function StorefrontSettingsPage() {
                   >
                     {uploadingBanner ? '正在上传...' : '📷 上传新横幅图片'}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCropModal('banner', activeBanner)}
+                    className={`${styles.btnAction} ${styles.btnActionCrop}`}
+                    title="裁剪并重新调整当前横幅画面比例与构图"
+                  >
+                    ✂️ 裁剪横幅图片
+                  </button>
                   {formData.banner_image && (
                     <button
                       type="button"
@@ -297,6 +355,14 @@ export default function StorefrontSettingsPage() {
                       disabled={uploadingAvatar}
                     >
                       {uploadingAvatar ? '正在上传...' : '📷 上传圆形Logo'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCropModal('avatar', activeAvatar)}
+                      className={`${styles.btnAction} ${styles.btnActionCrop}`}
+                      title="裁剪并重新调整当前Logo画面比例与圆形对齐"
+                    >
+                      ✂️ 裁剪圆形Logo
                     </button>
                     {formData.avatar_image && (
                       <button
@@ -506,6 +572,23 @@ export default function StorefrontSettingsPage() {
           </div>
         </div>
       </form>
+
+      {/* Interactive Image Cropper Modal */}
+      <ImageCropperModal
+        isOpen={cropModalOpen}
+        onClose={() => {
+          if (!isCroppingProcessing) {
+            setCropModalOpen(false);
+            setPendingFile(null);
+          }
+        }}
+        imageSrc={cropImageSrc}
+        cropType={cropTarget}
+        title={cropTarget === 'banner' ? '✂️ 裁剪店铺大横幅背景图片' : '✂️ 裁剪品牌圆形Logo / 头像'}
+        onConfirmCrop={handleConfirmCrop}
+        onSkipCrop={pendingFile ? handleSkipCrop : null}
+        isProcessing={isCroppingProcessing}
+      />
     </div>
   );
 }

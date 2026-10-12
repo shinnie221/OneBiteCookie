@@ -192,6 +192,19 @@
   color: white;
 }
 
+.btnActionCrop {
+  background: #fbf7f2;
+  color: #7c441c;
+  border: 1.5px solid #d9beab;
+}
+
+.btnActionCrop:hover {
+  background: #f3e6d8;
+  border-color: #8c532b;
+  color: #5d2e0f;
+  transform: translateY(-1px);
+}
+
 .btnActionReset {
   background: transparent;
   color: var(--color-text-light);

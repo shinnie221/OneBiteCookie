@@ -1,0 +1,447 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 11, 7, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 780px;
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleUp {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.header {
+  padding: 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0e6dd;
+  background: #fdfaf7;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #3b2219;
+  margin: 0 0 2px 0;
+}
+
+.subtitle {
+  font-size: 0.82rem;
+  color: #7d6557;
+  margin: 0;
+}
+
+.closeBtn {
+  background: #efe4d8;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  color: #5d4037;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.closeBtn:hover {
+  background: #e0d0c0;
+  color: #2b1704;
+  transform: scale(1.05);
+}
+
+/* Ratio Bar */
+.ratioBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #f4ece4;
+}
+
+.ratioBarLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #6d4c41;
+  margin-right: 4px;
+}
+
+.ratioBtn {
+  background: #fbf7f4;
+  border: 1px solid #e8dbcf;
+  color: #553b2e;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ratioBtn:hover {
+  background: #f3e9df;
+  border-color: #8c532b;
+  color: #8c532b;
+}
+
+.ratioBtnActive {
+  background: #8c532b;
+  border-color: #8c532b;
+  color: #ffffff;
+}
+
+.ratioBtnActive:hover {
+  background: #734220;
+  border-color: #734220;
+  color: #ffffff;
+}
+
+/* Interactive Stage */
+.stage {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  background-color: #1a1614;
+  background-image: 
+    linear-gradient(45deg, #241f1c 25%, transparent 25%), 
+    linear-gradient(-45deg, #241f1c 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, #241f1c 75%), 
+    linear-gradient(-45deg, transparent 75%, #241f1c 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.stage:active {
+  cursor: grabbing;
+}
+
+.stageImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  user-select: none;
+  max-width: none;
+  max-height: none;
+}
+
+/* Dimmed overlay outside crop box */
+.dimmedOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 8, 7, 0.72);
+  pointer-events: none;
+}
+
+/* Crop Box */
+.cropBox {
+  position: absolute;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.cropBoxCircle {
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Rule of Thirds Grid */
+.gridLineH1,
+.gridLineH2 {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+.gridLineH1 {
+  top: 33.333%;
+}
+
+.gridLineH2 {
+  top: 66.666%;
+}
+
+.gridLineV1,
+.gridLineV2 {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+.gridLineV1 {
+  left: 33.333%;
+}
+
+.gridLineV2 {
+  left: 66.666%;
+}
+
+/* Corner markers */
+.cornerMarker {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 3px solid #ffffff;
+  pointer-events: none;
+}
+
+.cornerTL {
+  top: -2px;
+  left: -2px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.cornerTR {
+  top: -2px;
+  right: -2px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.cornerBL {
+  bottom: -2px;
+  left: -2px;
+  border-right: none;
+  border-top: none;
+}
+
+.cornerBR {
+  bottom: -2px;
+  right: -2px;
+  border-left: none;
+  border-top: none;
+}
+
+/* Circular mask visual guide */
+.circleGuide {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+/* Controls Bar */
+.controlsBar {
+  padding: 12px 24px;
+  background: #fbf7f4;
+  border-top: 1px solid #ebdcd0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controlLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #553b2e;
+}
+
+.zoomSlider {
+  width: 130px;
+  accent-color: #8c532b;
+  cursor: pointer;
+}
+
+.zoomVal {
+  font-size: 0.8rem;
+  font-family: monospace;
+  font-weight: 700;
+  color: #6d4c41;
+  width: 42px;
+}
+
+.toolBtn {
+  background: #ffffff;
+  border: 1px solid #d9c8bc;
+  color: #4a3428;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.toolBtn:hover {
+  background: #f5ece4;
+  border-color: #8c532b;
+  color: #8c532b;
+}
+
+/* Footer Actions */
+.footer {
+  padding: 16px 24px;
+  background: #ffffff;
+  border-top: 1px solid #f0e6dd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.footerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footerRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btnSkip {
+  background: #fdf6ec;
+  border: 1px solid #f2cf97;
+  color: #b45309;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btnSkip:hover:not(:disabled) {
+  background: #fbeacf;
+  border-color: #d97706;
+}
+
+.btnCancel {
+  background: #f7f3ee;
+  border: 1px solid #e0d0c0;
+  color: #6d4c41;
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btnCancel:hover:not(:disabled) {
+  background: #ebdcd0;
+  color: #3b2219;
+}
+
+.btnConfirm {
+  background: #15803d;
+  border: 1px solid #166534;
+  color: #ffffff;
+  padding: 9px 22px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(21, 128, 61, 0.25);
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btnConfirm:hover:not(:disabled) {
+  background: #166534;
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.35);
+  transform: translateY(-1px);
+}
+
+.btnConfirm:disabled,
+.btnCancel:disabled,
+.btnSkip:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .stage {
+    height: 290px;
+  }
+  .controlsBar {
+    padding: 10px 14px;
+  }
+  .footer {
+    padding: 12px 16px;
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .footerLeft,
+  .footerRight {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .btnSkip,
+  .btnCancel,
+  .btnConfirm {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+  }
+}

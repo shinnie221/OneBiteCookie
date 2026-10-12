@@ -508,3 +508,33 @@ export function exportToExcel(filename, sheetName, headers, rows) {
     return false;
   }
 }
+
+export function exportMultiSheetExcel(filename, sheets = []) {
+  try {
+    const wb = XLSX.utils.book_new();
+    for (const sheet of sheets) {
+      const data = [sheet.headers, ...sheet.rows];
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const colWidths = sheet.headers.map((header, colIdx) => {
+        let maxLen = String(header).length;
+        for (const row of sheet.rows) {
+          const val = row[colIdx];
+          if (val !== undefined && val !== null) {
+            const len = String(val).length;
+            if (len > maxLen) maxLen = len;
+          }
+        }
+        return { wch: Math.min(Math.max(maxLen + 4, 12), 48) };
+      });
+      ws['!cols'] = colWidths;
+      XLSX.utils.book_append_sheet(wb, ws, (sheet.sheetName || 'Sheet').slice(0, 31));
+    }
+    const cleanFilename = filename.endsWith('.xlsx') ? filename : `${filename}.xlsx`;
+    XLSX.writeFile(wb, cleanFilename);
+    return true;
+  } catch (err) {
+    console.error('Multi-sheet export error, falling back to CSV:', err);
+    if (sheets[0]) exportToCSV(filename, sheets[0].headers, sheets[0].rows);
+    return false;
+  }
+}

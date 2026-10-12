@@ -264,6 +264,106 @@
   gap: 0.4rem;
 }
 
+/* Channel Section Header & Filter Pills */
+.channelNav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fbf7f4;
+  border: 1px solid #ebdcd2;
+  border-radius: 10px;
+  padding: 0.5rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+}
+
+.channelNavBtn {
+  background: none;
+  border: none;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #6d5446;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.channelNavBtn:hover {
+  background: #efe4dc;
+  color: #3b2219;
+}
+
+.channelNavBtnActive {
+  background: #6b3e26;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(107, 62, 38, 0.2);
+}
+
+.channelNavBtnActive:hover {
+  background: #55301c;
+  color: #fff;
+}
+
+.sectionBanner {
+  background: linear-gradient(135deg, #fdfbf9 0%, #f7f1ec 100%);
+  border: 1px solid #e7d8ce;
+  border-radius: 10px;
+  padding: 0.9rem 1.25rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.sectionBannerTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #3b2219;
+  margin: 0 0 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.sectionBannerSub {
+  font-size: 0.8rem;
+  color: #7b6253;
+  margin: 0;
+}
+
+.sectionQuickStats {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.statItemLabel {
+  font-size: 0.72rem;
+  color: #886d5e;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.statItemVal {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #3b2219;
+}
+
 .tabItem:hover {
   color: #4a2818;
 }
