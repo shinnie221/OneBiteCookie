@@ -79,12 +79,23 @@ export function formatPrice(num) {
 }
 
 export function getProductPriceRange(product, currencySymbol = '₱') {
+  if (!product) return `${currencySymbol}0.00`;
+
+  // For regular cookies, even if they have box packaging options, only show the minimum price
+  if (!product.is_byob) {
+    const options = getProductPackagingOptions(product);
+    if (!options || options.length === 0) {
+      return `${currencySymbol}${formatPrice(product?.price || 0)}`;
+    }
+    const prices = options.map(o => o.price);
+    const min = Math.min(...prices);
+    return `${currencySymbol}${formatPrice(min)}`;
+  }
+
+  // For BYOB (custom boxes), show the range across box sizes (e.g. RM35.00 - RM100.00)
   const options = getProductPackagingOptions(product);
   if (!options || options.length === 0) {
     return `${currencySymbol}${formatPrice(product?.price || 0)}`;
-  }
-  if (options.length === 1) {
-    return `${currencySymbol}${formatPrice(options[0].price)}`;
   }
   const prices = options.map(o => o.price);
   const min = Math.min(...prices);

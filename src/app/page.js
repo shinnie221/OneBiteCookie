@@ -258,37 +258,8 @@ export default function HomePage() {
         {settings.store_bio || 'Everything baked goods 🤎'}
       </div>
 
-      {/* 7. Build Your Own Box (BYOB) Section */}
-      {byobProducts.length > 0 && (
-        <section className={styles.menuSection} id="byob" style={{ paddingBottom: '24px' }}>
-          <div className={styles.categoryHeader}>
-            <div className={styles.categoryHeaderLeft}>
-              <h2 className={styles.categoryTitle}>🎁 Build Your Own Box</h2>
-              <span className={styles.categoryBadge}>Custom Box</span>
-            </div>
-            <span className={styles.categoryCount}>
-              {byobProducts.length} {byobProducts.length === 1 ? 'option' : 'options'}
-            </span>
-          </div>
-          <p className={styles.categorySubtitle}>
-            Mix and match your favorite flavors in boxes of 4, 5, 6, 8, or 12 cookies.
-          </p>
-
-          <div className={styles.productList}>
-            {byobProducts.map(product => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                currencySymbol={currencySymbol}
-                allProducts={products}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* 8. Cookies Section */}
-      <section className={styles.menuSection} id="menu">
+      {/* 7. Cookies Section */}
+      <section className={styles.menuSection} id="menu" style={{ paddingBottom: '32px' }}>
         <div className={styles.categoryHeader}>
           <div className={styles.categoryHeaderLeft}>
             <h2 className={styles.categoryTitle}>🍪 Cookies</h2>
@@ -326,6 +297,35 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* 8. Build Your Own Box (BYOB) Section (Below Cookies) */}
+      {byobProducts.length > 0 && (
+        <section className={styles.menuSection} id="byob">
+          <div className={styles.categoryHeader}>
+            <div className={styles.categoryHeaderLeft}>
+              <h2 className={styles.categoryTitle}>🎁 Build Your Own Box</h2>
+              <span className={styles.categoryBadge}>Custom Box</span>
+            </div>
+            <span className={styles.categoryCount}>
+              {byobProducts.length} {byobProducts.length === 1 ? 'option' : 'options'}
+            </span>
+          </div>
+          <p className={styles.categorySubtitle}>
+            Mix and match your favorite flavors in boxes of 4, 5, 6, 8, or 12 cookies.
+          </p>
+
+          <div className={styles.productList}>
+            {byobProducts.map(product => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                currencySymbol={currencySymbol}
+                allProducts={products}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 9. Floating Bottom Sticky Cart Bar */}
       {totalQuantity > 0 && (
