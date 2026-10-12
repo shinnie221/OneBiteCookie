@@ -110,8 +110,8 @@ export default function StorefrontSettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error('图片大小不能超过 8MB');
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('图片文件过大，请选择小于 25MB 的照片');
       return;
     }
 
@@ -127,8 +127,8 @@ export default function StorefrontSettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error('图片大小不能超过 8MB');
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('图片文件过大，请选择小于 25MB 的照片');
       return;
     }
 

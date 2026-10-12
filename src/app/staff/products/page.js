@@ -115,8 +115,8 @@ export default function ProductsPage() {
 
     const newItems = [];
     for (const file of files) {
-      if (file.size > 8 * 1024 * 1024) {
-        toast.warning(`图片 ${file.name} 过大（不能超过 8MB）`);
+      if (file.size > 25 * 1024 * 1024) {
+        toast.warning(`图片 ${file.name} 过大（请选择小于 25MB 的照片）`);
         continue;
       }
       newItems.push({
