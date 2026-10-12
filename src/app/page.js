@@ -53,8 +53,8 @@ export default function HomePage() {
           store_name: settData.settings.store_name || 'Bakery Sora',
           store_bio: settData.settings.store_bio || 'Everything baked goods 🤎',
           currency_symbol: settData.settings.currency_symbol || 'RM',
-          cart_button_label: settData.settings.cart_button_label && settData.settings.cart_button_label !== '购物车' 
-            ? settData.settings.cart_button_label 
+          cart_button_label: settData.settings.cart_button_label && settData.settings.cart_button_label !== '购物车'
+            ? settData.settings.cart_button_label
             : 'View Cart',
         }));
       }
@@ -303,7 +303,7 @@ export default function HomePage() {
         <section className={styles.menuSection} id="byob">
           <div className={styles.categoryHeader}>
             <div className={styles.categoryHeaderLeft}>
-              <h2 className={styles.categoryTitle}>🎁 Build Your Own Box</h2>
+              <h2 className={styles.categoryTitle}>Build Your Own Box</h2>
               <span className={styles.categoryBadge}>Custom Box</span>
             </div>
             <span className={styles.categoryCount}>
@@ -311,7 +311,7 @@ export default function HomePage() {
             </span>
           </div>
           <p className={styles.categorySubtitle}>
-            Mix and match your favorite flavors in boxes of 4, 5, 6, 8, or 12 cookies.
+            Mix and match your favorite flavors in boxes.
           </p>
 
           <div className={styles.productList}>

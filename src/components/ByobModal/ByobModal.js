@@ -151,7 +151,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
       }
     );
 
-    toast.success(`Added ${boxQuantity}x ${selectedTier.name} to cart! 🎁`);
+    toast.success(`Added ${boxQuantity}x ${selectedTier.name} to cart! `);
     onClose();
   };
 
@@ -161,7 +161,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.titleArea}>
-            <h2 className={styles.title}>Build Your Own Box 🎁</h2>
+            <h2 className={styles.title}>Build Your Own Box </h2>
             <p className={styles.subtitle}>Custom Gift Box · Mix & match your favorite flavors</p>
           </div>
           <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close modal">
@@ -204,8 +204,8 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
           <div className={styles.progressCard}>
             <div className={styles.progressTop}>
               <span className={styles.progressText}>
-                {isFull 
-                  ? `✅ Box is full (${totalSelectedCount}/${targetCount} cookies)` 
+                {isFull
+                  ? `✅ Box is full (${totalSelectedCount}/${targetCount} cookies)`
                   : `🍪 Selected ${totalSelectedCount} / ${targetCount} (${remainingCount} more needed)`}
               </span>
               <div className={styles.quickActions}>
@@ -247,8 +247,8 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 const pickedCount = selectedFlavours[flavor.id] || 0;
                 const thumb = (flavor.images && flavor.images[0]) || flavor.image;
                 return (
-                  <div 
-                    key={flavor.id} 
+                  <div
+                    key={flavor.id}
                     className={`${styles.flavourItem} ${pickedCount > 0 ? styles.flavourItemPicked : ''}`}
                   >
                     <div className={styles.flavourLeft}>
@@ -327,8 +327,8 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
             onClick={handleAddToCart}
             disabled={!isFull}
           >
-            {isFull 
-              ? `Add to Cart · ${currencySymbol}${formatPrice(totalPrice)}` 
+            {isFull
+              ? `Add to Cart · ${currencySymbol}${formatPrice(totalPrice)}`
               : `Please select ${remainingCount} more cookie${remainingCount > 1 ? 's' : ''}`}
           </button>
         </div>

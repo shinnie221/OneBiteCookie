@@ -591,20 +591,6 @@ export default function VouchersPage() {
                 <input
                   type="radio"
                   name="usage_limit"
-                  value="monthly_total"
-                  checked={formData.usage_limit === 'monthly_total'}
-                  onChange={handleInputChange}
-                />
-                <div>
-                  <strong>🏪 全店每月总限用 N 次 (月度限量抢券)</strong>
-                  <p>全店所有顾客每月共享指定使用总次数配额，当月达到上限后暂停核销，次月 1 日重置。</p>
-                </div>
-              </label>
-
-              <label className={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="usage_limit"
                   value="once_per_customer"
                   checked={formData.usage_limit === 'once_per_customer'}
                   onChange={handleInputChange}

@@ -14,8 +14,8 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
 
   const byobProduct = allProducts.find(p => p.is_byob);
 
-  const images = Array.isArray(product.images) && product.images.length > 0 
-    ? product.images 
+  const images = Array.isArray(product.images) && product.images.length > 0
+    ? product.images
     : (product.image ? [product.image] : []);
   const hasMultipleImages = images.length > 1;
 
@@ -41,7 +41,7 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
 
   return (
     <>
-      <div 
+      <div
         className={`${styles.card} ${isUnavailable ? styles.outOfStock : ''}`}
         onClick={handleOpenModal}
         role="button"
@@ -50,7 +50,7 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
         {/* Left Side: Product Details */}
         <div className={styles.info}>
           {product.is_byob && (
-            <span className={styles.byobBadge}>🎁 Custom Assorted Box</span>
+            <span className={styles.byobBadge}> Custom Assorted Box</span>
           )}
           <h3 className={styles.name}>{product.name}</h3>
           {product.description && (
@@ -62,17 +62,17 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
               {priceRange}
             </span>
 
-            <button 
+            <button
               className={`${styles.addBtn} ${isUnavailable ? styles.disabled : ''}`}
               onClick={handleOpenModal}
               disabled={isUnavailable}
               type="button"
             >
-              {isUnavailable 
-                ? 'Sold Out' 
-                : (cartQuantity > 0 
-                    ? `In Cart (${cartQuantity})` 
-                    : (product.is_byob ? '+ Build Box' : '+ Add'))}
+              {isUnavailable
+                ? 'Sold Out'
+                : (cartQuantity > 0
+                  ? `In Cart (${cartQuantity})`
+                  : (product.is_byob ? '+ Build Box' : '+ Add'))}
             </button>
           </div>
         </div>
@@ -81,13 +81,13 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
         <div className={styles.imageWrapper} onClick={handleOpenModal} title="Click to view options">
           {images.length > 0 ? (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img 
-              src={images[0]} 
-              alt={product.name} 
-              className={styles.image} 
+            <img
+              src={images[0]}
+              alt={product.name}
+              className={styles.image}
             />
           ) : (
-            <div className={styles.placeholder}>🎁</div>
+            <div className={styles.placeholder}></div>
           )}
 
           {isUnavailable && <div className={styles.soldOutBadge}>Unavailable</div>}

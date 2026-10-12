@@ -11,15 +11,15 @@ import styles from './page.module.css';
 export default function ProductsPage() {
   const { authFetch } = useAuth();
   const toast = useToast();
-  
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const fileInputRef = useRef(null);
-  
+
   const defaultForm = {
     name: '',
     description: '',
@@ -33,7 +33,7 @@ export default function ProductsPage() {
     box_8_price: '',
     box_12_price: '',
   };
-  
+
   const [formData, setFormData] = useState(defaultForm);
   // Array of image items: [{ url, file, isNew }]
   const [imageList, setImageList] = useState([]);
@@ -79,12 +79,12 @@ export default function ProductsPage() {
       box_8_price: product.box_8_price !== undefined && product.box_8_price !== null ? product.box_8_price : '',
       box_12_price: product.box_12_price !== undefined && product.box_12_price !== null ? product.box_12_price : '',
     });
-    
+
     // Populate existing images
-    const existingUrls = Array.isArray(product.images) && product.images.length > 0 
-      ? product.images 
+    const existingUrls = Array.isArray(product.images) && product.images.length > 0
+      ? product.images
       : (product.image ? [product.image] : []);
-    
+
     setImageList(existingUrls.map(url => ({ url, file: null, isNew: false })));
     setIsModalOpen(true);
   };
@@ -147,17 +147,17 @@ export default function ProductsPage() {
   const handleToggleAvailable = async (product) => {
     const currentStatus = product.available !== false && product.available !== 0;
     const newStatus = !currentStatus;
-    
+
     try {
       const res = await authFetch(`/api/products/${product.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ available: newStatus })
       });
-      
+
       if (res.ok) {
         toast.success('商品上架状态已更新');
-        setProducts(prev => prev.map(p => 
+        setProducts(prev => prev.map(p =>
           p.id === product.id ? { ...p, available: newStatus } : p
         ));
       } else {
@@ -180,7 +180,7 @@ export default function ProductsPage() {
     }
 
     setActionLoading(true);
-    
+
     try {
       // Upload any new image files to ImgBB
       const finalImageUrls = [];
@@ -214,20 +214,20 @@ export default function ProductsPage() {
         image: finalImageUrls[0] || null
       };
 
-      const url = editingProduct 
-        ? `/api/products/${editingProduct.id}` 
+      const url = editingProduct
+        ? `/api/products/${editingProduct.id}`
         : '/api/products';
-      
+
       const method = editingProduct ? 'PUT' : 'POST';
-      
+
       const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
+
       const data = await res.json();
-      
+
       if (res.ok) {
         toast.success(editingProduct ? '曲奇商品已更新' : '曲奇商品已创建');
         setIsModalOpen(false);
@@ -244,7 +244,7 @@ export default function ProductsPage() {
 
   const handleDelete = async (id) => {
     if (!confirm('确定要删除此曲奇商品吗？')) return;
-    
+
     try {
       const res = await authFetch(`/api/products/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -292,8 +292,8 @@ export default function ProductsPage() {
                 ) : (
                   products.map(product => {
                     const isAvailable = product.available !== false && product.available !== 0;
-                    const imgCount = Array.isArray(product.images) && product.images.length > 0 
-                      ? product.images.length 
+                    const imgCount = Array.isArray(product.images) && product.images.length > 0
+                      ? product.images.length
                       : (product.image ? 1 : 0);
                     const primaryThumb = (product.images && product.images[0]) || product.image;
 
@@ -327,7 +327,7 @@ export default function ProductsPage() {
                           <div style={{ fontWeight: 600 }}>RM{Number(product.price).toFixed(2)} <span style={{ fontSize: '0.8rem', color: '#666' }}>/片</span></div>
                           {product.is_byob ? (
                             <span style={{ fontSize: '0.72rem', color: '#7c2d12', background: '#ffedd5', padding: '1px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '2px', fontWeight: 600 }}>
-                              🎁 自选混装盒 (BYOB 4/5/6/8/12片)
+                              自选混装盒 (BYOB 4/5/6/8/12片)
                             </span>
                           ) : product.has_box_options !== false && (
                             <span style={{ fontSize: '0.72rem', color: '#854d0e', background: '#fef9c3', padding: '1px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '2px' }}>
@@ -361,9 +361,9 @@ export default function ProductsPage() {
         )}
       </div>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => !actionLoading && setIsModalOpen(false)} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => !actionLoading && setIsModalOpen(false)}
         title={editingProduct ? '编辑曲奇口味' : '新增曲奇口味'}
         maxWidth="680px"
       >
@@ -380,12 +380,12 @@ export default function ProductsPage() {
               {imageList.map((imgItem, idx) => (
                 <div key={idx} className={`${styles.imageTile} ${idx === 0 ? styles.coverTile : ''}`}>
                   <img src={imgItem.url} alt={`照片 ${idx + 1}`} />
-                  
+
                   {idx === 0 ? (
                     <span className={styles.coverBadge}>★ 主封面</span>
                   ) : (
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className={styles.makeCoverBtn}
                       onClick={() => handleSetCover(idx)}
                       title="设为主封面照片"
@@ -394,8 +394,8 @@ export default function ProductsPage() {
                     </button>
                   )}
 
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className={styles.removeImageBtn}
                     onClick={() => handleRemoveImage(idx)}
                     title="移除此照片"
@@ -406,7 +406,7 @@ export default function ProductsPage() {
               ))}
 
               {/* Add more button */}
-              <div 
+              <div
                 className={styles.addImageTile}
                 onClick={() => fileInputRef.current?.click()}
                 title="点击选择图片文件"
@@ -416,36 +416,36 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleMultipleImagesChange} 
-              accept="image/*" 
-              multiple 
-              className={styles.hiddenInput} 
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleMultipleImagesChange}
+              accept="image/*"
+              multiple
+              className={styles.hiddenInput}
             />
           </div>
 
           <div className="formGroup mb2">
             <label htmlFor="name">曲奇口味名称 *</label>
-            <input 
-              type="text" 
-              id="name" 
-              name="name" 
-              value={formData.name} 
-              onChange={handleInputChange} 
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
               placeholder="例如：开心果抹茶大曲奇"
-              required 
+              required
             />
           </div>
 
           <div className="formGroup mb2">
             <label htmlFor="description">风味描述与配料介绍</label>
-            <textarea 
-              id="description" 
-              name="description" 
-              rows="3" 
-              value={formData.description} 
+            <textarea
+              id="description"
+              name="description"
+              rows="3"
+              value={formData.description}
               onChange={handleInputChange}
               placeholder="描述风味特色、夹心原料及口感等..."
             ></textarea>
@@ -454,15 +454,15 @@ export default function ProductsPage() {
           <div className={styles.priceGroup}>
             <div className="formGroup">
               <label htmlFor="price">单片售价 (Per piece) *</label>
-              <input 
-                type="number" 
-                id="price" 
-                name="price" 
-                min="0" 
-                step="0.01" 
-                value={Number.isNaN(formData.price) || formData.price == null ? '' : formData.price} 
-                onChange={handleInputChange} 
-                required 
+              <input
+                type="number"
+                id="price"
+                name="price"
+                min="0"
+                step="0.01"
+                value={Number.isNaN(formData.price) || formData.price == null ? '' : formData.price}
+                onChange={handleInputChange}
+                required
               />
             </div>
           </div>
@@ -471,13 +471,13 @@ export default function ProductsPage() {
           <div style={{ background: 'var(--color-bg-alt, #faf7f2)', padding: '14px 16px', borderRadius: '12px', border: '1px solid #ebd8c0', margin: '14px 0' }}>
             <div style={{ marginBottom: '10px' }}>
               <label className={styles.checkboxLabel} style={{ fontWeight: 600, color: '#7c2d12' }}>
-                <input 
-                  type="checkbox" 
-                  name="is_byob" 
-                  checked={formData.is_byob} 
-                  onChange={handleInputChange} 
+                <input
+                  type="checkbox"
+                  name="is_byob"
+                  checked={formData.is_byob}
+                  onChange={handleInputChange}
                 />
-                <span>🎁 这是自选混装礼盒 (Build Your Own Box - BYOB)</span>
+                <span>这是自选混装礼盒 (Build Your Own Box - BYOB)</span>
               </label>
               <p style={{ margin: '4px 0 10px 24px', fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
                 开启后，顾客点击该商品将进入自选盒装配制弹窗，可从全部上架口味中自由搭配（支持 4、5、6、8、12 片盒装）。
@@ -560,11 +560,11 @@ export default function ProductsPage() {
             ) : (
               <div>
                 <label className={styles.checkboxLabel} style={{ fontWeight: 600, color: 'var(--color-text)' }}>
-                  <input 
-                    type="checkbox" 
-                    name="has_box_options" 
-                    checked={formData.has_box_options} 
-                    onChange={handleInputChange} 
+                  <input
+                    type="checkbox"
+                    name="has_box_options"
+                    checked={formData.has_box_options}
+                    onChange={handleInputChange}
                   />
                   <span>📦 开启单品盒装选项（同口味 4片 / 6片 / 12片 盒装购买）</span>
                 </label>
@@ -622,29 +622,29 @@ export default function ProductsPage() {
           {/* Availability Status */}
           <div className="formGroup">
             <label className={styles.checkboxLabel}>
-              <input 
-                type="checkbox" 
-                name="available" 
-                checked={formData.available} 
-                onChange={handleInputChange} 
+              <input
+                type="checkbox"
+                name="available"
+                checked={formData.available}
+                onChange={handleInputChange}
               />
               <span>曲奇当前上架可供顾客订购</span>
             </label>
           </div>
 
           <div className="flex gap1">
-            <button 
-              type="button" 
-              className="btn btnSecondary" 
+            <button
+              type="button"
+              className="btn btnSecondary"
               style={{ flex: 1 }}
               onClick={() => setIsModalOpen(false)}
               disabled={actionLoading}
             >
               取消
             </button>
-            <button 
-              type="submit" 
-              className="btn btnPrimary" 
+            <button
+              type="submit"
+              className="btn btnPrimary"
               style={{ flex: 1 }}
               disabled={actionLoading}
             >

@@ -83,7 +83,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
         toast.success(`Saved ${product.name} to favorites ❤️`);
       }
       localStorage.setItem('onebite_favorites', JSON.stringify(updated));
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const handleShare = (e) => {
@@ -269,7 +269,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
                 className={styles.byobHintBtn}
                 onClick={onOpenByob}
               >
-                Build Your Own Box 🎁
+                Build Your Own Box
               </button>
             </div>
           )}

@@ -14,7 +14,7 @@ export default function CartPage() {
   const { items, updateQuantity, removeItem, clearCart, setVoucher, removeVoucher, voucher, discount, subtotal, total, totalQuantity } = useCart();
   const { isAuthenticated, authFetch } = useAuth();
   const toast = useToast();
-  
+
   const [voucherCode, setVoucherCode] = useState('');
   const [applyingVoucher, setApplyingVoucher] = useState(false);
   const [publicVouchers, setPublicVouchers] = useState([]);
@@ -43,7 +43,7 @@ export default function CartPage() {
           setCurrencySymbol(d.settings.currency_symbol);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     return () => {
       isMounted = false;
@@ -53,7 +53,7 @@ export default function CartPage() {
   const applyVoucherCode = async (codeToApply) => {
     const code = (codeToApply || voucherCode).trim();
     if (!code) return;
-    
+
     setApplyingVoucher(true);
     try {
       const fetchFn = isAuthenticated ? authFetch : fetch;
@@ -62,9 +62,9 @@ export default function CartPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, subtotal })
       });
-      
+
       const data = await res.json();
-      
+
       if (res.ok && data.valid) {
         setVoucher(data.voucher, data.voucher.discount_amount);
         toast.success(`Voucher "${data.voucher.code}" applied! Saved RM${data.voucher.discount_amount.toFixed(2)}`);
@@ -87,10 +87,10 @@ export default function CartPage() {
   return (
     <>
       <Navbar />
-      
+
       <main className="pageContainer">
         <h1 className={styles.pageTitle}>Your Cart</h1>
-        
+
         {items.length === 0 ? (
           <div className={styles.emptyCart}>
             <div className={styles.emptyIcon}>🛒</div>
@@ -107,7 +107,7 @@ export default function CartPage() {
                 <span>Quantity</span>
                 <span>Subtotal</span>
               </div>
-              
+
               <div className={styles.itemsList}>
                 {items.map((item, idx) => {
                   const itemKey = item.cart_item_id || `${item.product_id}_${item.variant || 'piece'}_${idx}`;
@@ -115,8 +115,8 @@ export default function CartPage() {
                   return (
                     <div key={itemKey} className={styles.cartItem}>
                       <div className={styles.itemInfo}>
-                        <button 
-                          className={styles.removeBtn} 
+                        <button
+                          className={styles.removeBtn}
                           onClick={() => removeItem(itemIdentifier, item.variant)}
                           title="Remove item"
                         >×</button>
@@ -151,30 +151,30 @@ export default function CartPage() {
                               borderRadius: '6px',
                               border: '1px dashed #e2d2c1'
                             }}>
-                              🎁 <strong>Flavors:</strong> {item.flavour_summary}
+                              <strong>Flavors:</strong> {item.flavour_summary}
                             </div>
                           )}
                         </div>
                       </div>
-                      
+
                       <div className={styles.itemPrice}>
                         {currencySymbol}{Number(item.price).toFixed(2)}
                       </div>
-                      
+
                       <div className={styles.itemQuantity}>
                         <div className={styles.quantityControl}>
-                          <button 
-                            className={styles.qtyBtn} 
+                          <button
+                            className={styles.qtyBtn}
                             onClick={() => updateQuantity(itemIdentifier, item.quantity - 1, item.variant)}
                           >−</button>
                           <span className={styles.qty}>{item.quantity}</span>
-                          <button 
-                            className={styles.qtyBtn} 
+                          <button
+                            className={styles.qtyBtn}
                             onClick={() => updateQuantity(itemIdentifier, item.quantity + 1, item.variant)}
                           >+</button>
                         </div>
                       </div>
-                      
+
                       <div className={styles.itemSubtotal}>
                         {currencySymbol}{(item.price * item.quantity).toFixed(2)}
                       </div>
@@ -182,21 +182,21 @@ export default function CartPage() {
                   );
                 })}
               </div>
-              
+
               <div className={styles.cartActions}>
                 <button className="btn btnSecondary" onClick={clearCart}>Clear Cart</button>
                 <Link href="/" className="btn btnOutline">Continue Shopping</Link>
               </div>
             </div>
-            
+
             <div className={styles.orderSummary}>
               <h2 className={styles.summaryTitle}>Order Summary</h2>
-              
+
               <div className={styles.summaryRow}>
                 <span>Items ({totalQuantity}):</span>
                 <span>{currencySymbol}{subtotal.toFixed(2)}</span>
               </div>
-              
+
               {voucher && (
                 <div className={`${styles.summaryRow} ${styles.discountRow}`}>
                   <span>
@@ -208,15 +208,15 @@ export default function CartPage() {
                   <span>-{currencySymbol}{discount.toFixed(2)}</span>
                 </div>
               )}
-              
+
               <div className={styles.summaryTotal}>
                 <span>Total:</span>
                 <span>{currencySymbol}{total.toFixed(2)}</span>
               </div>
-              
+
               {/* Voucher Section */}
               <div className={styles.voucherSection}>
-                
+
                 {/* 1. Visible Public Vouchers (Only show if no voucher currently applied) */}
                 {!voucher && publicVouchers.length > 0 && (
                   <div className={styles.publicVouchersContainer}>
@@ -226,14 +226,14 @@ export default function CartPage() {
                         const canApply = subtotal >= v.min_order;
                         const diff = (v.min_order - subtotal).toFixed(2);
                         const isSingleUse = v.usage_limit === 'once_total' || v.usage_limit === 'once_per_customer';
-                        
+
                         return (
                           <div key={v.id} className={`${styles.voucherCard} ${v.is_targeted ? styles.voucherCardTargeted : ''}`}>
                             <div className={styles.voucherCardLeft}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                 <div className={styles.voucherCardBadge}>{v.code}</div>
                                 {v.is_targeted && (
-                                  <span className={styles.exclusiveBadge}>🎁 Exclusive For You</span>
+                                  <span className={styles.exclusiveBadge}>Exclusive For You</span>
                                 )}
                               </div>
                               <div className={styles.voucherCardDiscount}>
@@ -246,7 +246,7 @@ export default function CartPage() {
                                 {isSingleUse && ' • Single-use'}
                               </div>
                             </div>
-                            
+
                             <div className={styles.voucherCardRight}>
                               {canApply ? (
                                 <button
@@ -277,14 +277,14 @@ export default function CartPage() {
                       {publicVouchers.length > 0 ? 'Have a secret or other promo code?' : 'Have a voucher code?'}
                     </p>
                     <div className={styles.voucherInput}>
-                      <input 
-                        type="text" 
-                        placeholder="Enter voucher code" 
-                        value={voucherCode} 
+                      <input
+                        type="text"
+                        placeholder="Enter voucher code"
+                        value={voucherCode}
                         onChange={(e) => setVoucherCode(e.target.value)}
                       />
-                      <button 
-                        className="btn btnSecondary" 
+                      <button
+                        className="btn btnSecondary"
                         onClick={() => applyVoucherCode()}
                         disabled={applyingVoucher || !voucherCode.trim()}
                       >
@@ -295,14 +295,14 @@ export default function CartPage() {
                 )}
 
               </div>
-              
+
               {isAuthenticated ? (
                 <Link href="/checkout" className={`btn btnPrimary ${styles.checkoutBtn}`}>
                   Proceed to Checkout
                 </Link>
               ) : (
-                <button 
-                  className={`btn btnPrimary ${styles.checkoutBtn}`} 
+                <button
+                  className={`btn btnPrimary ${styles.checkoutBtn}`}
                   onClick={() => {
                     toast.info('Please log in to proceed to checkout');
                     router.push('/login');

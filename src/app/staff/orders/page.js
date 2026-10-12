@@ -1244,12 +1244,12 @@ function OrdersContent() {
                         <td>
                           <div style={{ fontWeight: 600 }}>{item.product_name}</div>
                           {item.variant && (
-                            <span style={{ 
-                              display: 'inline-block', 
-                              fontSize: '0.75rem', 
-                              color: '#7a5230', 
-                              background: '#f6ede4', 
-                              padding: '2px 6px', 
+                            <span style={{
+                              display: 'inline-block',
+                              fontSize: '0.75rem',
+                              color: '#7a5230',
+                              background: '#f6ede4',
+                              padding: '2px 6px',
                               borderRadius: '4px',
                               marginTop: '2px'
                             }}>
@@ -1266,7 +1266,7 @@ function OrdersContent() {
                               borderRadius: '4px',
                               border: '1px dashed #dfcebc'
                             }}>
-                              🎁 <strong>混装配方:</strong> {item.flavour_summary}
+                              <strong>混装配方:</strong> {item.flavour_summary}
                             </div>
                           )}
                         </td>

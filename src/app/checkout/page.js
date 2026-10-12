@@ -539,7 +539,7 @@ export default function CheckoutPage() {
                           )}
                           {item.flavour_summary && (
                             <span style={{ display: 'block', fontSize: '0.72rem', color: '#666', marginTop: '2px' }}>
-                              🎁 {item.flavour_summary}
+                              {item.flavour_summary}
                             </span>
                           )}
                         </div>
