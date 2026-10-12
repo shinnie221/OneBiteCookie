@@ -151,7 +151,7 @@ export default function CartPage() {
                               borderRadius: '6px',
                               border: '1px dashed #e2d2c1'
                             }}>
-                              🎁 <strong>混装口味:</strong> {item.flavour_summary}
+                              🎁 <strong>Flavors:</strong> {item.flavour_summary}
                             </div>
                           )}
                         </div>

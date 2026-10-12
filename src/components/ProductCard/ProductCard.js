@@ -50,7 +50,7 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
         {/* Left Side: Product Details */}
         <div className={styles.info}>
           {product.is_byob && (
-            <span className={styles.byobBadge}>🎁 自选混装专属礼盒</span>
+            <span className={styles.byobBadge}>🎁 Custom Assorted Box</span>
           )}
           <h3 className={styles.name}>{product.name}</h3>
           {product.description && (
@@ -72,7 +72,7 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
                 ? 'Sold Out' 
                 : (cartQuantity > 0 
                     ? `In Cart (${cartQuantity})` 
-                    : (product.is_byob ? '+ 选配礼盒' : '+ Add'))}
+                    : (product.is_byob ? '+ Build Box' : '+ Add'))}
             </button>
           </div>
         </div>

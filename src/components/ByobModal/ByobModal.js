@@ -162,7 +162,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
         <div className={styles.header}>
           <div className={styles.titleArea}>
             <h2 className={styles.title}>Build Your Own Box 🎁</h2>
-            <p className={styles.subtitle}>自选混装礼盒 · 挑选你最喜爱的口味</p>
+            <p className={styles.subtitle}>Custom Gift Box · Mix & match your favorite flavors</p>
           </div>
           <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close modal">
             ✕
@@ -174,7 +174,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
           {/* Step 1: Choose Box Size */}
           <div>
             <div className={styles.sectionTitleRow}>
-              <span className={styles.sectionTitle}>第一步：选择规格 (Box Size)</span>
+              <span className={styles.sectionTitle}>Step 1: Choose Box Size</span>
               <span className={styles.currentTierHighlight}>
                 {selectedTier?.name} · {currencySymbol}{formatPrice(selectedTier?.price)}
               </span>
@@ -191,9 +191,9 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                     className={`${styles.tierChip} ${isSelected ? styles.tierChipActive : ''}`}
                     onClick={() => handleSelectTier(tier.id)}
                   >
-                    <span className={styles.tierChipPieces}>{tier.pieces}片装</span>
+                    <span className={styles.tierChipPieces}>{tier.pieces} Pieces</span>
                     <span className={styles.tierChipPrice}>{currencySymbol}{formatPrice(tier.price)}</span>
-                    {isBoxOf5 && <span className={styles.tierChipBadge}>⭐ 5味全齐</span>}
+                    {isBoxOf5 && <span className={styles.tierChipBadge}>⭐ Try All 5</span>}
                   </button>
                 );
               })}
@@ -205,18 +205,18 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
             <div className={styles.progressTop}>
               <span className={styles.progressText}>
                 {isFull 
-                  ? `✅ 已选满 (${totalSelectedCount}/${targetCount} 片)` 
-                  : `🍪 已选 ${totalSelectedCount} / ${targetCount} 片（还差 ${remainingCount} 片）`}
+                  ? `✅ Box is full (${totalSelectedCount}/${targetCount} cookies)` 
+                  : `🍪 Selected ${totalSelectedCount} / ${targetCount} (${remainingCount} more needed)`}
               </span>
               <div className={styles.quickActions}>
                 {targetCount === 5 && availableFlavours.length >= 5 && (
                   <button type="button" className={styles.quickBtn} onClick={handleFillOneOfEach}>
-                    ⭐ 各一口味 (共5片)
+                    ⭐ 1 of Each (5 Total)
                   </button>
                 )}
                 {totalSelectedCount > 0 && (
                   <button type="button" className={styles.clearBtn} onClick={handleClearSelection}>
-                    清空
+                    Clear
                   </button>
                 )}
               </div>
@@ -236,9 +236,9 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
           {/* Step 3: Flavours List */}
           <div>
             <div className={styles.sectionTitleRow}>
-              <span className={styles.sectionTitle}>第二步：搭配口味 (Pick Flavours)</span>
+              <span className={styles.sectionTitle}>Step 2: Pick Flavors</span>
               <span className={styles.sectionSubtitle}>
-                👉 点击各口味右侧「+」自选片数
+                👉 Click [+] to add cookies
               </span>
             </div>
 
@@ -263,7 +263,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                       <div className={styles.flavourInfo}>
                         <span className={styles.flavourName}>{flavor.name}</span>
                         {pickedCount > 0 && (
-                          <span className={styles.flavourPickedCount}>已选 {pickedCount} 片</span>
+                          <span className={styles.flavourPickedCount}>{pickedCount} selected</span>
                         )}
                       </div>
                     </div>
@@ -297,7 +297,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
 
           {/* Step 4: Box Quantity */}
           <div className={styles.boxQtyRow}>
-            <span className={styles.boxQtyLabel}>购买礼盒数量 (Boxes)</span>
+            <span className={styles.boxQtyLabel}>Number of Boxes</span>
             <div className={styles.flavourStepper}>
               <button
                 type="button"
@@ -328,8 +328,8 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
             disabled={!isFull}
           >
             {isFull 
-              ? `加入购物车 · ${currencySymbol}${formatPrice(totalPrice)}` 
-              : `请再选择 ${remainingCount} 片曲奇放入礼盒`}
+              ? `Add to Cart · ${currencySymbol}${formatPrice(totalPrice)}` 
+              : `Please select ${remainingCount} more cookie${remainingCount > 1 ? 's' : ''}`}
           </button>
         </div>
       </div>

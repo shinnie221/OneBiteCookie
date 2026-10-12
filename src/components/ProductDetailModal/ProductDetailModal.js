@@ -221,7 +221,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
                   className={styles.toggleDescBtn}
                   onClick={() => setDescExpanded(prev => !prev)}
                 >
-                  {descExpanded ? '收起' : '显示更多'}
+                  {descExpanded ? 'Show less' : 'Read more'}
                 </button>
               )}
             </div>
@@ -261,15 +261,15 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
           {onOpenByob && (
             <div className={styles.byobHintBox}>
               <div className={styles.byobHintText}>
-                <span>💡 想要在一盒内<strong>搭配不同口味</strong>？</span>
-                <span className={styles.byobHintSub}>当前选项为纯 {product.name}。如需混搭请使用自选礼盒</span>
+                <span>💡 Want to <strong>mix & match flavors</strong> in a box?</span>
+                <span className={styles.byobHintSub}>This option is a single-flavor box of {product.name}.</span>
               </div>
               <button
                 type="button"
                 className={styles.byobHintBtn}
                 onClick={onOpenByob}
               >
-                前往自选礼盒 🎁
+                Build Your Own Box 🎁
               </button>
             </div>
           )}
@@ -278,7 +278,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
 
           {/* Quantity Stepper */}
           <div className={styles.quantityRow}>
-            <span className={styles.quantityLabel}>数量</span>
+            <span className={styles.quantityLabel}>Quantity</span>
             <div className={styles.quantityStepper}>
               <button
                 type="button"
@@ -311,7 +311,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
             onClick={handleAddToCart}
             disabled={!isAvailable}
           >
-            {isAvailable ? `加入 ${currencySymbol}${formatPrice(totalPrice)}` : '暂时售罄'}
+            {isAvailable ? `Add to Cart · ${currencySymbol}${formatPrice(totalPrice)}` : 'Sold Out'}
           </button>
         </div>
       </div>

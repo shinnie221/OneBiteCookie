@@ -23,7 +23,7 @@ export default function HomePage() {
     store_name: 'Bakery Sora',
     store_bio: 'Everything baked goods 🤎',
     currency_symbol: 'RM',
-    cart_button_label: '购物车',
+    cart_button_label: 'View Cart',
   });
   const [loading, setLoading] = useState(true);
 
@@ -53,7 +53,9 @@ export default function HomePage() {
           store_name: settData.settings.store_name || 'Bakery Sora',
           store_bio: settData.settings.store_bio || 'Everything baked goods 🤎',
           currency_symbol: settData.settings.currency_symbol || 'RM',
-          cart_button_label: settData.settings.cart_button_label || '购物车',
+          cart_button_label: settData.settings.cart_button_label && settData.settings.cart_button_label !== '购物车' 
+            ? settData.settings.cart_button_label 
+            : 'View Cart',
         }));
       }
       setLoading(false);
@@ -66,7 +68,7 @@ export default function HomePage() {
     };
   }, []);
 
-  // Filter and sort products (BYOB box at top)
+  // Filter products by search query
   const filteredProducts = useMemo(() => {
     let list = products;
     if (searchQuery.trim()) {
@@ -76,9 +78,17 @@ export default function HomePage() {
         p.description?.toLowerCase().includes(q)
       );
     }
-    // Place BYOB item at the very top of menu
-    return [...list].sort((a, b) => (b.is_byob ? 1 : 0) - (a.is_byob ? 1 : 0));
+    return list;
   }, [products, searchQuery]);
+
+  // Separate BYOB products and Cookies products
+  const byobProducts = useMemo(() => {
+    return filteredProducts.filter(p => p.is_byob);
+  }, [filteredProducts]);
+
+  const cookieProducts = useMemo(() => {
+    return filteredProducts.filter(p => !p.is_byob);
+  }, [filteredProducts]);
 
   const isStaffUser = isAuthenticated && user && user.role !== 'customer';
   const currencySymbol = settings.currency_symbol || '₱';
@@ -111,9 +121,9 @@ export default function HomePage() {
       {/* 1. Quick Staff Toolbar (visible to store owner / staff) */}
       {isStaffUser && (
         <div className={styles.staffQuickBar}>
-          <span>👋 管理员模式已开启</span>
+          <span>👋 Admin Mode Active</span>
           <Link href="/staff/storefront" className={styles.staffQuickBtn}>
-            🎨 更换店铺外观与图片
+            🎨 Storefront Settings
           </Link>
         </div>
       )}
@@ -248,18 +258,53 @@ export default function HomePage() {
         {settings.store_bio || 'Everything baked goods 🤎'}
       </div>
 
-      {/* 7. Product Menu Section */}
+      {/* 7. Build Your Own Box (BYOB) Section */}
+      {byobProducts.length > 0 && (
+        <section className={styles.menuSection} id="byob" style={{ paddingBottom: '24px' }}>
+          <div className={styles.categoryHeader}>
+            <div className={styles.categoryHeaderLeft}>
+              <h2 className={styles.categoryTitle}>🎁 Build Your Own Box</h2>
+              <span className={styles.categoryBadge}>Custom Box</span>
+            </div>
+            <span className={styles.categoryCount}>
+              {byobProducts.length} {byobProducts.length === 1 ? 'option' : 'options'}
+            </span>
+          </div>
+          <p className={styles.categorySubtitle}>
+            Mix and match your favorite flavors in boxes of 4, 5, 6, 8, or 12 cookies.
+          </p>
+
+          <div className={styles.productList}>
+            {byobProducts.map(product => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                currencySymbol={currencySymbol}
+                allProducts={products}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 8. Cookies Section */}
       <section className={styles.menuSection} id="menu">
         <div className={styles.categoryHeader}>
-          <h2 className={styles.categoryTitle}>Cookies</h2>
+          <div className={styles.categoryHeaderLeft}>
+            <h2 className={styles.categoryTitle}>🍪 Cookies</h2>
+            <span className={styles.categoryBadge}>Single Flavors</span>
+          </div>
           <span className={styles.categoryCount}>
-            {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
+            {cookieProducts.length} {cookieProducts.length === 1 ? 'flavor' : 'flavors'}
           </span>
         </div>
+        <p className={styles.categorySubtitle}>
+          Handcrafted signature cookies available per piece or in same-flavor boxes.
+        </p>
 
         {loading ? (
           <LoadingSpinner text="Loading freshly baked cookies..." />
-        ) : filteredProducts.length === 0 ? (
+        ) : cookieProducts.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>🍪</div>
             <p>
@@ -270,7 +315,7 @@ export default function HomePage() {
           </div>
         ) : (
           <div className={styles.productList}>
-            {filteredProducts.map(product => (
+            {cookieProducts.map(product => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -282,13 +327,13 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* 8. Floating Bottom Sticky Cart Bar */}
+      {/* 9. Floating Bottom Sticky Cart Bar */}
       {totalQuantity > 0 && (
         <div className={styles.floatingCartContainer}>
           <Link href="/cart" className={styles.floatingCartBar}>
             <div className={styles.cartQtyCircle}>{totalQuantity}</div>
             <div className={styles.cartBarLabel}>
-              {settings.cart_button_label || '购物车'}
+              {settings.cart_button_label || 'View Cart'}
             </div>
             <div className={styles.cartBarPrice}>
               {currencySymbol}{total.toFixed(2)}
@@ -297,7 +342,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* 9. Slide-out Navigation Drawer Menu */}
+      {/* 10. Slide-out Navigation Drawer Menu */}
       {menuDrawerOpen && (
         <>
           <div
@@ -324,7 +369,7 @@ export default function HomePage() {
                 className={styles.drawerLink}
                 onClick={() => setMenuDrawerOpen(false)}
               >
-                🏠 Home / 首页
+                🏠 Home
               </Link>
               <a
                 href="#menu"
@@ -334,21 +379,21 @@ export default function HomePage() {
                   scrollToMenu(e);
                 }}
               >
-                🍪 Menu / 菜单
+                🍪 Menu
               </a>
               <Link
                 href="/orders"
                 className={styles.drawerLink}
                 onClick={() => setMenuDrawerOpen(false)}
               >
-                📦 My Orders / 历史订单
+                📦 My Orders
               </Link>
               <Link
                 href="/cart"
                 className={styles.drawerLink}
                 onClick={() => setMenuDrawerOpen(false)}
               >
-                🛒 Cart / 购物车 ({totalQuantity})
+                🛒 Cart ({totalQuantity})
               </Link>
 
               {isAuthenticated && user?.role === 'customer' && (
@@ -357,7 +402,7 @@ export default function HomePage() {
                   className={styles.drawerLink}
                   onClick={() => setMenuDrawerOpen(false)}
                 >
-                  👤 Profile / 个人资料
+                  👤 Profile
                 </Link>
               )}
 
@@ -368,21 +413,21 @@ export default function HomePage() {
                     className={`${styles.drawerLink} ${styles.drawerHighlight}`}
                     onClick={() => setMenuDrawerOpen(false)}
                   >
-                    📊 Staff Dashboard / 管理后台
+                    📊 Staff Dashboard
                   </Link>
                   <Link
                     href="/staff/storefront"
                     className={`${styles.drawerLink} ${styles.drawerHighlight}`}
                     onClick={() => setMenuDrawerOpen(false)}
                   >
-                    🎨 更换店铺外观与图片
+                    🎨 Storefront Settings
                   </Link>
                   <Link
                     href="/staff/products"
                     className={styles.drawerLink}
                     onClick={() => setMenuDrawerOpen(false)}
                   >
-                    🍪 曲奇商品及图片管理
+                    🍪 Products Management
                   </Link>
                 </>
               )}
@@ -399,7 +444,7 @@ export default function HomePage() {
                     router.push('/');
                   }}
                 >
-                  Log Out / 退出登录
+                  Log Out
                 </button>
               ) : (
                 <Link
@@ -408,7 +453,7 @@ export default function HomePage() {
                   style={{ display: 'block', textAlign: 'center' }}
                   onClick={() => setMenuDrawerOpen(false)}
                 >
-                  Sign In / 登录或注册
+                  Sign In / Register
                 </Link>
               )}
             </div>
@@ -416,7 +461,7 @@ export default function HomePage() {
         </>
       )}
 
-      {/* 10. Footer (Home Page Only) */}
+      {/* 11. Footer (Home Page Only) */}
       <Footer />
     </div>
   );
