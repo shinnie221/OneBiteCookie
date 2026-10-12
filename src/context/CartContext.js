@@ -27,40 +27,69 @@ export function CartProvider({ children }) {
     localStorage.setItem('onebite_cart', JSON.stringify({ items, voucher, discount }));
   }, [items, voucher, discount]);
 
-  const addItem = useCallback((product) => {
+  const addItem = useCallback((product, option = null, quantityToAdd = 1) => {
+    const variantName = option?.name || 'Per piece';
+    const variantId = option?.id || (variantName === 'Per piece' ? 'piece' : variantName);
+    const variantPieces = option?.pieces || 1;
+    const price = option?.price !== undefined ? Number(option.price) : Number(product.price);
+    const cartItemId = `${product.id}_${variantId}`;
+
     setItems(prev => {
-      const existing = prev.find(i => i.product_id === product.id);
+      const existing = prev.find(i => 
+        (i.cart_item_id && i.cart_item_id === cartItemId) ||
+        (i.product_id === product.id && (i.variant === variantName || (!i.variant && variantName === 'Per piece')))
+      );
+
       if (existing) {
-        return prev.map(i =>
-          i.product_id === product.id
-            ? { ...i, quantity: i.quantity + 1 }
-            : i
-        );
+        return prev.map(i => {
+          const isMatch = (i.cart_item_id && i.cart_item_id === cartItemId) ||
+            (i.product_id === product.id && (i.variant === variantName || (!i.variant && variantName === 'Per piece')));
+          return isMatch ? { ...i, quantity: i.quantity + quantityToAdd } : i;
+        });
       }
+
       return [...prev, {
+        cart_item_id: cartItemId,
         product_id: product.id,
         product_name: product.name,
-        price: product.price,
-        image: product.image,
-        quantity: 1
+        variant: variantName,
+        variant_id: variantId,
+        variant_pieces: variantPieces,
+        price: price,
+        image: (Array.isArray(product.images) && product.images[0]) || product.image || '',
+        quantity: quantityToAdd
       }];
     });
   }, []);
 
-  const updateQuantity = useCallback((productId, newQuantity) => {
+  const updateQuantity = useCallback((cartItemIdOrProductId, newQuantity, variantName = null) => {
     if (newQuantity <= 0) {
-      setItems(prev => prev.filter(i => i.product_id !== productId));
+      setItems(prev => prev.filter(i => {
+        if (i.cart_item_id && i.cart_item_id === cartItemIdOrProductId) return false;
+        if (variantName && i.product_id === cartItemIdOrProductId && i.variant === variantName) return false;
+        if (!variantName && !i.cart_item_id && i.product_id === cartItemIdOrProductId) return false;
+        if (!variantName && i.product_id === cartItemIdOrProductId && (!i.variant || i.variant === 'Per piece')) return false;
+        return true;
+      }));
     } else {
-      setItems(prev => prev.map(i =>
-        i.product_id === productId
-          ? { ...i, quantity: newQuantity }
-          : i
-      ));
+      setItems(prev => prev.map(i => {
+        const matches = (i.cart_item_id && i.cart_item_id === cartItemIdOrProductId)
+          || (variantName && i.product_id === cartItemIdOrProductId && i.variant === variantName)
+          || (!variantName && !i.cart_item_id && i.product_id === cartItemIdOrProductId)
+          || (!variantName && i.product_id === cartItemIdOrProductId && (!i.variant || i.variant === 'Per piece'));
+        return matches ? { ...i, quantity: newQuantity } : i;
+      }));
     }
   }, []);
 
-  const removeItem = useCallback((productId) => {
-    setItems(prev => prev.filter(i => i.product_id !== productId));
+  const removeItem = useCallback((cartItemIdOrProductId, variantName = null) => {
+    setItems(prev => prev.filter(i => {
+      if (i.cart_item_id && i.cart_item_id === cartItemIdOrProductId) return false;
+      if (variantName && i.product_id === cartItemIdOrProductId && i.variant === variantName) return false;
+      if (!variantName && !i.cart_item_id && i.product_id === cartItemIdOrProductId) return false;
+      if (!variantName && i.product_id === cartItemIdOrProductId && (!i.variant || i.variant === 'Per piece')) return false;
+      return true;
+    }));
   }, []);
 
   const clearCart = useCallback(() => {

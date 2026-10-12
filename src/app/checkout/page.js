@@ -526,11 +526,18 @@ export default function CheckoutPage() {
               </div>
               <div className={styles.cardBody}>
                 <div className={styles.summaryItems}>
-                  {items.map(item => (
-                    <div key={item.product_id} className={styles.summaryItem}>
+                  {items.map((item, idx) => (
+                    <div key={item.cart_item_id || `${item.product_id}_${idx}`} className={styles.summaryItem}>
                       <div className={styles.itemHeader}>
                         <span className={styles.itemQty}>{item.quantity}x</span>
-                        <span className={styles.itemName}>{item.product_name}</span>
+                        <div>
+                          <span className={styles.itemName}>{item.product_name}</span>
+                          {item.variant && (
+                            <span style={{ display: 'block', fontSize: '0.78rem', color: '#7a5230', fontWeight: 600 }}>
+                              {item.variant === 'Per piece' ? '🍪 Per piece' : `📦 ${item.variant}`}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <span className={styles.itemPrice}>RM{(item.price * item.quantity).toFixed(2)}</span>
                     </div>

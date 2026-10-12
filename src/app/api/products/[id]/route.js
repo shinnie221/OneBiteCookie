@@ -35,7 +35,23 @@ export async function PUT(request, { params }) {
     }
     const image = images[0] || body.image || null;
 
-    const updatedData = { name, description, price, available, image, images };
+    const has_box_options = body.has_box_options !== undefined ? Boolean(body.has_box_options) : (existing.has_box_options !== false);
+    const box_4_price = body.box_4_price !== undefined ? (body.box_4_price !== null && body.box_4_price !== '' ? Number(body.box_4_price) : null) : (existing.box_4_price ?? null);
+    const box_6_price = body.box_6_price !== undefined ? (body.box_6_price !== null && body.box_6_price !== '' ? Number(body.box_6_price) : null) : (existing.box_6_price ?? null);
+    const box_12_price = body.box_12_price !== undefined ? (body.box_12_price !== null && body.box_12_price !== '' ? Number(body.box_12_price) : null) : (existing.box_12_price ?? null);
+
+    const updatedData = { 
+      name, 
+      description, 
+      price, 
+      available, 
+      image, 
+      images,
+      has_box_options,
+      box_4_price,
+      box_6_price,
+      box_12_price
+    };
     
     await updateDoc(docRef, updatedData);
 

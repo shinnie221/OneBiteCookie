@@ -3,6 +3,7 @@ import { collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orde
 import { verifyAuth } from '@/lib/auth';
 import { sendOrderNotificationEmail } from '@/lib/email';
 import { isStateDeliverable } from '@/lib/addresses.mjs';
+import { getProductPackagingOptions } from '@/lib/packaging';
 import { NextResponse } from 'next/server';
 
 function generateOrderId() {
@@ -152,13 +153,20 @@ export async function POST(request) {
         return NextResponse.json({ error: `Product "${product.name}" is currently unavailable` }, { status: 400 });
       }
       
-      const price = Number(item.price) || Number(product.price);
+      const packagingOptions = getProductPackagingOptions(product);
+      const matchedOption = item.variant 
+        ? packagingOptions.find(opt => opt.name === item.variant || opt.id === item.variant)
+        : packagingOptions[0];
+
+      const price = matchedOption ? Number(matchedOption.price) : (Number(item.price) || Number(product.price));
       const itemSubtotal = price * item.quantity;
       subtotal += itemSubtotal;
       
       resolvedItems.push({
         product_id: item.product_id,
         product_name: product.name,
+        variant: item.variant || matchedOption?.name || 'Per piece',
+        variant_pieces: matchedOption?.pieces || 1,
         quantity: item.quantity,
         price: price,
         subtotal: itemSubtotal

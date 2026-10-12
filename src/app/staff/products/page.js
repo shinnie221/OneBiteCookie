@@ -25,6 +25,10 @@ export default function ProductsPage() {
     description: '',
     price: 10.00,
     available: true,
+    has_box_options: true,
+    box_4_price: '',
+    box_6_price: '',
+    box_12_price: '',
   };
   
   const [formData, setFormData] = useState(defaultForm);
@@ -64,6 +68,10 @@ export default function ProductsPage() {
       description: product.description || '',
       price: product.price || 10.00,
       available: product.available !== false && product.available !== 0,
+      has_box_options: product.has_box_options !== false,
+      box_4_price: product.box_4_price !== undefined && product.box_4_price !== null ? product.box_4_price : '',
+      box_6_price: product.box_6_price !== undefined && product.box_6_price !== null ? product.box_6_price : '',
+      box_12_price: product.box_12_price !== undefined && product.box_12_price !== null ? product.box_12_price : '',
     });
     
     // Populate existing images
@@ -178,6 +186,10 @@ export default function ProductsPage() {
         description: formData.description.trim(),
         price: Number(formData.price),
         available: Boolean(formData.available),
+        has_box_options: Boolean(formData.has_box_options),
+        box_4_price: formData.box_4_price !== '' && formData.box_4_price !== null ? Number(formData.box_4_price) : null,
+        box_6_price: formData.box_6_price !== '' && formData.box_6_price !== null ? Number(formData.box_6_price) : null,
+        box_12_price: formData.box_12_price !== '' && formData.box_12_price !== null ? Number(formData.box_12_price) : null,
         images: finalImageUrls,
         image: finalImageUrls[0] || null
       };
@@ -291,7 +303,14 @@ export default function ProductsPage() {
                             </div>
                           </div>
                         </td>
-                        <td style={{ fontWeight: 600 }}>RM{Number(product.price).toFixed(2)}</td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>RM{Number(product.price).toFixed(2)} <span style={{ fontSize: '0.8rem', color: '#666' }}>/片</span></div>
+                          {product.has_box_options !== false && (
+                            <span style={{ fontSize: '0.72rem', color: '#854d0e', background: '#fef9c3', padding: '1px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '2px' }}>
+                              📦 盒装可选 (4/6/12片)
+                            </span>
+                          )}
+                        </td>
                         <td>
                           <button
                             type="button"
@@ -410,7 +429,7 @@ export default function ProductsPage() {
 
           <div className={styles.priceGroup}>
             <div className="formGroup">
-              <label htmlFor="price">单价售价 (RM) *</label>
+              <label htmlFor="price">单片售价 (Per piece) *</label>
               <input 
                 type="number" 
                 id="price" 
@@ -422,6 +441,66 @@ export default function ProductsPage() {
                 required 
               />
             </div>
+          </div>
+
+          {/* Box / Packaging Options */}
+          <div style={{ background: 'var(--color-bg-alt, #faf7f2)', padding: '14px 16px', borderRadius: '12px', border: '1px solid #ebd8c0', margin: '14px 0' }}>
+            <label className={styles.checkboxLabel} style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+              <input 
+                type="checkbox" 
+                name="has_box_options" 
+                checked={formData.has_box_options} 
+                onChange={handleInputChange} 
+              />
+              <span>📦 开启盒装规格选项（支持单片及 4片 / 6片 / 12片 盒装购买）</span>
+            </label>
+            <p style={{ margin: '4px 0 12px 24px', fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
+              顾客在前台可选择单片购买或按盒购买。以下价格如留空，系统将根据单片价格自动换算阶梯优惠价。
+            </p>
+
+            {formData.has_box_options && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginTop: '10px' }}>
+                <div className="formGroup">
+                  <label htmlFor="box_4_price" style={{ fontSize: '0.82rem' }}>Box of 4 价格</label>
+                  <input
+                    type="number"
+                    id="box_4_price"
+                    name="box_4_price"
+                    min="0"
+                    step="0.01"
+                    placeholder="留空自动计算"
+                    value={formData.box_4_price}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="formGroup">
+                  <label htmlFor="box_6_price" style={{ fontSize: '0.82rem' }}>Box of 6 价格</label>
+                  <input
+                    type="number"
+                    id="box_6_price"
+                    name="box_6_price"
+                    min="0"
+                    step="0.01"
+                    placeholder="留空自动计算"
+                    value={formData.box_6_price}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="formGroup">
+                  <label htmlFor="box_12_price" style={{ fontSize: '0.82rem' }}>Box of 12 价格</label>
+                  <input
+                    type="number"
+                    id="box_12_price"
+                    name="box_12_price"
+                    min="0"
+                    step="0.01"
+                    placeholder="留空自动计算"
+                    value={formData.box_12_price}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Availability Status */}

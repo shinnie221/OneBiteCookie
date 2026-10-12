@@ -130,7 +130,7 @@ function ConfirmationContent() {
         <div className={styles.itemsList}>
           {order.items.map((item, idx) => (
             <div key={idx} className={styles.itemRow}>
-              <span>{item.quantity}x {item.product_name}</span>
+              <span>{item.quantity}x {item.product_name}{item.variant ? ` (${item.variant})` : ''}</span>
               <span>RM{item.subtotal.toFixed(2)}</span>
             </div>
           ))}

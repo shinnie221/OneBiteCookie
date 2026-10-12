@@ -27,7 +27,18 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, description, price, available, image, images } = await request.json();
+    const { 
+      name, 
+      description, 
+      price, 
+      available, 
+      image, 
+      images,
+      has_box_options,
+      box_4_price,
+      box_6_price,
+      box_12_price
+    } = await request.json();
     
     if (!name || price == null) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
@@ -45,6 +56,10 @@ export async function POST(request) {
       available: available !== false && available !== 0,
       image: primaryImage,
       images: imageList,
+      has_box_options: has_box_options !== false,
+      box_4_price: box_4_price !== undefined && box_4_price !== null && box_4_price !== '' ? Number(box_4_price) : null,
+      box_6_price: box_6_price !== undefined && box_6_price !== null && box_6_price !== '' ? Number(box_6_price) : null,
+      box_12_price: box_12_price !== undefined && box_12_price !== null && box_12_price !== '' ? Number(box_12_price) : null,
       createdAt: new Date().toISOString()
     };
     

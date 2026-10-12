@@ -1241,7 +1241,22 @@ function OrdersContent() {
                   <tbody>
                     {selectedOrder.items && selectedOrder.items.map((item, idx) => (
                       <tr key={item.id || idx}>
-                        <td>{item.product_name}</td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{item.product_name}</div>
+                          {item.variant && (
+                            <span style={{ 
+                              display: 'inline-block', 
+                              fontSize: '0.75rem', 
+                              color: '#7a5230', 
+                              background: '#f6ede4', 
+                              padding: '2px 6px', 
+                              borderRadius: '4px',
+                              marginTop: '2px'
+                            }}>
+                              {item.variant}
+                            </span>
+                          )}
+                        </td>
                         <td className="textRight">{item.quantity}</td>
                         <td className="textRight">RM{Number(item.subtotal || 0).toFixed(2)}</td>
                       </tr>

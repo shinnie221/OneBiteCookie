@@ -162,7 +162,14 @@ export default function PaymentPage() {
       // Submit order
       const orderPayload = {
         ...checkoutData.customerInfo,
-        items: items.map(i => ({ product_id: i.product_id, product_name: i.product_name, quantity: i.quantity })),
+        items: items.map(i => ({ 
+          product_id: i.product_id, 
+          product_name: i.product_name, 
+          variant: i.variant || 'Per piece',
+          variant_pieces: i.variant_pieces || 1,
+          price: i.price,
+          quantity: i.quantity 
+        })),
         voucher_code: voucher ? voucher.code : null,
         payment_screenshot: paymentScreenshotBase64
       };

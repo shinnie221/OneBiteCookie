@@ -313,7 +313,7 @@ export default function OrdersPage() {
                           <div className={styles.items}>
                             {order.items && order.items.map((item, idx) => (
                               <div key={item.id || idx} className={styles.itemRow}>
-                                <span>{item.quantity}x {item.product_name}</span>
+                                <span>{item.quantity}x {item.product_name}{item.variant ? ` (${item.variant})` : ''}</span>
                                 <span>RM{item.subtotal?.toFixed(2) || '0.00'}</span>
                               </div>
                             ))}

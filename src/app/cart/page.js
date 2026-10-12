@@ -19,8 +19,9 @@ export default function CartPage() {
   const [applyingVoucher, setApplyingVoucher] = useState(false);
   const [publicVouchers, setPublicVouchers] = useState([]);
   const [loadingVouchers, setLoadingVouchers] = useState(false);
+  const [currencySymbol, setCurrencySymbol] = useState('RM');
 
-  // Fetch available visible vouchers on mount and when authentication changes
+  // Fetch available visible vouchers and settings on mount
   useEffect(() => {
     let isMounted = true;
     const fetchFn = isAuthenticated ? authFetch : fetch;
@@ -34,6 +35,15 @@ export default function CartPage() {
       .catch(() => {
         if (isMounted) setLoadingVouchers(false);
       });
+
+    fetch('/api/settings')
+      .then(r => r.ok ? r.json() : { settings: {} })
+      .then(d => {
+        if (isMounted && d.settings?.currency_symbol) {
+          setCurrencySymbol(d.settings.currency_symbol);
+        }
+      })
+      .catch(() => {});
 
     return () => {
       isMounted = false;
@@ -99,40 +109,64 @@ export default function CartPage() {
               </div>
               
               <div className={styles.itemsList}>
-                {items.map(item => (
-                  <div key={item.product_id} className={styles.cartItem}>
-                    <div className={styles.itemInfo}>
-                      <button 
-                        className={styles.removeBtn} 
-                        onClick={() => removeItem(item.product_id)}
-                        title="Remove item"
-                      >×</button>
-                      <img src={item.image || 'data:image/svg+xml;base64,...'} alt={item.product_name} className={styles.itemImage} />
-                      <div className={styles.itemDetails}>
-                        <h3 className={styles.itemName}>{item.product_name}</h3>
-                      </div>
-                    </div>
-                    
-                    <div className={styles.itemPrice}>
-                      RM{item.price.toFixed(2)}
-                    </div>
-                    
-                    <div className={styles.itemQuantity}>
-                      <div className={styles.quantityControl}>
-                        <button className={styles.qtyBtn} onClick={() => updateQuantity(item.product_id, item.quantity - 1)}>−</button>
-                        <span className={styles.qty}>{item.quantity}</span>
+                {items.map((item, idx) => {
+                  const itemKey = item.cart_item_id || `${item.product_id}_${item.variant || 'piece'}_${idx}`;
+                  const itemIdentifier = item.cart_item_id || item.product_id;
+                  return (
+                    <div key={itemKey} className={styles.cartItem}>
+                      <div className={styles.itemInfo}>
                         <button 
-                          className={styles.qtyBtn} 
-                          onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                        >+</button>
+                          className={styles.removeBtn} 
+                          onClick={() => removeItem(itemIdentifier, item.variant)}
+                          title="Remove item"
+                        >×</button>
+                        <img src={item.image || 'data:image/svg+xml;base64,...'} alt={item.product_name} className={styles.itemImage} />
+                        <div className={styles.itemDetails}>
+                          <h3 className={styles.itemName}>{item.product_name}</h3>
+                          {item.variant && (
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              marginTop: '4px',
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
+                              color: '#6f4827',
+                              background: '#f6ede4',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                              width: 'fit-content'
+                            }}>
+                              {item.variant === 'Per piece' ? '🍪 Per piece' : `📦 ${item.variant}`}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className={styles.itemPrice}>
+                        {currencySymbol}{Number(item.price).toFixed(2)}
+                      </div>
+                      
+                      <div className={styles.itemQuantity}>
+                        <div className={styles.quantityControl}>
+                          <button 
+                            className={styles.qtyBtn} 
+                            onClick={() => updateQuantity(itemIdentifier, item.quantity - 1, item.variant)}
+                          >−</button>
+                          <span className={styles.qty}>{item.quantity}</span>
+                          <button 
+                            className={styles.qtyBtn} 
+                            onClick={() => updateQuantity(itemIdentifier, item.quantity + 1, item.variant)}
+                          >+</button>
+                        </div>
+                      </div>
+                      
+                      <div className={styles.itemSubtotal}>
+                        {currencySymbol}{(item.price * item.quantity).toFixed(2)}
                       </div>
                     </div>
-                    
-                    <div className={styles.itemSubtotal}>
-                      RM{(item.price * item.quantity).toFixed(2)}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               
               <div className={styles.cartActions}>
@@ -146,7 +180,7 @@ export default function CartPage() {
               
               <div className={styles.summaryRow}>
                 <span>Items ({totalQuantity}):</span>
-                <span>RM{subtotal.toFixed(2)}</span>
+                <span>{currencySymbol}{subtotal.toFixed(2)}</span>
               </div>
               
               {voucher && (
@@ -157,13 +191,13 @@ export default function CartPage() {
                       Remove
                     </button>
                   </span>
-                  <span>-RM{discount.toFixed(2)}</span>
+                  <span>-{currencySymbol}{discount.toFixed(2)}</span>
                 </div>
               )}
               
               <div className={styles.summaryTotal}>
                 <span>Total:</span>
-                <span>RM{total.toFixed(2)}</span>
+                <span>{currencySymbol}{total.toFixed(2)}</span>
               </div>
               
               {/* Voucher Section */}
