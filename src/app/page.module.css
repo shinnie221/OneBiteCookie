@@ -281,7 +281,7 @@
 
 /* Circular Avatar / Logo */
 .avatarWrapper {
-  margin-top: -46px;
+  margin-top: -62px;
   display: flex;
   justify-content: center;
   position: relative;
@@ -289,22 +289,39 @@
 }
 
 .avatarCircle {
-  width: 90px;
-  height: 90px;
+  width: 124px;
+  height: 124px;
   border-radius: 50%;
   background: var(--color-primary-dark);
-  border: 4px solid #ffffff;
-  box-shadow: 0 6px 18px rgba(122, 85, 54, 0.2);
+  border: 4.5px solid #ffffff;
+  box-shadow: 0 8px 24px rgba(122, 85, 54, 0.22);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.avatarCircle:hover {
+  transform: scale(1.03);
+  box-shadow: 0 10px 28px rgba(122, 85, 54, 0.28);
 }
 
 .avatarImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+@media (min-width: 768px) {
+  .avatarWrapper {
+    margin-top: -72px;
+  }
+  .avatarCircle {
+    width: 144px;
+    height: 144px;
+    border: 5.5px solid #ffffff;
+  }
 }
 
 /* Store Info Header */
