@@ -37,7 +37,7 @@ export default function StorefrontSettingsPage() {
   const [formData, setFormData] = useState({
     banner_image: '',
     avatar_image: '',
-    store_name: 'Bakery Sora',
+    store_name: 'One Bite',
     store_bio: 'Everything baked goods 🤎',
     currency_symbol: 'RM',
     cart_button_label: '购物车',
@@ -55,7 +55,7 @@ export default function StorefrontSettingsPage() {
             ...prev,
             banner_image: data.settings.banner_image || '',
             avatar_image: data.settings.avatar_image || '',
-            store_name: data.settings.store_name || 'Bakery Sora',
+            store_name: data.settings.store_name || 'One Bite',
             store_bio: data.settings.store_bio || 'Everything baked goods 🤎',
             currency_symbol: data.settings.currency_symbol || 'RM',
             cart_button_label: data.settings.cart_button_label || '购物车',
@@ -363,7 +363,7 @@ export default function StorefrontSettingsPage() {
                     name="store_name"
                     value={formData.store_name}
                     onChange={handleInputChange}
-                    placeholder="例如：Bakery Sora 或 One Bite"
+                    placeholder="例如：One Bite 或 One Bite Cookie"
                     required
                   />
                 </div>
@@ -447,7 +447,7 @@ export default function StorefrontSettingsPage() {
 
                 {/* Store Info */}
                 <div className={styles.mockupInfo}>
-                  <div className={styles.mockupTitle}>{formData.store_name || 'Bakery Sora'}</div>
+                  <div className={styles.mockupTitle}>{formData.store_name || 'One Bite'}</div>
                 </div>
 
                 {/* Bio Pill */}

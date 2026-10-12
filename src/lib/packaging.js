@@ -1,7 +1,6 @@
 /**
  * Packaging and variant options helper for cookie products.
- * Allows customers to buy cookies "Per piece" or per box ("Box of 4", "Box of 6", "Box of 12")
- * matching the Take.app Bakery Sora experience.
+ * Allows customers to buy cookies "Per piece" or per box ("Box of 4", "Box of 6", "Box of 12").
  */
 
 

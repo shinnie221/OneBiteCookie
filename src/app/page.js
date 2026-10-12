@@ -20,7 +20,7 @@ export default function HomePage() {
   const [settings, setSettings] = useState({
     banner_image: '',
     avatar_image: '',
-    store_name: 'Bakery Sora',
+    store_name: 'One Bite',
     store_bio: 'Everything baked goods 🤎',
     currency_symbol: 'RM',
     cart_button_label: 'View Cart',
@@ -50,7 +50,7 @@ export default function HomePage() {
           ...prev,
           banner_image: settData.settings.banner_image || '',
           avatar_image: settData.settings.avatar_image || '',
-          store_name: settData.settings.store_name || 'Bakery Sora',
+          store_name: settData.settings.store_name || 'One Bite',
           store_bio: settData.settings.store_bio || 'Everything baked goods 🤎',
           currency_symbol: settData.settings.currency_symbol || 'RM',
           cart_button_label: settData.settings.cart_button_label && settData.settings.cart_button_label !== '购物车'
@@ -142,13 +142,13 @@ export default function HomePage() {
 
           <Link href="/" className={styles.desktopBrand}>
             <span>🍪</span>
-            <span>{settings.store_name || 'Bakery Sora'}</span>
+            <span>{settings.store_name || 'One Bite'}</span>
           </Link>
         </div>
 
         {/* Mobile Center Title */}
         <div className={`${styles.navCenterTitle} ${styles.mobileOnly}`}>
-          {settings.store_name || 'Bakery Sora'}
+          {settings.store_name || 'One Bite'}
         </div>
 
         {/* Desktop Nav Links */}
@@ -249,7 +249,7 @@ export default function HomePage() {
       {/* 5. Store Information */}
       <section className={styles.storeInfo}>
         <h1 className={styles.storeTitle}>
-          {settings.store_name || 'Bakery Sora'}
+          {settings.store_name || 'One Bite'}
         </h1>
       </section>
 
@@ -352,7 +352,7 @@ export default function HomePage() {
           <aside className={styles.drawerMenu}>
             <div className={styles.drawerHeader}>
               <span className={styles.drawerTitle}>
-                {settings.store_name || 'Bakery Sora'}
+                {settings.store_name || 'One Bite'}
               </span>
               <button
                 type="button"
