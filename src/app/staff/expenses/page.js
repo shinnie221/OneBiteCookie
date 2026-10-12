@@ -18,9 +18,12 @@ const CATEGORIES = [
   { id: '摆摊支出', label: '🎪 摆摊/集市现场支出 (摊位费/停车/物料)', badgeClass: styles.badgeBooth },
   { id: 'Supplier采购', label: '🏭 供应商采购支出 (原料/包材批发商)', badgeClass: styles.badgeSupplier },
   { id: '厨房租金', label: '厨房租金 / 水电燃气', badgeClass: styles.badgeKitchen },
+  { id: '设备资产', label: '🛠️ 设备资产 (烤箱/打蛋机/冷柜 - 资本支出)', badgeClass: styles.badgeOther },
+  { id: '水电杂费', label: '⚡ 水电杂费 / 燃气网费', badgeClass: styles.badgeOther },
+  { id: '银行手续费', label: '💳 银行手续费 / DuitNow结算费', badgeClass: styles.badgeOther },
   { id: '兼职人工费', label: '兼职人工费', badgeClass: styles.badgeOther },
   { id: '配送相关', label: '配送耗材 / 运费', badgeClass: styles.badgeOther },
-  { id: '广告物料', label: '广告 / 物料制作', badgeClass: styles.badgeOther },
+  { id: '广告物料', label: '广告 / 物料制作 / 市场推广', badgeClass: styles.badgeOther },
   { id: '其他', label: '其他日常杂支', badgeClass: styles.badgeOther },
 ];
 

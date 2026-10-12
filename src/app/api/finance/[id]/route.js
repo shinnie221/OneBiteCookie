@@ -11,11 +11,24 @@ const VALID_CATEGORIES = [
   '兼职人工费',
   '配送相关',
   '广告物料',
+  '设备资产',
+  '水电杂费',
+  '银行手续费',
   '样品/试吃损耗',
   '内部个人采购',
   'Supplier采购',
   '公款注资',
-  '其他'
+  '其他',
+  // English aliases
+  'ingredients',
+  'packaging',
+  'kitchen_rental',
+  'booth_rental',
+  'delivery',
+  'marketing',
+  'equipment',
+  'utilities',
+  'bank_fees'
 ];
 
 const VALID_ORDER_TYPES = ['Pre-order', 'Booth', 'General'];
