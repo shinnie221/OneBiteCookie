@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import ProductDetailModal from '@/components/ProductDetailModal/ProductDetailModal';
+import ByobModal from '@/components/ByobModal/ByobModal';
 import { getProductPriceRange } from '@/lib/packaging';
 import styles from './ProductCard.module.css';
 
-export default function ProductCard({ product, currencySymbol = '₱' }) {
+export default function ProductCard({ product, currencySymbol = '₱', allProducts = [] }) {
   const { items } = useCart();
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -58,7 +59,9 @@ export default function ProductCard({ product, currencySymbol = '₱' }) {
             >
               {isUnavailable 
                 ? 'Sold Out' 
-                : (cartQuantity > 0 ? `In Cart (${cartQuantity})` : '+ Add')}
+                : (cartQuantity > 0 
+                    ? `In Cart (${cartQuantity})` 
+                    : (product.is_byob ? '+ 选配礼盒' : '+ Add'))}
             </button>
           </div>
         </div>
@@ -73,7 +76,7 @@ export default function ProductCard({ product, currencySymbol = '₱' }) {
               className={styles.image} 
             />
           ) : (
-            <div className={styles.placeholder}>🍪</div>
+            <div className={styles.placeholder}>🎁</div>
           )}
 
           {isUnavailable && <div className={styles.soldOutBadge}>Unavailable</div>}
@@ -86,13 +89,25 @@ export default function ProductCard({ product, currencySymbol = '₱' }) {
         </div>
       </div>
 
-      {/* Product Detail & Packaging Options Bottom Sheet */}
-      <ProductDetailModal
-        product={product}
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        currencySymbol={currencySymbol}
-      />
+      {/* Modal: ByobModal or ProductDetailModal */}
+      {product.is_byob ? (
+        <ByobModal
+          key={`${product.id}_${modalOpen}`}
+          product={product}
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          currencySymbol={currencySymbol}
+          allProducts={allProducts}
+        />
+      ) : (
+        <ProductDetailModal
+          key={`${product.id}_${modalOpen}`}
+          product={product}
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          currencySymbol={currencySymbol}
+        />
+      )}
     </>
   );
 }

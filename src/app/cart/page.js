@@ -140,6 +140,20 @@ export default function CartPage() {
                               {item.variant === 'Per piece' ? '🍪 Per piece' : `📦 ${item.variant}`}
                             </span>
                           )}
+                          {item.flavour_summary && (
+                            <div style={{
+                              fontSize: '0.76rem',
+                              color: '#666',
+                              marginTop: '4px',
+                              lineHeight: 1.35,
+                              background: '#faf6f0',
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              border: '1px dashed #e2d2c1'
+                            }}>
+                              🎁 <strong>混装口味:</strong> {item.flavour_summary}
+                            </div>
+                          )}
                         </div>
                       </div>
                       

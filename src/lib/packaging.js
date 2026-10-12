@@ -4,39 +4,39 @@
  * matching the Take.app Bakery Sora experience.
  */
 
-export function calculateDefaultBoxPrice(basePrice, count) {
-  const price = Number(basePrice) || 0;
-  if (price <= 0) return 0;
 
-  // For high-denomination currencies like PHP (e.g., 90.00 per piece)
-  if (price >= 50) {
-    if (count === 4) return Math.max(0, Math.round((price * 4 - 10) / 10) * 10); // 90 * 4 - 10 = 350
-    if (count === 6) return Math.max(0, Math.round((price * 6 - 20) / 10) * 10); // 90 * 6 - 20 = 520
-    if (count === 12) return Math.max(0, Math.round((price * 12 - 60) / 10) * 10); // 90 * 12 - 60 = 1020
-    return Math.round(price * count);
-  }
+export const DEFAULT_BYOB_TIERS = [
+  { id: 'box_4', name: 'Box of 4', pieces: 4, defaultPrice: 35.00 },
+  { id: 'box_5', name: 'Box of 5 (Try All 5 Flavours!)', pieces: 5, defaultPrice: 44.00 },
+  { id: 'box_6', name: 'Box of 6', pieces: 6, defaultPrice: 52.00 },
+  { id: 'box_8', name: 'Box of 8', pieces: 8, defaultPrice: 70.00 },
+  { id: 'box_12', name: 'Box of 12', pieces: 12, defaultPrice: 100.00 },
+];
 
-  // For MYR/SGD/USD currencies (e.g. RM 8.90 per piece)
-  if (count === 4) {
-    // 8.90 * 4 = 35.60 -> RM 34.00
-    const raw = price * 4 * 0.955;
-    return Number(raw.toFixed(1)) === Math.round(raw) ? Math.round(raw) : Number(raw.toFixed(2));
-  }
-  if (count === 6) {
-    // 8.90 * 6 = 53.40 -> RM 50.00
-    const raw = price * 6 * 0.936;
-    return Math.round(raw);
-  }
-  if (count === 12) {
-    // 8.90 * 12 = 106.80 -> RM 98.00
-    const raw = price * 12 * 0.917;
-    return Math.round(raw);
-  }
-  return Number((price * count).toFixed(2));
+export function getByobTiers(product) {
+  if (!product) return DEFAULT_BYOB_TIERS.map(t => ({ ...t, price: t.defaultPrice }));
+  return DEFAULT_BYOB_TIERS.map(tier => {
+    let customPrice = null;
+    if (tier.id === 'box_4' && product.box_4_price) customPrice = Number(product.box_4_price);
+    if (tier.id === 'box_5' && product.box_5_price) customPrice = Number(product.box_5_price);
+    if (tier.id === 'box_6' && product.box_6_price) customPrice = Number(product.box_6_price);
+    if (tier.id === 'box_8' && product.box_8_price) customPrice = Number(product.box_8_price);
+    if (tier.id === 'box_12' && product.box_12_price) customPrice = Number(product.box_12_price);
+
+    return {
+      ...tier,
+      price: customPrice && customPrice > 0 ? customPrice : tier.defaultPrice
+    };
+  });
 }
 
 export function getProductPackagingOptions(product) {
   if (!product) return [];
+
+  // If BYOB product
+  if (product.is_byob) {
+    return getByobTiers(product);
+  }
 
   // If product has explicit variants array configured
   if (Array.isArray(product.variants) && product.variants.length > 0) {
@@ -48,33 +48,27 @@ export function getProductPackagingOptions(product) {
     }));
   }
 
-  // If product explicitly disabled box options
-  if (product.has_box_options === false) {
-    return [
-      { id: 'piece', name: 'Per piece', pieces: 1, price: Number(product.price) || 0 }
-    ];
+  const basePrice = Number(product.price) || 0;
+  const options = [
+    { id: 'piece', name: 'Per piece', pieces: 1, price: basePrice }
+  ];
+
+  // Only add box options if has_box_options is enabled AND staff explicitly configured a price
+  if (product.has_box_options !== false) {
+    if (product.box_4_price !== undefined && product.box_4_price !== null && product.box_4_price !== '' && Number(product.box_4_price) > 0) {
+      options.push({ id: 'box_4', name: 'Box of 4', pieces: 4, price: Number(product.box_4_price) });
+    }
+
+    if (product.box_6_price !== undefined && product.box_6_price !== null && product.box_6_price !== '' && Number(product.box_6_price) > 0) {
+      options.push({ id: 'box_6', name: 'Box of 6', pieces: 6, price: Number(product.box_6_price) });
+    }
+
+    if (product.box_12_price !== undefined && product.box_12_price !== null && product.box_12_price !== '' && Number(product.box_12_price) > 0) {
+      options.push({ id: 'box_12', name: 'Box of 12', pieces: 12, price: Number(product.box_12_price) });
+    }
   }
 
-  const basePrice = Number(product.price) || 0;
-
-  const box4Price = (product.box_4_price !== undefined && product.box_4_price !== null && product.box_4_price !== '')
-    ? Number(product.box_4_price)
-    : calculateDefaultBoxPrice(basePrice, 4);
-
-  const box6Price = (product.box_6_price !== undefined && product.box_6_price !== null && product.box_6_price !== '')
-    ? Number(product.box_6_price)
-    : calculateDefaultBoxPrice(basePrice, 6);
-
-  const box12Price = (product.box_12_price !== undefined && product.box_12_price !== null && product.box_12_price !== '')
-    ? Number(product.box_12_price)
-    : calculateDefaultBoxPrice(basePrice, 12);
-
-  return [
-    { id: 'piece', name: 'Per piece', pieces: 1, price: basePrice },
-    { id: 'box_4', name: 'Box of 4', pieces: 4, price: box4Price },
-    { id: 'box_6', name: 'Box of 6', pieces: 6, price: box6Price },
-    { id: 'box_12', name: 'Box of 12', pieces: 12, price: box12Price },
-  ];
+  return options;
 }
 
 export function formatPrice(num) {

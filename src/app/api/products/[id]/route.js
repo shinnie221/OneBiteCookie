@@ -36,8 +36,11 @@ export async function PUT(request, { params }) {
     const image = images[0] || body.image || null;
 
     const has_box_options = body.has_box_options !== undefined ? Boolean(body.has_box_options) : (existing.has_box_options !== false);
+    const is_byob = body.is_byob !== undefined ? Boolean(body.is_byob) : Boolean(existing.is_byob);
     const box_4_price = body.box_4_price !== undefined ? (body.box_4_price !== null && body.box_4_price !== '' ? Number(body.box_4_price) : null) : (existing.box_4_price ?? null);
+    const box_5_price = body.box_5_price !== undefined ? (body.box_5_price !== null && body.box_5_price !== '' ? Number(body.box_5_price) : null) : (existing.box_5_price ?? null);
     const box_6_price = body.box_6_price !== undefined ? (body.box_6_price !== null && body.box_6_price !== '' ? Number(body.box_6_price) : null) : (existing.box_6_price ?? null);
+    const box_8_price = body.box_8_price !== undefined ? (body.box_8_price !== null && body.box_8_price !== '' ? Number(body.box_8_price) : null) : (existing.box_8_price ?? null);
     const box_12_price = body.box_12_price !== undefined ? (body.box_12_price !== null && body.box_12_price !== '' ? Number(body.box_12_price) : null) : (existing.box_12_price ?? null);
 
     const updatedData = { 
@@ -48,8 +51,11 @@ export async function PUT(request, { params }) {
       image, 
       images,
       has_box_options,
+      is_byob,
       box_4_price,
+      box_5_price,
       box_6_price,
+      box_8_price,
       box_12_price
     };
     

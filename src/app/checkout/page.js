@@ -537,6 +537,11 @@ export default function CheckoutPage() {
                               {item.variant === 'Per piece' ? '🍪 Per piece' : `📦 ${item.variant}`}
                             </span>
                           )}
+                          {item.flavour_summary && (
+                            <span style={{ display: 'block', fontSize: '0.72rem', color: '#666', marginTop: '2px' }}>
+                              🎁 {item.flavour_summary}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <span className={styles.itemPrice}>RM{(item.price * item.quantity).toFixed(2)}</span>

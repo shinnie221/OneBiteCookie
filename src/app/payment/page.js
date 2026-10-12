@@ -167,6 +167,9 @@ export default function PaymentPage() {
           product_name: i.product_name, 
           variant: i.variant || 'Per piece',
           variant_pieces: i.variant_pieces || 1,
+          is_byob: Boolean(i.is_byob),
+          flavours: i.flavours || null,
+          flavour_summary: i.flavour_summary || null,
           price: i.price,
           quantity: i.quantity 
         })),

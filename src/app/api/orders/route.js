@@ -167,6 +167,9 @@ export async function POST(request) {
         product_name: product.name,
         variant: item.variant || matchedOption?.name || 'Per piece',
         variant_pieces: matchedOption?.pieces || 1,
+        is_byob: Boolean(item.is_byob || product.is_byob),
+        flavours: item.flavours || null,
+        flavour_summary: item.flavour_summary || null,
         quantity: item.quantity,
         price: price,
         subtotal: itemSubtotal

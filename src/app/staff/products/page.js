@@ -26,8 +26,11 @@ export default function ProductsPage() {
     price: 10.00,
     available: true,
     has_box_options: true,
+    is_byob: false,
     box_4_price: '',
+    box_5_price: '',
     box_6_price: '',
+    box_8_price: '',
     box_12_price: '',
   };
   
@@ -69,8 +72,11 @@ export default function ProductsPage() {
       price: product.price || 10.00,
       available: product.available !== false && product.available !== 0,
       has_box_options: product.has_box_options !== false,
+      is_byob: Boolean(product.is_byob),
       box_4_price: product.box_4_price !== undefined && product.box_4_price !== null ? product.box_4_price : '',
+      box_5_price: product.box_5_price !== undefined && product.box_5_price !== null ? product.box_5_price : '',
       box_6_price: product.box_6_price !== undefined && product.box_6_price !== null ? product.box_6_price : '',
+      box_8_price: product.box_8_price !== undefined && product.box_8_price !== null ? product.box_8_price : '',
       box_12_price: product.box_12_price !== undefined && product.box_12_price !== null ? product.box_12_price : '',
     });
     
@@ -85,9 +91,20 @@ export default function ProductsPage() {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+    let nextVal = value;
+    if (type === 'checkbox') {
+      nextVal = checked;
+    } else if (type === 'number') {
+      if (value === '' || value === null || value === undefined) {
+        nextVal = '';
+      } else {
+        const parsed = parseFloat(value);
+        nextVal = isNaN(parsed) ? '' : parsed;
+      }
+    }
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : (type === 'number' ? parseFloat(value) : value)
+      [name]: nextVal
     }));
   };
 
@@ -187,8 +204,11 @@ export default function ProductsPage() {
         price: Number(formData.price),
         available: Boolean(formData.available),
         has_box_options: Boolean(formData.has_box_options),
+        is_byob: Boolean(formData.is_byob),
         box_4_price: formData.box_4_price !== '' && formData.box_4_price !== null ? Number(formData.box_4_price) : null,
+        box_5_price: formData.box_5_price !== '' && formData.box_5_price !== null ? Number(formData.box_5_price) : null,
         box_6_price: formData.box_6_price !== '' && formData.box_6_price !== null ? Number(formData.box_6_price) : null,
+        box_8_price: formData.box_8_price !== '' && formData.box_8_price !== null ? Number(formData.box_8_price) : null,
         box_12_price: formData.box_12_price !== '' && formData.box_12_price !== null ? Number(formData.box_12_price) : null,
         images: finalImageUrls,
         image: finalImageUrls[0] || null
@@ -305,7 +325,11 @@ export default function ProductsPage() {
                         </td>
                         <td>
                           <div style={{ fontWeight: 600 }}>RM{Number(product.price).toFixed(2)} <span style={{ fontSize: '0.8rem', color: '#666' }}>/片</span></div>
-                          {product.has_box_options !== false && (
+                          {product.is_byob ? (
+                            <span style={{ fontSize: '0.72rem', color: '#7c2d12', background: '#ffedd5', padding: '1px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '2px', fontWeight: 600 }}>
+                              🎁 自选混装盒 (BYOB 4/5/6/8/12片)
+                            </span>
+                          ) : product.has_box_options !== false && (
                             <span style={{ fontSize: '0.72rem', color: '#854d0e', background: '#fef9c3', padding: '1px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '2px' }}>
                               📦 盒装可选 (4/6/12片)
                             </span>
@@ -436,69 +460,161 @@ export default function ProductsPage() {
                 name="price" 
                 min="0" 
                 step="0.01" 
-                value={formData.price} 
+                value={Number.isNaN(formData.price) || formData.price == null ? '' : formData.price} 
                 onChange={handleInputChange} 
                 required 
               />
             </div>
           </div>
 
-          {/* Box / Packaging Options */}
+          {/* BYOB or Box Packaging Options */}
           <div style={{ background: 'var(--color-bg-alt, #faf7f2)', padding: '14px 16px', borderRadius: '12px', border: '1px solid #ebd8c0', margin: '14px 0' }}>
-            <label className={styles.checkboxLabel} style={{ fontWeight: 600, color: 'var(--color-text)' }}>
-              <input 
-                type="checkbox" 
-                name="has_box_options" 
-                checked={formData.has_box_options} 
-                onChange={handleInputChange} 
-              />
-              <span>📦 开启盒装规格选项（支持单片及 4片 / 6片 / 12片 盒装购买）</span>
-            </label>
-            <p style={{ margin: '4px 0 12px 24px', fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
-              顾客在前台可选择单片购买或按盒购买。以下价格如留空，系统将根据单片价格自动换算阶梯优惠价。
-            </p>
+            <div style={{ marginBottom: '10px' }}>
+              <label className={styles.checkboxLabel} style={{ fontWeight: 600, color: '#7c2d12' }}>
+                <input 
+                  type="checkbox" 
+                  name="is_byob" 
+                  checked={formData.is_byob} 
+                  onChange={handleInputChange} 
+                />
+                <span>🎁 这是自选混装礼盒 (Build Your Own Box - BYOB)</span>
+              </label>
+              <p style={{ margin: '4px 0 10px 24px', fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
+                开启后，顾客点击该商品将进入自选盒装配制弹窗，可从全部上架口味中自由搭配（支持 4、5、6、8、12 片盒装）。
+              </p>
+            </div>
 
-            {formData.has_box_options && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginTop: '10px' }}>
-                <div className="formGroup">
-                  <label htmlFor="box_4_price" style={{ fontSize: '0.82rem' }}>Box of 4 价格</label>
-                  <input
-                    type="number"
-                    id="box_4_price"
-                    name="box_4_price"
-                    min="0"
-                    step="0.01"
-                    placeholder="留空自动计算"
-                    value={formData.box_4_price}
-                    onChange={handleInputChange}
-                  />
+            {formData.is_byob ? (
+              <div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px', color: 'var(--color-text)' }}>
+                  设置各规格盒装总价（若留空将使用默认预设价格）：
                 </div>
-                <div className="formGroup">
-                  <label htmlFor="box_6_price" style={{ fontSize: '0.82rem' }}>Box of 6 价格</label>
-                  <input
-                    type="number"
-                    id="box_6_price"
-                    name="box_6_price"
-                    min="0"
-                    step="0.01"
-                    placeholder="留空自动计算"
-                    value={formData.box_6_price}
-                    onChange={handleInputChange}
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '8px' }}>
+                  <div className="formGroup">
+                    <label htmlFor="box_4_price" style={{ fontSize: '0.8rem' }}>4片装 (RM)</label>
+                    <input
+                      type="number"
+                      id="box_4_price"
+                      name="box_4_price"
+                      min="0"
+                      step="0.01"
+                      placeholder="默认 RM35"
+                      value={Number.isNaN(formData.box_4_price) || formData.box_4_price == null ? '' : formData.box_4_price}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="formGroup">
+                    <label htmlFor="box_5_price" style={{ fontSize: '0.8rem' }}>5片装 (RM)</label>
+                    <input
+                      type="number"
+                      id="box_5_price"
+                      name="box_5_price"
+                      min="0"
+                      step="0.01"
+                      placeholder="默认 RM44"
+                      value={Number.isNaN(formData.box_5_price) || formData.box_5_price == null ? '' : formData.box_5_price}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="formGroup">
+                    <label htmlFor="box_6_price" style={{ fontSize: '0.8rem' }}>6片装 (RM)</label>
+                    <input
+                      type="number"
+                      id="box_6_price"
+                      name="box_6_price"
+                      min="0"
+                      step="0.01"
+                      placeholder="默认 RM52"
+                      value={Number.isNaN(formData.box_6_price) || formData.box_6_price == null ? '' : formData.box_6_price}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="formGroup">
+                    <label htmlFor="box_8_price" style={{ fontSize: '0.8rem' }}>8片装 (RM)</label>
+                    <input
+                      type="number"
+                      id="box_8_price"
+                      name="box_8_price"
+                      min="0"
+                      step="0.01"
+                      placeholder="默认 RM70"
+                      value={Number.isNaN(formData.box_8_price) || formData.box_8_price == null ? '' : formData.box_8_price}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="formGroup">
+                    <label htmlFor="box_12_price" style={{ fontSize: '0.8rem' }}>12片装 (RM)</label>
+                    <input
+                      type="number"
+                      id="box_12_price"
+                      name="box_12_price"
+                      min="0"
+                      step="0.01"
+                      placeholder="默认 RM100"
+                      value={Number.isNaN(formData.box_12_price) || formData.box_12_price == null ? '' : formData.box_12_price}
+                      onChange={handleInputChange}
+                    />
+                  </div>
                 </div>
-                <div className="formGroup">
-                  <label htmlFor="box_12_price" style={{ fontSize: '0.82rem' }}>Box of 12 价格</label>
-                  <input
-                    type="number"
-                    id="box_12_price"
-                    name="box_12_price"
-                    min="0"
-                    step="0.01"
-                    placeholder="留空自动计算"
-                    value={formData.box_12_price}
-                    onChange={handleInputChange}
+              </div>
+            ) : (
+              <div>
+                <label className={styles.checkboxLabel} style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+                  <input 
+                    type="checkbox" 
+                    name="has_box_options" 
+                    checked={formData.has_box_options} 
+                    onChange={handleInputChange} 
                   />
-                </div>
+                  <span>📦 开启单品盒装选项（同口味 4片 / 6片 / 12片 盒装购买）</span>
+                </label>
+                <p style={{ margin: '4px 0 10px 24px', fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
+                  顾客在前台可选择单片购买或按盒购买。仅有填写了价格的盒装规格才会对顾客开放，留空则不提供该盒装。
+                </p>
+
+                {formData.has_box_options && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginTop: '10px' }}>
+                    <div className="formGroup">
+                      <label htmlFor="box_4_price" style={{ fontSize: '0.82rem' }}>Box of 4 价格</label>
+                      <input
+                        type="number"
+                        id="box_4_price"
+                        name="box_4_price"
+                        min="0"
+                        step="0.01"
+                        placeholder="留空则不提供"
+                        value={Number.isNaN(formData.box_4_price) || formData.box_4_price == null ? '' : formData.box_4_price}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="formGroup">
+                      <label htmlFor="box_6_price" style={{ fontSize: '0.82rem' }}>Box of 6 价格</label>
+                      <input
+                        type="number"
+                        id="box_6_price"
+                        name="box_6_price"
+                        min="0"
+                        step="0.01"
+                        placeholder="留空则不提供"
+                        value={Number.isNaN(formData.box_6_price) || formData.box_6_price == null ? '' : formData.box_6_price}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="formGroup">
+                      <label htmlFor="box_12_price" style={{ fontSize: '0.82rem' }}>Box of 12 价格</label>
+                      <input
+                        type="number"
+                        id="box_12_price"
+                        name="box_12_price"
+                        min="0"
+                        step="0.01"
+                        placeholder="留空则不提供"
+                        value={Number.isNaN(formData.box_12_price) || formData.box_12_price == null ? '' : formData.box_12_price}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

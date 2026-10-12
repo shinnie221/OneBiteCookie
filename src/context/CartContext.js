@@ -27,23 +27,29 @@ export function CartProvider({ children }) {
     localStorage.setItem('onebite_cart', JSON.stringify({ items, voucher, discount }));
   }, [items, voucher, discount]);
 
-  const addItem = useCallback((product, option = null, quantityToAdd = 1) => {
+  const addItem = useCallback((product, option = null, quantityToAdd = 1, extra = null) => {
     const variantName = option?.name || 'Per piece';
     const variantId = option?.id || (variantName === 'Per piece' ? 'piece' : variantName);
     const variantPieces = option?.pieces || 1;
     const price = option?.price !== undefined ? Number(option.price) : Number(product.price);
-    const cartItemId = `${product.id}_${variantId}`;
+    
+    // For BYOB, each unique flavour combination gets its own cart item
+    const isByob = Boolean(extra?.is_byob || product.is_byob);
+    const flavourSummary = extra?.flavour_summary || '';
+    const cartItemId = isByob
+      ? `byob_${variantId}_${encodeURIComponent(flavourSummary || Date.now())}`
+      : `${product.id}_${variantId}`;
 
     setItems(prev => {
       const existing = prev.find(i => 
         (i.cart_item_id && i.cart_item_id === cartItemId) ||
-        (i.product_id === product.id && (i.variant === variantName || (!i.variant && variantName === 'Per piece')))
+        (!isByob && i.product_id === product.id && (i.variant === variantName || (!i.variant && variantName === 'Per piece')))
       );
 
       if (existing) {
         return prev.map(i => {
           const isMatch = (i.cart_item_id && i.cart_item_id === cartItemId) ||
-            (i.product_id === product.id && (i.variant === variantName || (!i.variant && variantName === 'Per piece')));
+            (!isByob && i.product_id === product.id && (i.variant === variantName || (!i.variant && variantName === 'Per piece')));
           return isMatch ? { ...i, quantity: i.quantity + quantityToAdd } : i;
         });
       }
@@ -57,7 +63,10 @@ export function CartProvider({ children }) {
         variant_pieces: variantPieces,
         price: price,
         image: (Array.isArray(product.images) && product.images[0]) || product.image || '',
-        quantity: quantityToAdd
+        quantity: quantityToAdd,
+        is_byob: isByob,
+        flavours: extra?.flavours || null,
+        flavour_summary: flavourSummary || null
       }];
     });
   }, []);

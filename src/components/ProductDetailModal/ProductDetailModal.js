@@ -14,12 +14,6 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
   const toast = useToast();
   const router = useRouter();
 
-  const [currentImgIndex, setCurrentImgIndex] = useState(0);
-  const [selectedOptionId, setSelectedOptionId] = useState('piece');
-  const [quantity, setQuantity] = useState(1);
-  const [descExpanded, setDescExpanded] = useState(false);
-  const [isFavorited, setIsFavorited] = useState(false);
-
   const images = useMemo(() => {
     if (!product) return [];
     if (Array.isArray(product.images) && product.images.length > 0) return product.images;
@@ -31,15 +25,15 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
     return getProductPackagingOptions(product);
   }, [product]);
 
-  // Set default selected option when product opens
-  useEffect(() => {
-    if (isOpen && product) {
-      setCurrentImgIndex(0);
-      setQuantity(1);
-      setDescExpanded(false);
-      setSelectedOptionId(packagingOptions[0]?.id || 'piece');
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const [selectedOptionId, setSelectedOptionId] = useState(() => packagingOptions[0]?.id || 'piece');
+  const [quantity, setQuantity] = useState(1);
+  const [descExpanded, setDescExpanded] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
 
-      // Check favorite state
+  // Sync favorites
+  useEffect(() => {
+    if (product?.id) {
       try {
         const favs = JSON.parse(localStorage.getItem('onebite_favorites') || '[]');
         setIsFavorited(favs.includes(product.id));
@@ -47,7 +41,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
         setIsFavorited(false);
       }
     }
-  }, [isOpen, product, packagingOptions]);
+  }, [product?.id]);
 
   // Disable background scrolling when modal is open
   useEffect(() => {

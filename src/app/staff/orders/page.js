@@ -1256,6 +1256,19 @@ function OrdersContent() {
                               {item.variant}
                             </span>
                           )}
+                          {item.flavour_summary && (
+                            <div style={{
+                              fontSize: '0.75rem',
+                              color: '#555',
+                              marginTop: '3px',
+                              background: '#faf6f0',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              border: '1px dashed #dfcebc'
+                            }}>
+                              🎁 <strong>混装配方:</strong> {item.flavour_summary}
+                            </div>
+                          )}
                         </td>
                         <td className="textRight">{item.quantity}</td>
                         <td className="textRight">RM{Number(item.subtotal || 0).toFixed(2)}</td>

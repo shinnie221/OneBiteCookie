@@ -312,8 +312,15 @@ export default function OrdersPage() {
                           <h3>Items Ordered</h3>
                           <div className={styles.items}>
                             {order.items && order.items.map((item, idx) => (
-                              <div key={item.id || idx} className={styles.itemRow}>
-                                <span>{item.quantity}x {item.product_name}{item.variant ? ` (${item.variant})` : ''}</span>
+                              <div key={item.id || idx} className={styles.itemRow} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                  <span>{item.quantity}x {item.product_name}{item.variant ? ` (${item.variant})` : ''}</span>
+                                  {item.flavour_summary && (
+                                    <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '2px' }}>
+                                      🎁 {item.flavour_summary}
+                                    </div>
+                                  )}
+                                </div>
                                 <span>RM{item.subtotal?.toFixed(2) || '0.00'}</span>
                               </div>
                             ))}

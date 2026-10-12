@@ -35,8 +35,11 @@ export async function POST(request) {
       image, 
       images,
       has_box_options,
+      is_byob,
       box_4_price,
+      box_5_price,
       box_6_price,
+      box_8_price,
       box_12_price
     } = await request.json();
     
@@ -57,8 +60,11 @@ export async function POST(request) {
       image: primaryImage,
       images: imageList,
       has_box_options: has_box_options !== false,
+      is_byob: Boolean(is_byob),
       box_4_price: box_4_price !== undefined && box_4_price !== null && box_4_price !== '' ? Number(box_4_price) : null,
+      box_5_price: box_5_price !== undefined && box_5_price !== null && box_5_price !== '' ? Number(box_5_price) : null,
       box_6_price: box_6_price !== undefined && box_6_price !== null && box_6_price !== '' ? Number(box_6_price) : null,
+      box_8_price: box_8_price !== undefined && box_8_price !== null && box_8_price !== '' ? Number(box_8_price) : null,
       box_12_price: box_12_price !== undefined && box_12_price !== null && box_12_price !== '' ? Number(box_12_price) : null,
       createdAt: new Date().toISOString()
     };

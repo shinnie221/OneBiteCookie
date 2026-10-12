@@ -271,6 +271,7 @@ export default function HomePage() {
                 key={product.id}
                 product={product}
                 currencySymbol={currencySymbol}
+                allProducts={products}
               />
             ))}
           </div>
