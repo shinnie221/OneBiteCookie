@@ -66,14 +66,18 @@ export default function HomePage() {
     };
   }, []);
 
-  // Filter products by search query
+  // Filter and sort products (BYOB box at top)
   const filteredProducts = useMemo(() => {
-    if (!searchQuery.trim()) return products;
-    const q = searchQuery.toLowerCase().trim();
-    return products.filter(p =>
-      p.name?.toLowerCase().includes(q) ||
-      p.description?.toLowerCase().includes(q)
-    );
+    let list = products;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(p =>
+        p.name?.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q)
+      );
+    }
+    // Place BYOB item at the very top of menu
+    return [...list].sort((a, b) => (b.is_byob ? 1 : 0) - (a.is_byob ? 1 : 0));
   }, [products, searchQuery]);
 
   const isStaffUser = isAuthenticated && user && user.role !== 'customer';

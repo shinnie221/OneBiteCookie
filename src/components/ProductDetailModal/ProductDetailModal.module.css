@@ -279,6 +279,50 @@
   gap: 4px;
 }
 
+/* BYOB Hint Banner */
+.byobHintBox {
+  background: #fdfaf5;
+  border: 1px dashed #cfbba5;
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.byobHintText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.82rem;
+  color: #4a3424;
+}
+
+.byobHintSub {
+  font-size: 0.74rem;
+  color: #7c6857;
+}
+
+.byobHintBtn {
+  background: #4a3221;
+  color: #ffffff;
+  border: none;
+  border-radius: 16px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.byobHintBtn:hover {
+  background: #332014;
+}
+
 .optionItem {
   display: flex;
   align-items: center;

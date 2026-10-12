@@ -107,113 +107,140 @@
 
 /* Scrollable Content */
 .contentBody {
-  padding: 16px 20px;
+  padding: 12px 18px;
   overflow-y: auto;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-}
-
-/* Step Headers */
-.sectionTitle {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #2b1d12;
-  margin: 0 0 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* Box Size Pills Grid */
-.tierGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
 }
 
-.tierCard {
-  border: 1.5px solid #e7ded5;
-  border-radius: 14px;
-  padding: 10px 12px;
-  cursor: pointer;
-  background: #ffffff;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  transition: all 0.2s;
-  position: relative;
-  user-select: none;
-}
-
-.tierCard:hover {
-  border-color: #baa493;
-  background: #fcfaf8;
-}
-
-.tierCardActive {
-  border-color: #382415;
-  background: #faf6f0;
-  box-shadow: 0 3px 10px rgba(56, 36, 21, 0.08);
-}
-
-.tierCardHeader {
+/* Step Headers & Compact Layout */
+.sectionTitleRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 6px;
 }
 
-.tierName {
-  font-size: 0.92rem;
+.sectionTitle {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #2b1d12;
+  margin: 0;
+}
+
+.sectionSubtitle {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #8b5327;
+}
+
+.currentTierHighlight {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #8b5327;
+  background: #fdf5eb;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* Box Size Pills Row (Single compact row) */
+.tierGrid {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tierChip {
+  background: #ffffff;
+  border: 1.5px solid #ded5cc;
+  border-radius: 10px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: 1 1 0px;
+  min-width: 72px;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.tierChip:hover {
+  border-color: #8b5327;
+  background: #fdfbf7;
+}
+
+.tierChipActive {
+  background: #382415;
+  border-color: #382415;
+  box-shadow: 0 3px 8px rgba(56, 36, 21, 0.15);
+}
+
+.tierChipPieces {
+  font-size: 0.82rem;
   font-weight: 700;
   color: #2b1d12;
 }
 
-.tierBadge {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #92400e;
-  background: #fef3c7;
-  padding: 1px 6px;
-  border-radius: 6px;
-  align-self: flex-start;
+.tierChipActive .tierChipPieces {
+  color: #ffffff;
 }
 
-.tierPrice {
-  font-family: var(--font-heading, inherit);
-  font-size: 0.96rem;
+.tierChipPrice {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #7c6857;
+}
+
+.tierChipActive .tierChipPrice {
+  color: #f7ede2;
+}
+
+.tierChipBadge {
+  position: absolute;
+  top: -8px;
+  background: #f59e0b;
+  color: #ffffff;
+  font-size: 0.62rem;
   font-weight: 800;
-  color: #382415;
-  margin-top: 2px;
+  padding: 1px 5px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
 }
 
 /* Flavour Progress Card */
 .progressCard {
   background: #fbf8f4;
   border: 1px solid #ebd8c0;
-  border-radius: 14px;
-  padding: 12px 14px;
+  border-radius: 12px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .progressTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
 .progressText {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #2b1d12;
 }
 
 .progressBarWrap {
   width: 100%;
-  height: 8px;
+  height: 6px;
   background: #e9decb;
   border-radius: 6px;
   overflow: hidden;
@@ -228,23 +255,37 @@
 .quickActions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .quickBtn {
-  background: #f3ede2;
-  border: 1px solid #decab4;
-  color: #4a3424;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 20px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  color: #78350f;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 14px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .quickBtn:hover {
+  background: #fde68a;
+}
+
+.clearBtn {
+  background: #f3ede2;
+  border: 1px solid #decab4;
+  color: #4a3424;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.clearBtn:hover {
   background: #e6dac6;
 }
 
@@ -252,15 +293,15 @@
 .flavourList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .flavourItem {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: 12px;
+  padding: 6px 10px;
+  border-radius: 10px;
   border: 1px solid #f0eae3;
   background: #ffffff;
   transition: all 0.15s;
@@ -285,8 +326,8 @@
 }
 
 .flavourThumb {
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   border-radius: 8px;
   object-fit: cover;
   background: #f2ede5;

@@ -10,6 +10,9 @@ import styles from './ProductCard.module.css';
 export default function ProductCard({ product, currencySymbol = '₱', allProducts = [] }) {
   const { items } = useCart();
   const [modalOpen, setModalOpen] = useState(false);
+  const [byobModalOpen, setByobModalOpen] = useState(false);
+
+  const byobProduct = allProducts.find(p => p.is_byob);
 
   const images = Array.isArray(product.images) && product.images.length > 0 
     ? product.images 
@@ -31,6 +34,11 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
     setModalOpen(true);
   };
 
+  const handleOpenByobFromDetail = () => {
+    setModalOpen(false);
+    setByobModalOpen(true);
+  };
+
   return (
     <>
       <div 
@@ -41,6 +49,9 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
       >
         {/* Left Side: Product Details */}
         <div className={styles.info}>
+          {product.is_byob && (
+            <span className={styles.byobBadge}>🎁 自选混装专属礼盒</span>
+          )}
           <h3 className={styles.name}>{product.name}</h3>
           {product.description && (
             <p className={styles.description}>{product.description}</p>
@@ -106,6 +117,18 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
           currencySymbol={currencySymbol}
+          onOpenByob={byobProduct ? handleOpenByobFromDetail : null}
+        />
+      )}
+
+      {/* Bridge BYOB Modal when triggered from a single product modal */}
+      {byobModalOpen && byobProduct && (
+        <ByobModal
+          product={byobProduct}
+          isOpen={byobModalOpen}
+          onClose={() => setByobModalOpen(false)}
+          currencySymbol={currencySymbol}
+          allProducts={allProducts}
         />
       )}
     </>

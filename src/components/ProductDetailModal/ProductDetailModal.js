@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { getProductPackagingOptions, getProductPriceRange, formatPrice } from '@/lib/packaging';
 import styles from './ProductDetailModal.module.css';
 
-export default function ProductDetailModal({ product, isOpen, onClose, currencySymbol = '₱' }) {
+export default function ProductDetailModal({ product, isOpen, onClose, currencySymbol = '₱', onOpenByob = null }) {
   const { addItem } = useCart();
   const { isAuthenticated } = useAuth();
   const toast = useToast();
@@ -256,6 +256,23 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
               );
             })}
           </div>
+
+          {/* Hint banner for customers who want mixed flavors */}
+          {onOpenByob && (
+            <div className={styles.byobHintBox}>
+              <div className={styles.byobHintText}>
+                <span>💡 想要在一盒内<strong>搭配不同口味</strong>？</span>
+                <span className={styles.byobHintSub}>当前选项为纯 {product.name}。如需混搭请使用自选礼盒</span>
+              </div>
+              <button
+                type="button"
+                className={styles.byobHintBtn}
+                onClick={onOpenByob}
+              >
+                前往自选礼盒 🎁
+              </button>
+            </div>
+          )}
 
           <hr className={styles.divider} />
 

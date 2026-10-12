@@ -173,8 +173,11 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
         <div className={styles.contentBody}>
           {/* Step 1: Choose Box Size */}
           <div>
-            <div className={styles.sectionTitle}>
-              <span>第一步：选择礼盒规格 (Box Size)</span>
+            <div className={styles.sectionTitleRow}>
+              <span className={styles.sectionTitle}>第一步：选择规格 (Box Size)</span>
+              <span className={styles.currentTierHighlight}>
+                {selectedTier?.name} · {currencySymbol}{formatPrice(selectedTier?.price)}
+              </span>
             </div>
 
             <div className={styles.tierGrid}>
@@ -182,23 +185,16 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 const isSelected = tier.id === selectedTierId;
                 const isBoxOf5 = tier.pieces === 5;
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={tier.id}
-                    className={`${styles.tierCard} ${isSelected ? styles.tierCardActive : ''}`}
+                    className={`${styles.tierChip} ${isSelected ? styles.tierChipActive : ''}`}
                     onClick={() => handleSelectTier(tier.id)}
-                    role="button"
-                    tabIndex={0}
                   >
-                    <div className={styles.tierCardHeader}>
-                      <span className={styles.tierName}>{tier.name}</span>
-                      {isBoxOf5 && (
-                        <span className={styles.tierBadge}>五种口味齐聚 ⭐</span>
-                      )}
-                    </div>
-                    <span className={styles.tierPrice}>
-                      {currencySymbol}{formatPrice(tier.price)}
-                    </span>
-                  </div>
+                    <span className={styles.tierChipPieces}>{tier.pieces}片装</span>
+                    <span className={styles.tierChipPrice}>{currencySymbol}{formatPrice(tier.price)}</span>
+                    {isBoxOf5 && <span className={styles.tierChipBadge}>⭐ 5味全齐</span>}
+                  </button>
                 );
               })}
             </div>
@@ -209,8 +205,8 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
             <div className={styles.progressTop}>
               <span className={styles.progressText}>
                 {isFull 
-                  ? `✅ 礼盒已选满 (${totalSelectedCount}/${targetCount} 片)` 
-                  : `🍪 已选 ${totalSelectedCount} / ${targetCount} 片（还需选 ${remainingCount} 片）`}
+                  ? `✅ 已选满 (${totalSelectedCount}/${targetCount} 片)` 
+                  : `🍪 已选 ${totalSelectedCount} / ${targetCount} 片（还差 ${remainingCount} 片）`}
               </span>
               <div className={styles.quickActions}>
                 {targetCount === 5 && availableFlavours.length >= 5 && (
@@ -219,7 +215,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                   </button>
                 )}
                 {totalSelectedCount > 0 && (
-                  <button type="button" className={styles.quickBtn} onClick={handleClearSelection}>
+                  <button type="button" className={styles.clearBtn} onClick={handleClearSelection}>
                     清空
                   </button>
                 )}
@@ -239,8 +235,11 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
 
           {/* Step 3: Flavours List */}
           <div>
-            <div className={styles.sectionTitle}>
-              <span>第二步：搭配口味 (Pick Flavours)</span>
+            <div className={styles.sectionTitleRow}>
+              <span className={styles.sectionTitle}>第二步：搭配口味 (Pick Flavours)</span>
+              <span className={styles.sectionSubtitle}>
+                👉 点击各口味右侧「+」自选片数
+              </span>
             </div>
 
             <div className={styles.flavourList}>
