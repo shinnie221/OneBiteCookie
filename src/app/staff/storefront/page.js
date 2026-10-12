@@ -288,37 +288,6 @@ export default function StorefrontSettingsPage() {
                     </button>
                   )}
                 </div>
-
-                <div className={styles.formGroup} style={{ marginTop: '10px' }}>
-                  <label htmlFor="banner_image">或者粘贴图片网址 (URL)</label>
-                  <input
-                    type="url"
-                    id="banner_image"
-                    name="banner_image"
-                    value={formData.banner_image}
-                    onChange={handleInputChange}
-                    placeholder="https://example.com/banner.jpg"
-                  />
-                </div>
-
-                <div>
-                  <div className={styles.presetTitle}>精选预设横幅（点击一键应用）：</div>
-                  <div className={styles.presetGrid}>
-                    {PRESET_BANNERS.map(b => (
-                      <div
-                        key={b.id}
-                        className={`${styles.presetCard} ${formData.banner_image === b.url ? styles.presetCardActive : ''}`}
-                        onClick={() => setFormData(prev => ({ ...prev, banner_image: b.url }))}
-                      >
-                        <div className={styles.presetThumb}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={b.url} alt={b.name} />
-                        </div>
-                        <div className={styles.presetName}>{b.name}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </section>
 
@@ -375,37 +344,6 @@ export default function StorefrontSettingsPage() {
                     )}
                   </div>
                 </div>
-
-                <div className={styles.formGroup} style={{ marginTop: '12px' }}>
-                  <label htmlFor="avatar_image">或者粘贴Logo图片网址 (URL)</label>
-                  <input
-                    type="url"
-                    id="avatar_image"
-                    name="avatar_image"
-                    value={formData.avatar_image}
-                    onChange={handleInputChange}
-                    placeholder="https://example.com/logo.png"
-                  />
-                </div>
-
-                <div>
-                  <div className={styles.presetTitle}>精选预设Logo（点击一键应用）：</div>
-                  <div className={styles.presetGrid}>
-                    {PRESET_AVATARS.map(a => (
-                      <div
-                        key={a.id}
-                        className={`${styles.presetCard} ${formData.avatar_image === a.url ? styles.presetCardActive : ''}`}
-                        onClick={() => setFormData(prev => ({ ...prev, avatar_image: a.url }))}
-                      >
-                        <div className={styles.presetThumb} style={{ display: 'flex', justifyContent: 'center' }}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={a.url} alt={a.name} style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
-                        </div>
-                        <div className={styles.presetName}>{a.name}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </section>
 
@@ -427,18 +365,6 @@ export default function StorefrontSettingsPage() {
                     onChange={handleInputChange}
                     placeholder="例如：Bakery Sora 或 One Bite"
                     required
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label htmlFor="currency_symbol">货币符号 (Currency)</label>
-                  <input
-                    type="text"
-                    id="currency_symbol"
-                    name="currency_symbol"
-                    value={formData.currency_symbol}
-                    onChange={handleInputChange}
-                    placeholder="RM 或 ₱ 或 $"
                   />
                 </div>
               </div>
@@ -468,24 +394,13 @@ export default function StorefrontSettingsPage() {
               </div>
             </section>
 
-            {/* Product photos hint */}
-            <div className={styles.productHintBox}>
-              <div className={styles.productHintText}>
-                <strong>🍪 想更换单款曲奇的展示照片？</strong>
-                <p>每款曲奇的封面图及多张大图请在「曲奇菜单管理」中直接点击编辑与上传。</p>
-              </div>
-              <Link href="/staff/products" className="btn btnSecondary" style={{ whiteSpace: 'nowrap' }}>
-                前往曲奇菜单 →
-              </Link>
-            </div>
-
             <div className={styles.saveBar}>
               <button
                 type="submit"
                 className={styles.saveBtn}
                 disabled={saving || uploadingBanner || uploadingAvatar}
               >
-                {saving ? '正在保存中...' : '💾 保存所有外观更改'}
+                {saving ? '正在保存中...' : ' 保存所有外观更改'}
               </button>
             </div>
           </div>
@@ -502,9 +417,9 @@ export default function StorefrontSettingsPage() {
                 <span style={{ fontSize: '1.1rem' }}>☰</span>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#666' }}>take.app</span>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span>🔍</span>
+                  <span>⌕</span>
                   <span style={{ position: 'relative' }}>
-                    🛍️
+                    �
                     <span style={{
                       position: 'absolute', top: '-4px', right: '-6px',
                       background: '#2c1d0f', color: '#fff', fontSize: '0.6rem',

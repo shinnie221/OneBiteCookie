@@ -623,7 +623,7 @@ function OrdersContent() {
               <option value="all">全部状态</option>
               <option value="pending_verification">⏳ 待核验付款</option>
               <option value="preparing">🧑‍🍳 烘焙制作中</option>
-              <option value="ready_or_delivery">🛍️ 待自取 / 🚚 配送中</option>
+              <option value="ready_or_delivery">🛒 待自取 /  配送中</option>
               <option value="completed">✅ 已完成订单</option>
               <option value="denied_cancelled_refunded">❌ 已拒绝 / 已取消 / 已退款</option>
             </select>
@@ -685,7 +685,7 @@ function OrdersContent() {
         <input
           type="text"
           className={styles.searchInput}
-          placeholder="🔍 搜索历史与进行中订单：输入订单编号 (#ORD-xxxx)、顾客姓名、手机号或邮箱..."
+          placeholder="⌕ 搜索历史与进行中订单：输入订单编号 (#ORD-xxxx)、顾客姓名、手机号或邮箱..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
         />
@@ -790,10 +790,10 @@ function OrdersContent() {
                       <td>
                         {order.order_type === 'delivery' ? (
                           <span className={styles.deliveryBadge} title={order.delivery_method === 'lalamove' ? `🛵 Lalamove配送 · 实际运费 RM${Number(order.lalamove_cost || 0).toFixed(2)}` : '🚗 管理员亲送'}>
-                            {order.delivery_method === 'lalamove' ? '🛵 Lalamove' : '🚚 管理员亲送'}
+                            {order.delivery_method === 'lalamove' ? '🛵 Lalamove' : ' 管理员亲送'}
                           </span>
                         ) : (
-                          <span className={styles.pickupBadge}>🛍️ 到店自取</span>
+                          <span className={styles.pickupBadge}>🛒 到店自取</span>
                         )}
                       </td>
                       <td className={styles.totalCell}>RM{order.total.toFixed(2)}</td>
@@ -1292,7 +1292,7 @@ function OrdersContent() {
                 {Number(isEditing ? editData.delivery_fee : selectedOrder.delivery_fee) > 0 && (
                   <div className={styles.summaryRow}>
                     <span>
-                      🚚 运费 Delivery Fee
+                      运费 Delivery Fee
                       {(isEditing ? editData.order_type : selectedOrder.order_type) === 'delivery' && (
                         <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', marginLeft: '6px' }}>
                           ({(isEditing ? editData.delivery_method : selectedOrder.delivery_method) === 'lalamove' ? '🛵 Lalamove' : '🚗 亲送个人补贴'})
@@ -1320,7 +1320,7 @@ function OrdersContent() {
                   <div className={styles.currentStatusRow}>
                     <OrderStatusBadge status={selectedOrder.order_status} lang="zh" />
                     <span className={styles.orderTypeTag}>
-                      {selectedOrder.order_type === 'delivery' ? '🚚 送货上门' : '🛍️ 到店自取'}
+                      {selectedOrder.order_type === 'delivery' ? ' 送货上门' : '🛒 到店自取'}
                     </span>
                   </div>
                 </div>
@@ -1397,8 +1397,8 @@ function OrdersContent() {
                       disabled={actionLoading}
                     >
                       {selectedOrder.order_type === 'delivery'
-                        ? '🚚 制作完成 → 标记为配送中'
-                        : '🛍️ 制作完成 → 标记为待自取'}
+                        ? ' 制作完成 → 标记为配送中'
+                        : '🛒 制作完成 → 标记为待自取'}
                     </button>
                   </div>
                 </div>
@@ -1563,7 +1563,7 @@ function OrdersContent() {
         <form onSubmit={handleCreateSubmit} className={styles.createOrderForm}>
           {/* 1. 顾客基本信息 */}
           <div className={styles.formSection}>
-            <h3 className={styles.formSectionTitle}>👤 顾客联系信息</h3>
+            <h3 className={styles.formSectionTitle}>🪪 顾客联系信息</h3>
             <div className={styles.formGrid2}>
               <div className={styles.formField}>
                 <label>顾客姓名 *</label>
@@ -1599,7 +1599,7 @@ function OrdersContent() {
 
           {/* 2. 取货与配送方式 */}
           <div className={styles.formSection}>
-            <h3 className={styles.formSectionTitle}>🚚 履约与配送方式</h3>
+            <h3 className={styles.formSectionTitle}> 履约与配送方式</h3>
             <div className={styles.formGrid2}>
               <div className={styles.formField}>
                 <label>履约类型 *</label>
@@ -1612,7 +1612,7 @@ function OrdersContent() {
                     delivery_fee: e.target.value === 'delivery' ? '8.00' : '0.00'
                   })}
                 >
-                  <option value="pickup">🛍️ 门店/摊位自取 (Pickup)</option>
+                  <option value="pickup">🛒 门店/摊位自取 (Pickup)</option>
                   <option value="delivery">🚗 送货上门 (Delivery)</option>
                 </select>
               </div>
@@ -1807,7 +1807,7 @@ function OrdersContent() {
                   onChange={e => setCreateFormData({ ...createFormData, order_status: e.target.value })}
                 >
                   <option value="preparing">🧑‍🍳 烘焙制作中 (Preparing)</option>
-                  <option value="ready_for_pickup">🛍️ 待自取 / 待发货 (Ready)</option>
+                  <option value="ready_for_pickup">🛒 待自取 / 待发货 (Ready)</option>
                   <option value="completed">✅ 已完成结单 (Completed)</option>
                 </select>
               </div>

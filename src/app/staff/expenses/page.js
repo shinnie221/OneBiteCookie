@@ -980,7 +980,7 @@ function ExpensesContent() {
                           title="点击进入查看此笔支出单据截图凭证"
                         >
                           {item.note || '未填写'}
-                          <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>🔍</span>
+                          <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>⌕</span>
                         </strong>
                       </td>
                       <td>
@@ -1519,7 +1519,7 @@ function ExpensesContent() {
                     className="btn btnSecondary"
                     style={{ fontSize: '0.8rem', padding: '6px 12px' }}
                   >
-                    🔍 在新窗口打开原图 ↗
+                    ⌕ 在新窗口打开原图 ↗
                   </a>
                 )}
                 <a

@@ -46,9 +46,9 @@ export default function CustomersPage() {
     try {
       const res = await authFetch('/api/customers');
       const data = await res.json();
-      
+
       if (!res.ok) throw new Error(data.error || '无法加载顾客列表');
-      
+
       setCustomers(data.customers || []);
     } catch (err) {
       setError(err.message);
@@ -194,7 +194,7 @@ export default function CustomersPage() {
                             <div className={styles.orderMeta}>
                               <span>{new Date(order.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' })}</span>
                               <span>•</span>
-                              <span>{order.order_type === 'delivery' ? '🚚 送货上门' : '🏪 到店自取'}</span>
+                              <span>{order.order_type === 'delivery' ? ' 送货上门' : '🏪 到店自取'}</span>
                               <span>•</span>
                               <span style={{ fontWeight: 600 }}>RM{(order.total || 0).toFixed(2)}</span>
                             </div>

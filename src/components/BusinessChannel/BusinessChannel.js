@@ -273,7 +273,7 @@ export default function BusinessChannel({ channel }) {
       {error && <p className={styles.error} role="alert">{error}</p>}
       <div className={styles.actions}>
         <button className="btn btnPrimary">
-          {saving ? '保存中...' : isBoothPreparing ? '💾 保存出摊准备 (开始摆摊)' : booth ? '✅ 完成收摊并保存结单' : '保存订单'}
+          {saving ? '保存中...' : isBoothPreparing ? ' 保存出摊准备 (开始摆摊)' : booth ? '✅ 完成收摊并保存结单' : '保存订单'}
         </button>
         <button type="button" className="btn btnSecondary" onClick={closeForm}>取消</button>
       </div>
@@ -401,7 +401,7 @@ export default function BusinessChannel({ channel }) {
               <input
                 type="search"
                 className={styles.styledSearchInput}
-                placeholder={booth ? "🔍 搜索摆摊地点、曲奇口味或日期..." : "🔍 搜索批发商名称、曲奇口味或日期..."}
+                placeholder={booth ? "⌕ 搜索摆摊地点、曲奇口味或日期..." : "⌕ 搜索批发商名称、曲奇口味或日期..."}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />

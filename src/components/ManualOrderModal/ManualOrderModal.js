@@ -219,7 +219,7 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
 
             {/* Customer Details */}
             <div className={styles.sectionBlock}>
-              <h4 className={styles.sectionTitle}>👤 Customer Details</h4>
+              <h4 className={styles.sectionTitle}>🪪 Customer Details</h4>
 
               <div className={styles.inputGroup}>
                 <label className={styles.label}>
@@ -272,14 +272,14 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
                     className={`${styles.toggleBtn} ${orderType === 'pickup' ? styles.toggleActive : ''}`}
                     onClick={() => setOrderType('pickup')}
                   >
-                    🛍️ Pickup
+                    🛒 Pickup
                   </button>
                   <button
                     type="button"
                     className={`${styles.toggleBtn} ${orderType === 'delivery' ? styles.toggleActive : ''}`}
                     onClick={() => setOrderType('delivery')}
                   >
-                    🚚 Delivery
+                    Delivery
                   </button>
                 </div>
               </div>
@@ -339,7 +339,7 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
                     onChange={(e) => setOrderStatus(e.target.value)}
                   >
                     <option value="preparing">🧑‍🍳 Start Preparing</option>
-                    <option value="ready_pickup">🛍️ Ready for Pickup</option>
+                    <option value="ready_pickup">🛒 Ready for Pickup</option>
                     <option value="completed">✅ Completed (Fulfilled)</option>
                     <option value="pending_verification">⏳ Pending Verification</option>
                   </select>
@@ -429,7 +429,7 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
             {/* Current Order Basket */}
             <div className={styles.basketBlock}>
               <h4 className={styles.sectionTitle}>
-                🛍️ Current Basket ({orderItems.reduce((c, i) => c + i.quantity, 0)} items)
+                🛒 Current Basket ({orderItems.reduce((c, i) => c + i.quantity, 0)} items)
               </h4>
 
               {orderItems.length === 0 ? (

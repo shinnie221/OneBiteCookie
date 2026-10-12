@@ -147,7 +147,7 @@ export default function OrdersPage() {
                         <div className={styles.idRow}>
                           <h2 className={styles.orderId}>{order.order_id}</h2>
                           <span className={order.order_type === 'delivery' ? styles.typeTagDelivery : styles.typeTagPickup}>
-                            {order.order_type === 'delivery' ? '🚚 Delivery' : '🛍️ Pickup'}
+                            {order.order_type === 'delivery' ? ' Delivery' : '🛒 Pickup'}
                           </span>
                         </div>
                         <p className={styles.orderDate}>

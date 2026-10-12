@@ -35,9 +35,9 @@ export async function seedDatabase() {
     for (const admin of adminUsers) {
       const adminQuery = query(usersRef, where('email', '==', admin.email));
       const adminSnapshot = await getDocs(adminQuery);
-      
+
       if (adminSnapshot.empty) {
-        console.log(`👤 Seeding admin user: ${admin.email}...`);
+        console.log(`🪪 Seeding admin user: ${admin.email}...`);
         await addDoc(usersRef, {
           name: admin.name,
           email: admin.email,
@@ -53,7 +53,7 @@ export async function seedDatabase() {
     // 2. Seed products if empty
     const productsRef = collection(db, 'products');
     const productsSnapshot = await getDocs(productsRef);
-    
+
     if (productsSnapshot.empty) {
       console.log('🍪 Seeding database products to Firebase...');
       const products = [

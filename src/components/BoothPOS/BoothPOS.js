@@ -35,13 +35,39 @@ function playCashChime() {
   }
 }
 
-const DEFAULT_PRESET_ITEMS = [
-  { name: 'Original Cookie (经典原味)', unitPrice: 8.90, prepared: 20, waste: 0 },
-  { name: 'Dark Choc Sea Salt (黑巧海盐)', unitPrice: 9.90, prepared: 20, waste: 0 },
-  { name: 'Matcha White Choc (宇治抹茶白巧)', unitPrice: 9.90, prepared: 20, waste: 0 },
-  { name: 'Earl Grey Lavender (伯爵红茶薰衣草)', unitPrice: 9.90, prepared: 20, waste: 0 },
-  { name: 'Red Velvet Cream Cheese (红丝绒芝士)', unitPrice: 10.90, prepared: 20, waste: 0 },
-];
+function matchProduct(item, productList) {
+  if (!item || !Array.isArray(productList) || productList.length === 0) return null;
+  const itemName = (item.name || '').trim().toLowerCase();
+  const cleanItemName = itemName.replace(/\(.*?\)/g, '').replace(/（.*?）/g, '').trim();
+
+  // 1. By productId / id
+  if (item.productId || item.id) {
+    const byId = productList.find(p => p.id === (item.productId || item.id));
+    if (byId) return byId;
+  }
+
+  // 2. Exact name match (case-insensitive)
+  const byExact = productList.find(p => (p.name || '').trim().toLowerCase() === itemName);
+  if (byExact) return byExact;
+
+  // 3. Clean name match (ignoring parenthesized chinese/english annotations)
+  if (cleanItemName) {
+    const byClean = productList.find(p => {
+      const pClean = (p.name || '').trim().toLowerCase().replace(/\(.*?\)/g, '').replace(/（.*?）/g, '').trim();
+      return pClean === cleanItemName;
+    });
+    if (byClean) return byClean;
+  }
+
+  // 4. Substring / includes match
+  const byIncludes = productList.find(p => {
+    const pName = (p.name || '').trim().toLowerCase();
+    return pName && itemName && (pName.includes(itemName) || itemName.includes(pName));
+  });
+  if (byIncludes) return byIncludes;
+
+  return null;
+}
 
 export default function BoothPOS() {
   const { authFetch } = useAuth();
@@ -56,9 +82,9 @@ export default function BoothPOS() {
   const [boothNotes, setBoothNotes] = useState('');
   const [boothDays, setBoothDays] = useState(1); // Staff sets event duration (e.g. 1, 2, 3 days)
 
-  // Products & Inventory
+  // Products & Inventory - strictly follows active menu cookies
   const [products, setProducts] = useState([]);
-  const [inventory, setInventory] = useState(DEFAULT_PRESET_ITEMS);
+  const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingSession, setSavingSession] = useState(false);
 
@@ -101,41 +127,72 @@ export default function BoothPOS() {
   // Local storage cache key
   const storageKey = `onebite_pos_${boothDate}`;
 
+  // Sync products from menu with POS inventory:
+  // Strictly follows active menu cookie flavours (excludes BYOB custom box packages & hidden items)
+  const syncMenuWithInventory = useCallback((menuProducts, currentInventory) => {
+    if (!Array.isArray(menuProducts) || menuProducts.length === 0) {
+      return [];
+    }
+
+    // POS items strictly follow the menu:
+    // Only include individual cookie flavours that are available (not BYOB assorted box packages)
+    const validMenuCookies = menuProducts.filter(p => !p.is_byob && p.available !== false && p.available !== 0);
+
+    return validMenuCookies.map(p => {
+      const pImg = p.image || (Array.isArray(p.images) && p.images[0]) || null;
+      const existing = (currentInventory || []).find(it => matchProduct(it, [p]));
+
+      return {
+        productId: p.id,
+        name: p.name,
+        unitPrice: Number(p.price) || (existing ? Number(existing.unitPrice) : 8.90),
+        prepared: existing && existing.prepared !== undefined ? Number(existing.prepared) : 20,
+        waste: existing && existing.waste !== undefined ? Number(existing.waste) : 0,
+        image: pImg
+      };
+    });
+  }, []);
+
+  // Fetch latest products from menu and sync to inventory
+  const fetchAndSyncMenu = useCallback(async (baseInventory = null) => {
+    try {
+      const res = await authFetch('/api/products', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        const freshProducts = data.products || [];
+        if (freshProducts.length > 0) {
+          setProducts(freshProducts);
+          setInventory(prev => syncMenuWithInventory(freshProducts, baseInventory || prev));
+          return freshProducts;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch/sync menu products in POS:', err);
+    }
+    return null;
+  }, [authFetch, syncMenuWithInventory]);
+
+  // Helper to get latest cookie image directly following the menu
+  const getItemImage = useCallback((item) => {
+    const matched = matchProduct(item, products);
+    if (matched) {
+      if (matched.image) return matched.image;
+      if (Array.isArray(matched.images) && matched.images.length > 0) return matched.images[0];
+    }
+    return item?.image || null;
+  }, [products]);
+
   // Load initial products and restore local transactions if any
   useEffect(() => {
     async function init() {
       setLoading(true);
       try {
-        const res = await authFetch('/api/products');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.products && data.products.length > 0) {
-            setProducts(data.products);
-
-            // Populate inventory with store products if available
-            setInventory(prev => {
-              const merged = data.products.map(p => {
-                const existing = prev.find(it => it.name.toLowerCase() === p.name.toLowerCase());
-                return {
-                  name: p.name,
-                  unitPrice: Number(p.price) || 8.90,
-                  prepared: existing ? existing.prepared : 20,
-                  waste: existing ? existing.waste : 0,
-                  image: p.image || null
-                };
-              });
-              return merged.length > 0 ? merged : prev;
-            });
-          }
-        }
-
-        // Restore transactions from localStorage
+        let cachedInventory = [];
         const cached = localStorage.getItem(storageKey);
         if (cached) {
           try {
             const parsed = JSON.parse(cached);
             if (parsed.transactions) setTransactions(parsed.transactions);
-            if (parsed.inventory) setInventory(parsed.inventory);
             if (parsed.boothTitle !== undefined) setBoothTitle(parsed.boothTitle);
             if (parsed.boothDays !== undefined) {
               setBoothDays(parsed.boothDays);
@@ -144,9 +201,18 @@ export default function BoothPOS() {
               }
             }
             if (parsed.boothExpenses) setBoothExpenses(parsed.boothExpenses);
+            if (Array.isArray(parsed.inventory) && parsed.inventory.length > 0) {
+              cachedInventory = parsed.inventory;
+            }
           } catch (e) {
             console.warn('Failed to parse cached POS data:', e);
           }
+        }
+
+        // Fetch fresh products from menu, ensuring images and prices ALWAYS follow the menu
+        const fetched = await fetchAndSyncMenu(cachedInventory);
+        if (!fetched && cachedInventory.length > 0) {
+          setInventory(cachedInventory);
         }
       } catch (err) {
         console.error('POS init error:', err);
@@ -155,7 +221,30 @@ export default function BoothPOS() {
       }
     }
     init();
-  }, [authFetch, storageKey]);
+  }, [fetchAndSyncMenu, storageKey]);
+
+  // Listen for window focus, storage changes, or custom events when staff changes cookie images in menu
+  useEffect(() => {
+    const handleSync = () => {
+      fetchAndSyncMenu();
+    };
+
+    const handleStorage = (e) => {
+      if (e.key === 'onebite_menu_updated_at') {
+        fetchAndSyncMenu();
+      }
+    };
+
+    window.addEventListener('focus', handleSync);
+    window.addEventListener('onebite_menu_updated', handleSync);
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('focus', handleSync);
+      window.removeEventListener('onebite_menu_updated', handleSync);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [fetchAndSyncMenu]);
 
   // Persist transactions and inventory
   useEffect(() => {
@@ -577,9 +666,9 @@ export default function BoothPOS() {
         })));
         try {
           localStorage.removeItem(storageKey);
-        } catch {}
+        } catch { }
       } else {
-        toast.success(`💾 今日摆摊进度已保存！明天或稍后可继续在此收款。`);
+        toast.success(` 今日摆摊进度已保存！明天或稍后可继续在此收款。`);
       }
     } catch (err) {
       toast.error(err.message || '保存出摊记录出错');
@@ -753,7 +842,7 @@ export default function BoothPOS() {
                 disabled={savingSession}
                 title="保存今日营业流水与剩余库存进度（明天可继续出摊收款）"
               >
-                {savingSession ? '⏳ 保存中...' : '💾 保存今日进度'}
+                {savingSession ? '⏳ 保存中...' : ' 保存今日进度'}
               </button>
 
               <button
@@ -821,46 +910,89 @@ export default function BoothPOS() {
                 <h2 className={styles.catalogTitle}>
                   <span>🍪 点击曲奇快速加入订单</span>
                 </h2>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
-                  共 {inventory.length} 种口味可选
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const res = await fetchAndSyncMenu();
+                      if (res) {
+                        toast.success('已同步菜单最新曲奇图片与售价！');
+                      } else {
+                        toast.info('已尝试同步菜单');
+                      }
+                    }}
+                    style={{
+                      border: '1px solid #cbd5e1',
+                      background: 'white',
+                      borderRadius: '6px',
+                      padding: '4px 8px',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      color: 'var(--color-text)',
+                      fontWeight: 600
+                    }}
+                    title="重新从菜单拉取最新曲奇图片与价格"
+                  >
+                    🔄 同步菜单
+                  </button>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
+                    共 {inventory.length} 种口味可选
+                  </span>
+                </div>
               </div>
 
               <div className={styles.productGrid}>
-                {inventory.map((item, idx) => {
-                  const sold = soldByFlavour[item.name] || 0;
-                  const remaining = Math.max(0, (item.prepared || 0) - sold - (item.waste || 0));
-                  const isSoldOut = remaining <= 0;
-                  const inCartItem = cart.find(c => c.name === item.name);
+                {loading ? (
+                  <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px', color: 'var(--color-text-light)' }}>
+                    <p style={{ fontSize: '1.8rem', margin: '0 0 8px' }}>🍪</p>
+                    <p style={{ margin: 0 }}>正在同步菜单曲奇口味...</p>
+                  </div>
+                ) : inventory.length === 0 ? (
+                  <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px', color: 'var(--color-text-light)' }}>
+                    <p style={{ fontSize: '1.8rem', margin: '0 0 8px' }}>🍪</p>
+                    <p style={{ margin: 0, fontWeight: 600 }}>暂无可售曲奇口味</p>
+                    <p style={{ fontSize: '0.82rem', margin: '4px 0 0' }}>请确保已在菜单管理中添加并上架曲奇商品</p>
+                  </div>
+                ) : (
+                  inventory.map((item, idx) => {
+                    const sold = soldByFlavour[item.name] || 0;
+                    const remaining = Math.max(0, (item.prepared || 0) - sold - (item.waste || 0));
+                    const isSoldOut = remaining <= 0;
+                    const inCartItem = cart.find(c => c.name === item.name);
+                    const cookieImg = getItemImage(item);
 
-                  return (
-                    <div
-                      key={item.name || idx}
-                      className={`${styles.productTile} ${isSoldOut ? styles.productTileSoldOut : ''}`}
-                      onClick={() => !isSoldOut && handleAddToCart(item)}
-                      title={isSoldOut ? '此口味已售罄' : `点击添加 1 片 ${item.name}`}
-                    >
-                      {inCartItem && (
-                        <span className={styles.tileBadgeAdded}>x{inCartItem.quantity}</span>
-                      )}
-
-                      <div className={styles.productIconBox}>
-                        {item.image ? (
-                          <img src={item.image} alt={item.name} />
-                        ) : (
-                          <span style={{ fontSize: '2.4rem' }}>🍪</span>
+                    return (
+                      <div
+                        key={item.name || idx}
+                        className={`${styles.productTile} ${isSoldOut ? styles.productTileSoldOut : ''}`}
+                        onClick={() => !isSoldOut && handleAddToCart(item)}
+                        title={isSoldOut ? '此口味已售罄' : `点击添加 1 片 ${item.name}`}
+                      >
+                        {inCartItem && (
+                          <span className={styles.tileBadgeAdded}>x{inCartItem.quantity}</span>
                         )}
-                      </div>
 
-                      <div className={styles.productTileName}>{item.name}</div>
-                      <div className={styles.productTilePrice}>{money(item.unitPrice)}</div>
+                        <div className={styles.productIconBox}>
+                          {cookieImg ? (
+                            <img src={cookieImg} alt={item.name} />
+                          ) : (
+                            <span style={{ fontSize: '2.4rem' }}>🍪</span>
+                          )}
+                        </div>
 
-                      <div className={`${styles.productTileStock} ${remaining <= 5 ? styles.stockWarning : ''}`}>
-                        {isSoldOut ? '🔴 已售罄' : `剩 ${remaining} 片 (备${item.prepared})`}
+                        <div className={styles.productTileName}>{item.name}</div>
+                        <div className={styles.productTilePrice}>{money(item.unitPrice)}</div>
+
+                        <div className={`${styles.productTileStock} ${remaining <= 5 ? styles.stockWarning : ''}`}>
+                          {isSoldOut ? '🔴 已售罄' : `剩 ${remaining} 片 (备${item.prepared})`}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
 
@@ -1133,7 +1265,16 @@ export default function BoothPOS() {
                     return (
                       <tr key={item.name || idx}>
                         <td>
-                          <strong>{item.name}</strong>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ width: 28, height: 28, borderRadius: '6px', overflow: 'hidden', background: '#f1f5f9', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #e2e8f0' }}>
+                              {getItemImage(item) ? (
+                                <img src={getItemImage(item)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                <span style={{ fontSize: '0.9rem' }}>🍪</span>
+                              )}
+                            </div>
+                            <strong>{item.name}</strong>
+                          </div>
                         </td>
                         <td>{money(item.unitPrice)}</td>
                         <td>
@@ -1388,10 +1529,19 @@ export default function BoothPOS() {
                 key={item.name}
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: 10 }}
               >
-                <div>
-                  <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>{item.name}</strong>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-light)' }}>
-                    单价: {money(item.unitPrice)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: '8px', overflow: 'hidden', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #e2e8f0' }}>
+                    {getItemImage(item) ? (
+                      <img src={getItemImage(item)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '1.2rem' }}>🍪</span>
+                    )}
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>{item.name}</strong>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-light)' }}>
+                      单价: {money(item.unitPrice)}
+                    </div>
                   </div>
                 </div>
 
@@ -1659,7 +1809,7 @@ export default function BoothPOS() {
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '12px 14px', borderRadius: '8px', fontSize: '0.85rem', color: '#991b1b' }}>
-            ⚠️ <strong>注意：</strong>如果本次摆摊为期数天（如3天市集），前两天请点击<strong>「💾 保存今日进度」</strong>继续出摊；只有在<strong>最后一天完全收摊</strong>时才点击此处结单归档！
+            ⚠️ <strong>注意：</strong>如果本次摆摊为期数天（如3天市集），前两天请点击<strong>「 保存今日进度」</strong>继续出摊；只有在<strong>最后一天完全收摊</strong>时才点击此处结单归档！
           </div>
 
           <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>

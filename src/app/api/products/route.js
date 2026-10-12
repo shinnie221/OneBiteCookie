@@ -2,6 +2,9 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const productsRef = collection(db, 'products');
@@ -12,7 +15,13 @@ export async function GET() {
       products.push({ id: doc.id, ...doc.data() });
     });
     
-    return NextResponse.json({ products });
+    return NextResponse.json({ products }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   } catch (error) {
     console.error('GET /api/products error:', error);
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });

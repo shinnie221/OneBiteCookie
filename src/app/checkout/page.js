@@ -495,7 +495,7 @@ export default function CheckoutPage() {
                                 className="btn btnPrimary"
                                 onClick={() => setFormData(prev => ({ ...prev, order_type: 'pickup' }))}
                               >
-                                🛍️ Switch to Store Pickup
+                                🛒 Switch to Store Pickup
                               </button>
                             </div>
                           </div>
@@ -564,7 +564,7 @@ export default function CheckoutPage() {
 
                   {formData.order_type === 'delivery' && (
                     <div className={styles.totalRow}>
-                      <span>🚚 Delivery Fee</span>
+                      <span> Delivery Fee</span>
                       <span>RM{DELIVERY_FEE.toFixed(2)}</span>
                     </div>
                   )}

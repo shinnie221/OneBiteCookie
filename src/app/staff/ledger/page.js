@@ -239,7 +239,7 @@ export default function LedgerPage() {
       const completionDate = getOrderCompletionDate(o) || (o.created_at ? businessDate(o.created_at) : '');
       const pieces = o.items?.reduce((s, it) => s + (it.quantity || 0), 0) || 0;
       const amount = getOrderCookieSales(o);
-      let deliveryTag = '🛍️ 自取';
+      let deliveryTag = '🛒 自取';
       if (o.order_type === 'delivery') {
         deliveryTag = o.delivery_method === 'lalamove' ? '🛵 Lalamove' : '🚗 亲送(补贴不入公款)';
       }
@@ -329,7 +329,7 @@ export default function LedgerPage() {
         });
         continue;
       }
-      
+
       let typeLabel = isIncome ? '财务收入' : '成本支出';
       if (isDelivery) {
         typeLabel = isIncome ? '配送收入' : '配送运费支出';
@@ -401,7 +401,7 @@ export default function LedgerPage() {
       const completionDate = getOrderCompletionDate(o) || '';
       const orderDate = o.created_at ? businessDate(o.created_at) : '';
       const pieces = o.items?.reduce((s, it) => s + (it.quantity || 0), 0) || 0;
-      
+
       const isDelivery = o.order_type === 'delivery';
       const isLalamove = isDelivery && o.delivery_method === 'lalamove';
       const isAdminDelivery = isDelivery && o.delivery_method !== 'lalamove';
@@ -830,9 +830,9 @@ export default function LedgerPage() {
                         <td>
                           <span className={
                             row.type === 'orders' ? styles.badgeOrder :
-                            row.type === 'booth' ? styles.badgeBooth :
-                            row.type === 'wholesale' ? styles.badgeWholesale :
-                            styles.badgeExpense
+                              row.type === 'booth' ? styles.badgeBooth :
+                                row.type === 'wholesale' ? styles.badgeWholesale :
+                                  styles.badgeExpense
                           }>
                             {row.typeLabel}
                           </span>
@@ -902,7 +902,7 @@ export default function LedgerPage() {
                             <div className={styles.hint}>{order.phone || order.customer_phone || ''}</div>
                           </td>
                           <td>
-                            <span>{(order.order_type === 'delivery' || order.delivery_method === 'delivery') ? '🚚 送货' : '🛍️ 自取'}</span>
+                            <span>{(order.order_type === 'delivery' || order.delivery_method === 'delivery') ? ' 送货' : '🛒 自取'}</span>
                             <div className={styles.hint}>{order.delivery_date || '未定日期'}</div>
                           </td>
                           <td>{pieces} 片</td>

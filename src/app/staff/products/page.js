@@ -219,6 +219,13 @@ export default function ProductsPage() {
     });
   };
 
+  const notifyMenuChange = () => {
+    try {
+      localStorage.setItem('onebite_menu_updated_at', Date.now().toString());
+      window.dispatchEvent(new Event('onebite_menu_updated'));
+    } catch (e) {}
+  };
+
   // Toggle available/unavailable directly from table
   const handleToggleAvailable = async (product) => {
     const currentStatus = product.available !== false && product.available !== 0;
@@ -233,6 +240,7 @@ export default function ProductsPage() {
 
       if (res.ok) {
         toast.success('商品上架状态已更新');
+        notifyMenuChange();
         setProducts(prev => prev.map(p =>
           p.id === product.id ? { ...p, available: newStatus } : p
         ));
@@ -314,6 +322,7 @@ export default function ProductsPage() {
 
       if (res.ok) {
         toast.success(editingProduct ? '曲奇商品已更新' : '曲奇商品已创建');
+        notifyMenuChange();
         setIsModalOpen(false);
         fetchProducts();
       } else {
@@ -333,6 +342,7 @@ export default function ProductsPage() {
       const res = await authFetch(`/api/products/${id}`, { method: 'DELETE' });
       if (res.ok) {
         toast.success('商品已成功删除');
+        notifyMenuChange();
         fetchProducts();
       } else {
         toast.error('删除商品失败');

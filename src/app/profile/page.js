@@ -261,7 +261,7 @@ export default function ProfilePage() {
           <div className={styles.cardHeader}>
             <div>
               <h2 id="personal-info-title" className={styles.cardTitle}>
-                👤 Personal Information
+                🪪 Personal Information
               </h2>
               <p className={styles.cardSubtitle}>
                 Manage your name and contact phone number. These details will be automatically pre-filled at checkout.
@@ -314,7 +314,7 @@ export default function ProfilePage() {
                 className="btn btnPrimary"
                 disabled={savingProfile}
               >
-                {savingProfile ? 'Saving...' : '💾 Save Information'}
+                {savingProfile ? 'Saving...' : ' Save Information'}
               </button>
             </div>
           </form>
@@ -376,7 +376,7 @@ export default function ProfilePage() {
                         )}
                         {isDeliverable ? (
                           <span className={styles.deliveryOkBadge} title="Standard delivery available">
-                            🚚 KL Delivery Available
+                            KL Delivery Available
                           </span>
                         ) : (
                           <span className={styles.deliveryNoBadge} title="Other states not acceptable. Klang Valley can WhatsApp for inquiry.">
@@ -619,7 +619,7 @@ export default function ProfilePage() {
                   className="btn btnPrimary"
                   disabled={modalSaving}
                 >
-                  {modalSaving ? 'Saving...' : '💾 Save Address'}
+                  {modalSaving ? 'Saving...' : ' Save Address'}
                 </button>
               </div>
             </form>
