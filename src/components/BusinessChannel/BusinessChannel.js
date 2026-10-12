@@ -401,7 +401,7 @@ export default function BusinessChannel({ channel }) {
               <input
                 type="search"
                 className={styles.styledSearchInput}
-                placeholder={booth ? "⌕ 搜索摆摊地点、曲奇口味或日期..." : "⌕ 搜索批发商名称、曲奇口味或日期..."}
+                placeholder={booth ? "🔍 搜索摆摊地点、曲奇口味或日期..." : "🔍 搜索批发商名称、曲奇口味或日期..."}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />

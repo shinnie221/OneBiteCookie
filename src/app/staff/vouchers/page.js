@@ -273,7 +273,7 @@ export default function VouchersPage() {
                               className={styles.badgeTargetCustomer}
                               title={`专属顾客: ${voucher.customer_name ? `${voucher.customer_name} (${voucher.customer_email})` : voucher.customer_email}`}
                             >
-                              🪪 {voucher.customer_name || voucher.customer_email}
+                              {voucher.customer_name || voucher.customer_email}
                             </span>
                           ) : (
                             <span className={styles.badgeTargetAll} title="全部顾客均可使用">
@@ -305,7 +305,7 @@ export default function VouchersPage() {
                             </span>
                           ) : usageLimit === 'once_per_customer' ? (
                             <span className={styles.badgeOnceUser} title="每位顾客终生限用 1 次">
-                              🪪 每人 1 次 (已用 {timesUsed} 次)
+                              每人 1 次 (已用 {timesUsed} 次)
                             </span>
                           ) : usageLimit === 'monthly_per_customer' ? (
                             <span className={styles.badgeOnceUser} style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }} title={`每位顾客每月限用 ${voucher.monthly_limit || 1} 次`}>
@@ -473,7 +473,7 @@ export default function VouchersPage() {
                   onChange={() => setFormData(prev => ({ ...prev, target_type: 'specific_customer' }))}
                 />
                 <div>
-                  <strong>🪪 指定专属顾客 (仅该顾客可见且可用)</strong>
+                  <strong> 指定专属顾客 (仅该顾客可见且可用)</strong>
                   <p>非常适合单次专属补偿/奖励。若设为可见，<strong>只有该顾客登录后能在购物车看到</strong>，其他人无法看到也无法抢用。</p>
                 </div>
               </label>
@@ -596,7 +596,7 @@ export default function VouchersPage() {
                   onChange={handleInputChange}
                 />
                 <div>
-                  <strong>🪪 每位顾客终生限用 1 次</strong>
+                  <strong> 每位顾客终生限用 1 次</strong>
                   <p>每位顾客账户终生只可使用 1 次（如新人首单礼券）。</p>
                 </div>
               </label>

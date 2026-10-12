@@ -261,7 +261,7 @@ export default function ProfilePage() {
           <div className={styles.cardHeader}>
             <div>
               <h2 id="personal-info-title" className={styles.cardTitle}>
-                🪪 Personal Information
+                Personal Information
               </h2>
               <p className={styles.cardSubtitle}>
                 Manage your name and contact phone number. These details will be automatically pre-filled at checkout.

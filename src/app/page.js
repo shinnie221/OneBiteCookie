@@ -169,7 +169,7 @@ export default function HomePage() {
             onClick={() => setSearchOpen(prev => !prev)}
             aria-label="Toggle search bar"
           >
-            ⌕
+            🔍
           </button>
 
           <Link href="/cart" className={styles.cartBagButton} aria-label="View Cart">
@@ -182,7 +182,7 @@ export default function HomePage() {
           {isAuthenticated ? (
             user?.role === 'customer' ? (
               <Link href="/profile" className={styles.desktopAuthBtn}>
-                🪪 Profile
+                Profile
               </Link>
             ) : (
               <Link href="/staff/dashboard" className={styles.desktopAuthBtn}>
@@ -402,7 +402,7 @@ export default function HomePage() {
                   className={styles.drawerLink}
                   onClick={() => setMenuDrawerOpen(false)}
                 >
-                  🪪 Profile
+                  Profile
                 </Link>
               )}
 

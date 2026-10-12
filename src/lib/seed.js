@@ -37,7 +37,7 @@ export async function seedDatabase() {
       const adminSnapshot = await getDocs(adminQuery);
 
       if (adminSnapshot.empty) {
-        console.log(`🪪 Seeding admin user: ${admin.email}...`);
+        console.log(` Seeding admin user: ${admin.email}...`);
         await addDoc(usersRef, {
           name: admin.name,
           email: admin.email,

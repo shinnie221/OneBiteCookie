@@ -685,7 +685,7 @@ function OrdersContent() {
         <input
           type="text"
           className={styles.searchInput}
-          placeholder="⌕ 搜索历史与进行中订单：输入订单编号 (#ORD-xxxx)、顾客姓名、手机号或邮箱..."
+          placeholder="🔍 搜索历史与进行中订单：输入订单编号 (#ORD-xxxx)、顾客姓名、手机号或邮箱..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
         />
@@ -1563,7 +1563,7 @@ function OrdersContent() {
         <form onSubmit={handleCreateSubmit} className={styles.createOrderForm}>
           {/* 1. 顾客基本信息 */}
           <div className={styles.formSection}>
-            <h3 className={styles.formSectionTitle}>🪪 顾客联系信息</h3>
+            <h3 className={styles.formSectionTitle}> 顾客联系信息</h3>
             <div className={styles.formGrid2}>
               <div className={styles.formField}>
                 <label>顾客姓名 *</label>

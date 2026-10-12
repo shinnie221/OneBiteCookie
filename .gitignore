@@ -45,3 +45,5 @@ next-env.d.ts
 
 # Local browser verification screenshots
 /artifacts/staff-checks/
+
+.vercel

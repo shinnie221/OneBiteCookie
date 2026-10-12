@@ -417,7 +417,7 @@ export default function StorefrontSettingsPage() {
                 <span style={{ fontSize: '1.1rem' }}>☰</span>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#666' }}>take.app</span>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span>⌕</span>
+                  <span>🔍</span>
                   <span style={{ position: 'relative' }}>
                     �
                     <span style={{

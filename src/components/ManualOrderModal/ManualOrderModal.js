@@ -219,7 +219,7 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated }) {
 
             {/* Customer Details */}
             <div className={styles.sectionBlock}>
-              <h4 className={styles.sectionTitle}>🪪 Customer Details</h4>
+              <h4 className={styles.sectionTitle}> Customer Details</h4>
 
               <div className={styles.inputGroup}>
                 <label className={styles.label}>
