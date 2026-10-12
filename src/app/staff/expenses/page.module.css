@@ -983,13 +983,13 @@
 }
 
 .partnerCardShinnie {
-  border-color: #a7f3d0;
-  background: #f0fdf4;
+  border-color: #e9d5ff;
+  background: #faf5ff;
 }
 
 .partnerCardYunxuan {
-  border-color: #e9d5ff;
-  background: #faf5ff;
+  border-color: #bae6fd;
+  background: #f0f9ff;
 }
 
 .partnerCardHeader {
@@ -999,16 +999,6 @@
 }
 
 .partnerBadgeShinnie {
-  background: #dcfce7;
-  color: #15803d;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  border: 1px solid #86efac;
-}
-
-.partnerBadgeYunxuan {
   background: #f3e8ff;
   color: #7e22ce;
   font-weight: 700;
@@ -1016,6 +1006,16 @@
   border-radius: 20px;
   font-size: 0.8rem;
   border: 1px solid #d8b4fe;
+}
+
+.partnerBadgeYunxuan {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  border: 1px solid #7dd3fc;
 }
 
 .partnerPendingCount {
@@ -1048,23 +1048,6 @@
 }
 
 .btnSettleShinnie {
-  background: #16a34a;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btnSettleShinnie:hover:not(:disabled) {
-  background: #15803d;
-  transform: translateY(-1px);
-}
-
-.btnSettleYunxuan {
   background: #9333ea;
   color: white;
   border: none;
@@ -1076,8 +1059,25 @@
   transition: all 0.15s ease;
 }
 
-.btnSettleYunxuan:hover:not(:disabled) {
+.btnSettleShinnie:hover:not(:disabled) {
   background: #7e22ce;
+  transform: translateY(-1px);
+}
+
+.btnSettleYunxuan {
+  background: #0284c7;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btnSettleYunxuan:hover:not(:disabled) {
+  background: #0369a1;
   transform: translateY(-1px);
 }
 

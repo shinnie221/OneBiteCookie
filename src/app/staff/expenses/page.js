@@ -654,7 +654,7 @@ function ExpensesContent() {
             {/* Shinnie 个人垫付卡片 */}
             <div className={`${styles.partnerCard} ${styles.partnerCardShinnie}`}>
               <div className={styles.partnerCardHeader}>
-                <span className={styles.partnerBadgeShinnie}>🟢 Shinnie 垫付</span>
+                <span className={styles.partnerBadgeShinnie}>🟣 Shinnie 垫付</span>
                 <span className={styles.partnerPendingCount}>
                   {fundStats.shinniePendingRecords.length > 0
                     ? `共 ${fundStats.shinniePendingRecords.length} 笔待从公款拿钱`
@@ -663,7 +663,7 @@ function ExpensesContent() {
               </div>
               <div className={styles.partnerCardBody}>
                 <span className={styles.partnerAmountLabel}>待从公款拿钱:</span>
-                <strong className={styles.partnerAmountValue} style={{ color: fundStats.shinniePendingTotal > 0 ? '#15803d' : '#64748b' }}>
+                <strong className={styles.partnerAmountValue} style={{ color: fundStats.shinniePendingTotal > 0 ? '#7e22ce' : '#64748b' }}>
                   {money(fundStats.shinniePendingTotal)}
                 </strong>
               </div>
@@ -693,7 +693,7 @@ function ExpensesContent() {
             {/* Yunxuan 个人垫付卡片 */}
             <div className={`${styles.partnerCard} ${styles.partnerCardYunxuan}`}>
               <div className={styles.partnerCardHeader}>
-                <span className={styles.partnerBadgeYunxuan}>🟣 Yunxuan 垫付</span>
+                <span className={styles.partnerBadgeYunxuan}>🔵 Yunxuan 垫付</span>
                 <span className={styles.partnerPendingCount}>
                   {fundStats.yunxuanPendingRecords.length > 0
                     ? `共 ${fundStats.yunxuanPendingRecords.length} 笔待从公款拿钱`
@@ -702,7 +702,7 @@ function ExpensesContent() {
               </div>
               <div className={styles.partnerCardBody}>
                 <span className={styles.partnerAmountLabel}>待从公款拿钱:</span>
-                <strong className={styles.partnerAmountValue} style={{ color: fundStats.yunxuanPendingTotal > 0 ? '#7e22ce' : '#64748b' }}>
+                <strong className={styles.partnerAmountValue} style={{ color: fundStats.yunxuanPendingTotal > 0 ? '#0369a1' : '#64748b' }}>
                   {money(fundStats.yunxuanPendingTotal)}
                 </strong>
               </div>
@@ -859,14 +859,14 @@ function ExpensesContent() {
               className={`${styles.payerSubTabBtn} ${payerFilter === 'Shinnie' ? styles.payerSubTabActive : ''}`}
               onClick={() => { setPayerFilter('Shinnie'); setSelectedRecordIds(new Set()); }}
             >
-              🟢 仅看 Shinnie ({fundStats.shinniePendingRecords.length} 笔 · {money(fundStats.shinniePendingTotal)})
+              🟣 仅看 Shinnie ({fundStats.shinniePendingRecords.length} 笔 · {money(fundStats.shinniePendingTotal)})
             </button>
             <button
               type="button"
               className={`${styles.payerSubTabBtn} ${payerFilter === 'Yunxuan' ? styles.payerSubTabActive : ''}`}
               onClick={() => { setPayerFilter('Yunxuan'); setSelectedRecordIds(new Set()); }}
             >
-              🟣 仅看 Yunxuan ({fundStats.yunxuanPendingRecords.length} 笔 · {money(fundStats.yunxuanPendingTotal)})
+              🔵 仅看 Yunxuan ({fundStats.yunxuanPendingRecords.length} 笔 · {money(fundStats.yunxuanPendingTotal)})
             </button>
           </div>
         )}
