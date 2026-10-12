@@ -3,7 +3,7 @@
   inset: 0;
   background: rgba(18, 11, 7, 0.75);
   backdrop-filter: blur(8px);
-  z-index: 1000;
+  z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,12 +24,12 @@
   background: #ffffff;
   border-radius: 20px;
   width: 100%;
-  max-width: 780px;
-  max-height: 94vh;
+  max-width: 760px;
+  max-height: 92vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
   animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -46,7 +46,8 @@
 
 /* Header */
 .header {
-  padding: 18px 24px;
+  flex-shrink: 0;
+  padding: 14px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -55,14 +56,14 @@
 }
 
 .title {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: #3b2219;
   margin: 0 0 2px 0;
 }
 
 .subtitle {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: #7d6557;
   margin: 0;
 }
@@ -90,11 +91,12 @@
 
 /* Ratio Bar */
 .ratioBar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 10px 24px;
+  padding: 8px 20px;
   background: #ffffff;
   border-bottom: 1px solid #f4ece4;
 }
@@ -138,9 +140,10 @@
 
 /* Interactive Stage */
 .stage {
+  flex: 1 1 auto;
   position: relative;
   width: 100%;
-  height: 380px;
+  height: clamp(190px, 34vh, 320px);
   background-color: #1a1614;
   background-image: 
     linear-gradient(45deg, #241f1c 25%, transparent 25%), 
@@ -276,7 +279,8 @@
 
 /* Controls Bar */
 .controlsBar {
-  padding: 12px 24px;
+  flex-shrink: 0;
+  padding: 10px 20px;
   background: #fbf7f4;
   border-top: 1px solid #ebdcd0;
   display: flex;
@@ -335,7 +339,8 @@
 
 /* Footer Actions */
 .footer {
-  padding: 16px 24px;
+  flex-shrink: 0;
+  padding: 12px 20px;
   background: #ffffff;
   border-top: 1px solid #f0e6dd;
   display: flex;

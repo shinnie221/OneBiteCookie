@@ -71,9 +71,21 @@ export async function compressImageFile(imageFile, maxWidth = 1600, maxHeight = 
   });
 }
 
+function fileToDataUrl(fileOrBlob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(fileOrBlob);
+  });
+}
+
 /**
  * Uploads an image to ImgBB and returns the URL.
  * Automatically compresses large images to lightweight web size first.
+ * If external hosting is unavailable or rate-limited, gracefully falls back
+ * to a lightweight, compressed base64 data URL to guarantee zero failure.
+ *
  * @param {File|Blob} imageFile - The image file to upload.
  * @returns {Promise<string>} The URL of the uploaded image.
  */
@@ -81,27 +93,30 @@ export async function uploadImageToImgBB(imageFile) {
   // Automatically compress large phone photos before uploading
   const fileToUpload = await compressImageFile(imageFile);
 
-  const formData = new FormData();
-  formData.append('image', fileToUpload);
-
   const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || process.env.IMGBB_API_KEY;
 
-  try {
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-      method: 'POST',
-      body: formData,
-    });
+  if (apiKey) {
+    try {
+      const formData = new FormData();
+      formData.append('image', fileToUpload);
 
-    const data = await response.json();
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: 'POST',
+        body: formData,
+      });
 
-    if (data.success) {
-      return data.data.url;
-    } else {
-      console.error('ImgBB Upload Error:', data.error);
-      throw new Error(data.error.message || 'Failed to upload image to ImgBB');
+      const data = await response.json();
+
+      if (data.success && data?.data?.url) {
+        return data.data.url;
+      } else {
+        console.warn('ImgBB returned error, falling back to compressed local data URL:', data?.error);
+      }
+    } catch (error) {
+      console.warn('ImgBB network request failed, falling back to compressed local data URL:', error);
     }
-  } catch (error) {
-    console.error('Error uploading to ImgBB:', error);
-    throw error;
   }
+
+  // Guaranteed fallback: return compressed Data URL
+  return await fileToDataUrl(fileToUpload);
 }

@@ -6,6 +6,7 @@ import { useToast } from '@/context/ToastContext';
 import Modal from '@/components/Modal/Modal';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { uploadImageToImgBB } from '@/lib/imgbb';
+import ImageCropperModal from '@/components/ImageCropperModal/ImageCropperModal';
 import styles from './page.module.css';
 
 export default function ProductsPage() {
@@ -19,6 +20,12 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Photo Cropper States
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState('');
+  const [cropTargetIndex, setCropTargetIndex] = useState(null); // null if new upload, or index if editing existing tile
+  const [pendingFile, setPendingFile] = useState(null);
 
   const defaultForm = {
     name: '',
@@ -108,11 +115,28 @@ export default function ProductsPage() {
     }));
   };
 
-  // Multi-image selection
+  // Multi-image selection with smart single/multi-crop support
   const handleMultipleImagesChange = (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
+    // Single file selected -> Open crop modal directly for immediate cropping
+    if (files.length === 1) {
+      const file = files[0];
+      if (file.size > 25 * 1024 * 1024) {
+        toast.warning(`图片 ${file.name} 过大（请选择小于 25MB 的照片）`);
+        return;
+      }
+      const objectUrl = URL.createObjectURL(file);
+      setCropImageSrc(objectUrl);
+      setPendingFile(file);
+      setCropTargetIndex(null); // Indicates a brand new image to be appended
+      setCropModalOpen(true);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // Multiple files selected -> Add all, user can click ✂️ to crop individually
     const newItems = [];
     for (const file of files) {
       if (file.size > 25 * 1024 * 1024) {
@@ -127,8 +151,60 @@ export default function ProductsPage() {
     }
 
     setImageList(prev => [...prev, ...newItems]);
-    // Reset input so user can pick the same file again if desired
+    toast.info(`已添加 ${newItems.length} 张照片，可点击任意照片右上角 ✂️ 进行裁剪构图`);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // Open cropper for an existing photo tile in the gallery
+  const handleOpenCropForTile = (index) => {
+    const item = imageList[index];
+    if (!item || !item.url) return;
+    setCropImageSrc(item.url);
+    setPendingFile(item.file || null);
+    setCropTargetIndex(index);
+    setCropModalOpen(true);
+  };
+
+  // Confirm crop handler
+  const handleConfirmCrop = (croppedBlob, croppedDataUrl) => {
+    const filename = `cookie_crop_${Date.now()}.jpg`;
+    const croppedFile = new File([croppedBlob], filename, { type: 'image/jpeg' });
+    const newObjUrl = URL.createObjectURL(croppedBlob);
+
+    if (cropTargetIndex !== null && cropTargetIndex >= 0 && cropTargetIndex < imageList.length) {
+      // Replaced existing photo in gallery
+      setImageList(prev => prev.map((item, idx) =>
+        idx === cropTargetIndex
+          ? { url: newObjUrl, dataUrl: croppedDataUrl, file: croppedFile, isNew: true }
+          : item
+      ));
+      toast.success('照片已成功裁剪更新！');
+    } else {
+      // Appended new cropped photo to gallery
+      setImageList(prev => [
+        ...prev,
+        { url: newObjUrl, dataUrl: croppedDataUrl, file: croppedFile, isNew: true }
+      ]);
+      toast.success('已裁剪并添加照片！');
+    }
+
+    setCropModalOpen(false);
+    setPendingFile(null);
+    setCropTargetIndex(null);
+  };
+
+  // Skip crop handler: add raw pending file
+  const handleSkipCrop = () => {
+    if (pendingFile) {
+      setImageList(prev => [
+        ...prev,
+        { url: cropImageSrc, file: pendingFile, isNew: true }
+      ]);
+      toast.success('已直接添加原图');
+    }
+    setCropModalOpen(false);
+    setPendingFile(null);
+    setCropTargetIndex(null);
   };
 
   const handleRemoveImage = (indexToRemove) => {
@@ -191,10 +267,18 @@ export default function ProductsPage() {
             finalImageUrls.push(uploadedUrl);
           } catch (uploadError) {
             console.error('ImgBB upload error:', uploadError);
-            toast.error(`无法上传图片 ${item.file.name}`);
+            if (item.dataUrl) {
+              finalImageUrls.push(item.dataUrl);
+            } else if (item.url && !item.url.startsWith('blob:')) {
+              finalImageUrls.push(item.url);
+            } else {
+              toast.error(`无法上传图片 ${item.file.name || ''}`);
+            }
           }
-        } else if (item.url) {
+        } else if (item.url && !item.url.startsWith('blob:')) {
           finalImageUrls.push(item.url);
+        } else if (item.dataUrl) {
+          finalImageUrls.push(item.dataUrl);
         }
       }
 
@@ -393,6 +477,16 @@ export default function ProductsPage() {
                       设为封面
                     </button>
                   )}
+
+                  {/* Crop Photo Button */}
+                  <button
+                    type="button"
+                    className={styles.cropImageBtn}
+                    onClick={() => handleOpenCropForTile(idx)}
+                    title="裁剪并调整此照片构图"
+                  >
+                    ✂️
+                  </button>
 
                   <button
                     type="button"
@@ -653,6 +747,21 @@ export default function ProductsPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Image Cropper Modal for Cookie Photos */}
+      <ImageCropperModal
+        isOpen={cropModalOpen}
+        onClose={() => {
+          setCropModalOpen(false);
+          setPendingFile(null);
+          setCropTargetIndex(null);
+        }}
+        imageSrc={cropImageSrc}
+        cropType="product"
+        title={cropTargetIndex !== null ? '✂️ 裁剪与调整曲奇照片' : '✂️ 裁剪新曲奇照片'}
+        onConfirmCrop={handleConfirmCrop}
+        onSkipCrop={cropTargetIndex === null && pendingFile ? handleSkipCrop : null}
+      />
     </div>
   );
 }

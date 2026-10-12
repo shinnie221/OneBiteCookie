@@ -20,23 +20,34 @@ export default function ImageCropperModal({
   isProcessing = false
 }) {
   // Preset Aspect Ratios
-  const aspectPresets = cropType === 'avatar'
-    ? [
-        { label: '1:1 (推荐Logo)', value: 1 },
-        { label: '4:3', value: 4 / 3 },
-        { label: '16:9', value: 16 / 9 },
-        { label: '自由比例', value: null }
-      ]
-    : [
-        { label: '2:1 (推荐横幅)', value: 2 },
-        { label: '16:9 (标准宽屏)', value: 16 / 9 },
-        { label: '3:1 (超宽条幅)', value: 3 },
-        { label: '4:3 (经典比例)', value: 4 / 3 },
-        { label: '1:1 (方形)', value: 1 },
-        { label: '自由比例', value: null }
-      ];
+  let aspectPresets;
+  if (cropType === 'avatar') {
+    aspectPresets = [
+      { label: '1:1 (推荐Logo)', value: 1 },
+      { label: '4:3', value: 4 / 3 },
+      { label: '16:9', value: 16 / 9 },
+      { label: '自由比例', value: null }
+    ];
+  } else if (cropType === 'product' || cropType === 'cookie') {
+    aspectPresets = [
+      { label: '1:1 (推荐方形商品)', value: 1 },
+      { label: '4:3 (经典比例)', value: 4 / 3 },
+      { label: '3:4 (竖构图)', value: 3 / 4 },
+      { label: '16:9 (宽屏展示)', value: 16 / 9 },
+      { label: '自由比例', value: null }
+    ];
+  } else {
+    aspectPresets = [
+      { label: '2:1 (推荐横幅)', value: 2 },
+      { label: '16:9 (标准宽屏)', value: 16 / 9 },
+      { label: '3:1 (超宽条幅)', value: 3 },
+      { label: '4:3 (经典比例)', value: 4 / 3 },
+      { label: '1:1 (方形)', value: 1 },
+      { label: '自由比例', value: null }
+    ];
+  }
 
-  const defaultRatio = cropType === 'avatar' ? 1 : 2;
+  const defaultRatio = (cropType === 'avatar' || cropType === 'product' || cropType === 'cookie') ? 1 : 2;
   const [aspectRatio, setAspectRatio] = useState(defaultRatio);
   const [showCircleMask, setShowCircleMask] = useState(cropType === 'avatar');
 
@@ -73,6 +84,11 @@ export default function ImageCropperModal({
     setAspectRatio(cropType === 'avatar' ? 1 : 2);
     setShowCircleMask(cropType === 'avatar');
 
+    // For remote URLs (http/https), route through our proxy to prevent canvas CORS taint
+    const targetSrc = (imageSrc.startsWith('http://') || imageSrc.startsWith('https://'))
+      ? `/api/proxy-image?url=${encodeURIComponent(imageSrc)}`
+      : imageSrc;
+
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -81,8 +97,9 @@ export default function ImageCropperModal({
       setImageLoaded(true);
     };
     img.onerror = () => {
-      // If crossOrigin fails, try without crossOrigin
+      // If proxy fails or image is local, fallback to direct src
       const fallbackImg = new Image();
+      fallbackImg.crossOrigin = 'anonymous';
       fallbackImg.onload = () => {
         imageObjRef.current = fallbackImg;
         setImageNaturalSize({ width: fallbackImg.naturalWidth, height: fallbackImg.naturalHeight });
@@ -90,7 +107,7 @@ export default function ImageCropperModal({
       };
       fallbackImg.src = imageSrc;
     };
-    img.src = imageSrc;
+    img.src = targetSrc;
   }, [isOpen, imageSrc, cropType]);
 
   // Measure stage size on mount & resize
@@ -112,17 +129,24 @@ export default function ImageCropperModal({
     return () => window.removeEventListener('resize', updateStageSize);
   }, [isOpen]);
 
-  // Lock body scroll when modal is open
+  // Lock body scroll & listen for Escape key when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape' && !isProcessing) {
+          onClose();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
     } else {
       document.body.style.overflow = '';
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
+  }, [isOpen, isProcessing, onClose]);
 
   // Calculate Crop Box Dimensions inside the Stage
   const cropBox = useCallback(() => {
@@ -235,8 +259,8 @@ export default function ImageCropperModal({
     const box = currentCropBox;
 
     // Determine target canvas resolution
-    // High-definition export: min 1200px width for banner, 600px for avatar
-    const exportWidth = cropType === 'avatar' ? 600 : 1200;
+    // High-definition export: min 1200px width for banner, 900px for products, 600px for avatar
+    const exportWidth = cropType === 'avatar' ? 600 : (cropType === 'product' || cropType === 'cookie' ? 900 : 1200);
     const exportHeight = Math.round(exportWidth / box.ratio);
 
     const canvas = document.createElement('canvas');
@@ -276,16 +300,34 @@ export default function ImageCropperModal({
     ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
     ctx.restore();
 
-    // Export to Blob & Data URL
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) return;
+    // Export to Blob & Data URL with robust error handling
+    try {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return;
+          try {
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+            onConfirmCrop(blob, dataUrl);
+          } catch {
+            onConfirmCrop(blob, null);
+          }
+        },
+        'image/jpeg',
+        0.92
+      );
+    } catch (err) {
+      console.warn('Canvas toBlob failed, attempting dataURL fallback:', err);
+      try {
         const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-        onConfirmCrop(blob, dataUrl);
-      },
-      'image/jpeg',
-      0.92
-    );
+        fetch(dataUrl)
+          .then(res => res.blob())
+          .then(blob => onConfirmCrop(blob, dataUrl))
+          .catch(() => alert('无法导出图片，请重试'));
+      } catch (e2) {
+        console.error('All canvas exports failed:', e2);
+        alert('此图片受安全策略限制，请重新选择图片');
+      }
+    }
   };
 
   if (!isOpen) return null;
@@ -317,7 +359,7 @@ export default function ImageCropperModal({
         <div className={styles.header}>
           <div>
             <h2 className={styles.title}>
-              {title || (cropType === 'avatar' ? '✂️ 裁剪圆形Logo / 头像' : '✂️ 裁剪店铺横幅背景')}
+              {title || (cropType === 'avatar' ? '✂️ 裁剪圆形Logo / 头像' : (cropType === 'product' || cropType === 'cookie' ? '✂️ 裁剪曲奇展示照片' : '✂️ 裁剪店铺横幅背景'))}
             </h2>
             <p className={styles.subtitle}>
               支持拖拽移动画面、双指/滚轮缩放、旋转及切换比例
