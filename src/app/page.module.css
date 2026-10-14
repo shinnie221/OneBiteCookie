@@ -5,19 +5,11 @@
 
 .storefrontWrapper {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
   min-height: 100vh;
   background: #ffffff;
   position: relative;
   display: flex;
   flex-direction: column;
-}
-
-@media (min-width: 1280px) {
-  .storefrontWrapper {
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.04);
-  }
 }
 
 /* Staff Quick Edit Bar */
@@ -53,20 +45,27 @@
    Top Navigation Bar (Adaptive Mobile & Laptop)
    ======================================== */
 .topNav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 18px;
   position: sticky;
   top: 0;
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(10px);
   z-index: 80;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  width: 100%;
+}
+
+.topNavInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 @media (min-width: 768px) {
-  .topNav {
+  .topNavInner {
     padding: 16px 32px;
   }
 }
@@ -98,26 +97,36 @@
 
 /* Mobile Center Title */
 .navCenterTitle {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--color-text);
-  letter-spacing: -0.2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 /* Desktop Brand Logo */
 .desktopBrand {
   display: none;
   align-items: center;
-  gap: 8px;
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--color-text);
   text-decoration: none;
-  font-family: var(--font-heading);
 }
 
-.desktopBrand:hover {
-  color: var(--color-primary);
+.brandLogoImg {
+  height: 50px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.desktopBrand:hover .brandLogoImg,
+.navCenterTitle:hover .brandLogoImg {
+  transform: scale(1.03);
+}
+
+.navCenterTitle .brandLogoImg {
+  height: 42px;
+  max-width: 190px;
 }
 
 /* Desktop Center Nav Links */
@@ -261,6 +270,9 @@
    ======================================== */
 .heroContainer {
   padding: 16px 18px 8px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .heroBannerCard {
@@ -328,6 +340,9 @@
 .storeInfo {
   text-align: center;
   padding: 12px 18px 4px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .storeTitle {
@@ -388,6 +403,9 @@
   padding: 12px 18px 90px;
   flex: 1;
   scroll-margin-top: 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .categoryHeader {
@@ -437,12 +455,19 @@
 }
 
 .productList {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
+  .productList {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
   .menuSection {
     padding: 20px 32px 100px;
   }
@@ -450,9 +475,8 @@
     font-size: 1.6rem;
   }
   .productList {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
   }
 }
 
@@ -588,6 +612,14 @@
   font-size: 1.2rem;
   font-weight: 800;
   color: var(--color-text);
+}
+
+.drawerLogoImg {
+  height: 48px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
 }
 
 .drawerCloseBtn {

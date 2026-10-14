@@ -91,7 +91,8 @@ export default function HomePage() {
   }, [filteredProducts]);
 
   const isStaffUser = isAuthenticated && user && user.role !== 'customer';
-  const currencySymbol = settings.currency_symbol || '₱';
+  const currencySymbol = settings.currency_symbol || 'RM';
+  const storeLocation = settings.pickup_address?.split(',')?.pop()?.trim() || settings.city || 'W.P. Kuala Lumpur';
 
   const scrollToMenu = (e) => {
     if (e) e.preventDefault();
@@ -130,70 +131,71 @@ export default function HomePage() {
 
       {/* 2. Top Navigation Bar (Adaptive Mobile & Laptop) */}
       <header className={styles.topNav}>
-        <div className={styles.navLeft}>
-          <button
-            type="button"
-            className={`${styles.navIconButton} ${styles.mobileOnly}`}
-            onClick={() => setMenuDrawerOpen(true)}
-            aria-label="Open navigation menu"
-          >
-            ☰
-          </button>
+        <div className={styles.topNavInner}>
+          <div className={styles.navLeft}>
+            <button
+              type="button"
+              className={`${styles.navIconButton} ${styles.mobileOnly}`}
+              onClick={() => setMenuDrawerOpen(true)}
+              aria-label="Open navigation menu"
+            >
+              ☰
+            </button>
 
-          <Link href="/" className={styles.desktopBrand}>
-            <span>🍪</span>
-            <span>{settings.store_name || 'One Bite'}</span>
-          </Link>
-        </div>
-
-        {/* Mobile Center Title */}
-        <div className={`${styles.navCenterTitle} ${styles.mobileOnly}`}>
-          {settings.store_name || 'One Bite'}
-        </div>
-
-        {/* Desktop Nav Links */}
-        <nav className={styles.desktopNavLinks}>
-          <Link href="/" className={styles.desktopNavLink}>Home</Link>
-          <a href="#menu" className={styles.desktopNavLink} onClick={scrollToMenu}>Menu</a>
-          <Link href="/orders" className={styles.desktopNavLink}>My Orders</Link>
-          {isStaffUser && (
-            <Link href="/staff/dashboard" className={styles.desktopNavLink}>Staff Dashboard</Link>
-          )}
-        </nav>
-
-        {/* Right Actions */}
-        <div className={styles.navActions}>
-          <button
-            type="button"
-            className={styles.navIconButton}
-            onClick={() => setSearchOpen(prev => !prev)}
-            aria-label="Toggle search bar"
-          >
-            🔍
-          </button>
-
-          <Link href="/cart" className={styles.cartBagButton} aria-label="View Cart">
-            🛒
-            {totalQuantity > 0 && (
-              <span className={styles.cartCountBadge}>{totalQuantity}</span>
-            )}
-          </Link>
-
-          {isAuthenticated ? (
-            user?.role === 'customer' ? (
-              <Link href="/profile" className={styles.desktopAuthBtn}>
-                Profile
-              </Link>
-            ) : (
-              <Link href="/staff/dashboard" className={styles.desktopAuthBtn}>
-                ⚙️ Dashboard
-              </Link>
-            )
-          ) : (
-            <Link href="/login" className={styles.desktopAuthBtn}>
-              Sign In
+            <Link href="/" className={styles.desktopBrand}>
+              <img src="/logo.png" alt="One Bite" className={styles.brandLogoImg} />
             </Link>
-          )}
+          </div>
+
+          {/* Mobile Center Title */}
+          <Link href="/" className={`${styles.navCenterTitle} ${styles.mobileOnly}`}>
+            <img src="/logo.png" alt="One Bite" className={styles.brandLogoImg} />
+          </Link>
+
+          {/* Desktop Nav Links */}
+          <nav className={styles.desktopNavLinks}>
+            <Link href="/" className={styles.desktopNavLink}>Home</Link>
+            <a href="#menu" className={styles.desktopNavLink} onClick={scrollToMenu}>Menu</a>
+            <Link href="/orders" className={styles.desktopNavLink}>My Orders</Link>
+            {isStaffUser && (
+              <Link href="/staff/dashboard" className={styles.desktopNavLink}>Staff Dashboard</Link>
+            )}
+          </nav>
+
+          {/* Right Actions */}
+          <div className={styles.navActions}>
+            <button
+              type="button"
+              className={styles.navIconButton}
+              onClick={() => setSearchOpen(prev => !prev)}
+              aria-label="Toggle search bar"
+            >
+              🔍
+            </button>
+
+            <Link href="/cart" className={styles.cartBagButton} aria-label="View Cart">
+              🛒
+              {totalQuantity > 0 && (
+                <span className={styles.cartCountBadge}>{totalQuantity}</span>
+              )}
+            </Link>
+
+            {isAuthenticated ? (
+              user?.role === 'customer' ? (
+                <Link href="/profile" className={styles.desktopAuthBtn}>
+                  Profile
+                </Link>
+              ) : (
+                <Link href="/staff/dashboard" className={styles.desktopAuthBtn}>
+                  ⚙️ Dashboard
+                </Link>
+              )
+            ) : (
+              <Link href="/login" className={styles.desktopAuthBtn}>
+                Sign In
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
@@ -292,6 +294,7 @@ export default function HomePage() {
                 product={product}
                 currencySymbol={currencySymbol}
                 allProducts={products}
+                location={storeLocation}
               />
             ))}
           </div>
@@ -321,6 +324,7 @@ export default function HomePage() {
                 product={product}
                 currencySymbol={currencySymbol}
                 allProducts={products}
+                location={storeLocation}
               />
             ))}
           </div>
@@ -351,9 +355,9 @@ export default function HomePage() {
           />
           <aside className={styles.drawerMenu}>
             <div className={styles.drawerHeader}>
-              <span className={styles.drawerTitle}>
-                {settings.store_name || 'One Bite'}
-              </span>
+              <Link href="/" onClick={() => setMenuDrawerOpen(false)}>
+                <img src="/logo.png" alt="One Bite" className={styles.drawerLogoImg} />
+              </Link>
               <button
                 type="button"
                 className={styles.drawerCloseBtn}

@@ -47,8 +47,7 @@ export default function LoginPage() {
       <div className={styles.loginCard}>
         <div className={styles.header}>
           <Link href="/" className={styles.logo}>
-            <span className={styles.logoIcon}>🍪</span>
-            <span className={styles.logoText}>One Bite</span>
+            <img src="/logo.png" alt="One Bite" className={styles.loginLogoImg} />
           </Link>
           <h2>Welcome</h2>
           <p>Sign in to place orders and track your history.</p>

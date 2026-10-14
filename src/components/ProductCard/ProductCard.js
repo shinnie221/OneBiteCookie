@@ -7,7 +7,11 @@ import ByobModal from '@/components/ByobModal/ByobModal';
 import { getProductPriceRange } from '@/lib/packaging';
 import styles from './ProductCard.module.css';
 
-export default function ProductCard({ product, currencySymbol = '₱', allProducts = [] }) {
+export default function ProductCard({
+  product,
+  currencySymbol = 'RM',
+  allProducts = []
+}) {
   const { items } = useCart();
   const [modalOpen, setModalOpen] = useState(false);
   const [byobModalOpen, setByobModalOpen] = useState(false);
@@ -19,7 +23,7 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
     : (product.image ? [product.image] : []);
   const hasMultipleImages = images.length > 1;
 
-  // Total quantity in cart across all variants for this product
+  // Cart quantity for this product across variants
   const cartQuantity = items
     .filter(i => i.product_id === product.id)
     .reduce((sum, i) => sum + (i.quantity || 1), 0);
@@ -27,7 +31,7 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
   const isAvailable = product.available !== false && product.available !== 0;
   const isUnavailable = !isAvailable;
 
-  const priceRange = getProductPriceRange(product, currencySymbol);
+  const priceDisplay = getProductPriceRange(product, currencySymbol);
 
   const handleOpenModal = (e) => {
     if (e) e.stopPropagation();
@@ -47,56 +51,60 @@ export default function ProductCard({ product, currencySymbol = '₱', allProduc
         role="button"
         tabIndex={0}
       >
-        {/* Left Side: Product Details */}
-        <div className={styles.info}>
-          {product.is_byob && (
-            <span className={styles.byobBadge}> Custom Assorted Box</span>
-          )}
-          <h3 className={styles.name}>{product.name}</h3>
-          {product.description && (
-            <p className={styles.description}>{product.description}</p>
-          )}
-
-          <div className={styles.bottom}>
-            <span className={styles.price}>
-              {priceRange}
-            </span>
-
-            <button
-              className={`${styles.addBtn} ${isUnavailable ? styles.disabled : ''}`}
-              onClick={handleOpenModal}
-              disabled={isUnavailable}
-              type="button"
-            >
-              {isUnavailable
-                ? 'Sold Out'
-                : (cartQuantity > 0
-                  ? `In Cart (${cartQuantity})`
-                  : (product.is_byob ? '+ Build Box' : '+ Add'))}
-            </button>
-          </div>
-        </div>
-
-        {/* Right Side: Product Image Thumbnail */}
-        <div className={styles.imageWrapper} onClick={handleOpenModal} title="Click to view options">
+        {/* Top Product Image: Square Box */}
+        <div className={styles.imageWrapper}>
           {images.length > 0 ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={images[0]}
               alt={product.name}
               className={styles.image}
+              loading="lazy"
             />
           ) : (
-            <div className={styles.placeholder}></div>
+            <div className={styles.placeholder}>🍪</div>
           )}
 
-          {isUnavailable && <div className={styles.soldOutBadge}>Unavailable</div>}
-
+          {/* Multiple Photos Indicator */}
           {hasMultipleImages && (
             <div className={styles.imageCountBadge}>
               📸 {images.length}
             </div>
           )}
+
+          {/* Sold Out Overlay */}
+          {isUnavailable && <div className={styles.soldOutBadge}>Sold Out</div>}
+        </div>
+
+        {/* Bottom Content Body */}
+        <div className={styles.info}>
+          <div className={styles.infoTop}>
+            {product.is_byob && (
+              <span className={styles.byobBadge}>Custom Box</span>
+            )}
+            <h3 className={styles.name}>{product.name}</h3>
+            {product.description && (
+              <p className={styles.description}>{product.description}</p>
+            )}
+          </div>
+
+          {/* Bottom Action Row: Price & Add to Cart Option */}
+          <div className={styles.bottomRow}>
+            <span className={styles.price}>{priceDisplay}</span>
+
+            <button
+              type="button"
+              className={`${styles.addBtn} ${cartQuantity > 0 ? styles.addBtnInCart : ''} ${isUnavailable ? styles.disabled : ''}`}
+              onClick={handleOpenModal}
+              disabled={isUnavailable}
+            >
+              {isUnavailable
+                ? 'Sold Out'
+                : (cartQuantity > 0
+                  ? `In Cart (${cartQuantity})`
+                  : (product.is_byob ? '+ Build Box' : '+ Add to Cart'))}
+            </button>
+          </div>
         </div>
       </div>
 

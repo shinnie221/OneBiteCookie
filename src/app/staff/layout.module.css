@@ -49,6 +49,14 @@
   margin-bottom: 24px;
 }
 
+.staffLogoImg {
+  height: 48px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  display: block;
+}
+
 .logoIcon {
   font-size: 1.5rem;
 }

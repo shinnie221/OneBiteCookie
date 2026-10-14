@@ -8,11 +8,70 @@ import { useRouter } from 'next/navigation';
 import { getByobTiers, formatPrice } from '@/lib/packaging';
 import styles from './ByobModal.module.css';
 
-export default function ByobModal({ product, isOpen, onClose, currencySymbol = 'RM', allProducts = [] }) {
+export default function ByobModal({ product, isOpen, onClose, currencySymbol = '₱', allProducts = [] }) {
   const { addItem } = useCart();
   const { isAuthenticated } = useAuth();
   const toast = useToast();
   const router = useRouter();
+
+  // BYOB Product Images Carousel
+  const images = useMemo(() => {
+    if (!product) return [];
+    if (Array.isArray(product.images) && product.images.length > 0) return product.images;
+    if (product.image) return [product.image];
+    return [];
+  }, [product]);
+
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const hasMultipleImages = images.length > 1;
+
+  // Favorites & Share State
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [previewFlavour, setPreviewFlavour] = useState(null);
+  const [previewImgIndex, setPreviewImgIndex] = useState(0);
+
+  useEffect(() => {
+    if (product?.id) {
+      try {
+        const favs = JSON.parse(localStorage.getItem('onebite_favorites') || '[]');
+        setIsFavorited(favs.includes(product.id));
+      } catch (e) {
+        setIsFavorited(false);
+      }
+    }
+  }, [product?.id]);
+
+  const handleToggleFavorite = (e) => {
+    e.stopPropagation();
+    try {
+      const favs = JSON.parse(localStorage.getItem('onebite_favorites') || '[]');
+      let updated;
+      if (favs.includes(product.id)) {
+        updated = favs.filter(id => id !== product.id);
+        setIsFavorited(false);
+        toast.info(`Removed ${product.name} from favorites`);
+      } else {
+        updated = [...favs, product.id];
+        setIsFavorited(true);
+        toast.success(`Saved ${product.name} to favorites ❤️`);
+      }
+      localStorage.setItem('onebite_favorites', JSON.stringify(updated));
+    } catch (err) { }
+  };
+
+  const handleShare = (e) => {
+    e.stopPropagation();
+    if (typeof window !== 'undefined') {
+      const shareUrl = `${window.location.origin}/#${encodeURIComponent(product.name || 'byob')}`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          toast.success('Link copied to clipboard! 📋');
+        }).catch(() => {
+          toast.info('Share link: ' + shareUrl);
+        });
+      }
+    }
+  };
 
   const tiers = useMemo(() => {
     return getByobTiers(product);
@@ -91,6 +150,13 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
     setSelectedFlavours({});
   };
 
+  // Open flavor photo preview
+  const handleOpenFlavourPreview = (flavor, e) => {
+    if (e) e.stopPropagation();
+    setPreviewFlavour(flavor);
+    setPreviewImgIndex(0);
+  };
+
   // Disable background scrolling
   useEffect(() => {
     if (isOpen) {
@@ -151,28 +217,108 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
       }
     );
 
-    toast.success(`Added ${boxQuantity}x ${selectedTier.name} to cart! `);
+    toast.success(`Added ${boxQuantity}x ${selectedTier.name} to cart!`);
     onClose();
   };
+
+  const previewImages = previewFlavour
+    ? (Array.isArray(previewFlavour.images) && previewFlavour.images.length > 0
+        ? previewFlavour.images
+        : (previewFlavour.image ? [previewFlavour.image] : []))
+    : [];
 
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.titleArea}>
-            <h2 className={styles.title}>Build Your Own Box </h2>
-            <p className={styles.subtitle}>Custom Gift Box · Mix & match your favorite flavors</p>
-          </div>
-          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close modal">
-            ✕
-          </button>
+        {/* Floating Close Button */}
+        <button
+          type="button"
+          className={styles.closeBtn}
+          onClick={onClose}
+          aria-label="Close modal"
+        >
+          ✕
+        </button>
+
+        {/* Top Product Image Carousel (Shows BYOB photos like cookie detail modal) */}
+        <div className={styles.mediaContainer}>
+          {images.length > 0 ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={images[currentImgIndex]}
+              alt={product.name || 'Build Your Own Box'}
+              className={styles.productImg}
+            />
+          ) : (
+            <div className={styles.placeholderImg}>🍪</div>
+          )}
+
+          {hasMultipleImages && (
+            <>
+              <button
+                type="button"
+                className={`${styles.navBtn} ${styles.prevBtn}`}
+                onClick={() => setCurrentImgIndex(prev => (prev === 0 ? images.length - 1 : prev - 1))}
+                aria-label="Previous photo"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className={`${styles.navBtn} ${styles.nextBtn}`}
+                onClick={() => setCurrentImgIndex(prev => (prev === images.length - 1 ? 0 : prev + 1))}
+                aria-label="Next photo"
+              >
+                ›
+              </button>
+
+              <div className={styles.dotsWrap}>
+                {images.map((_, idx) => (
+                  <span
+                    key={idx}
+                    className={`${styles.dot} ${idx === currentImgIndex ? styles.dotActive : ''}`}
+                    onClick={() => setCurrentImgIndex(idx)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Content Body */}
+        {/* Scrollable Content Body */}
         <div className={styles.contentBody}>
+          {/* Header Row: Title & Actions */}
+          <div className={styles.headerRow}>
+            <div className={styles.titleArea}>
+              <h2 className={styles.title}>{product.name || 'Build Your Own Box'}</h2>
+              <p className={styles.subtitle}>
+                {product.description || 'Custom Gift Box · Mix & match your favorite flavors'}
+              </p>
+            </div>
+            <div className={styles.actionIcons}>
+              <button
+                type="button"
+                className={`${styles.iconBtn} ${isFavorited ? styles.iconBtnActive : ''}`}
+                onClick={handleToggleFavorite}
+                title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                aria-label="Favorite"
+              >
+                {isFavorited ? '❤️' : '🤍'}
+              </button>
+              <button
+                type="button"
+                className={styles.iconBtn}
+                onClick={handleShare}
+                title="Share BYOB link"
+                aria-label="Share"
+              >
+                ↗
+              </button>
+            </div>
+          </div>
+
           {/* Step 1: Choose Box Size */}
-          <div>
+          <div className={styles.sectionWrap}>
             <div className={styles.sectionTitleRow}>
               <span className={styles.sectionTitle}>Step 1: Choose Box Size</span>
               <span className={styles.currentTierHighlight}>
@@ -233,12 +379,12 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
             </div>
           </div>
 
-          {/* Step 3: Flavours List */}
-          <div>
+          {/* Step 3: Flavours List with Photo Thumbnails & Preview */}
+          <div className={styles.sectionWrap}>
             <div className={styles.sectionTitleRow}>
               <span className={styles.sectionTitle}>Step 2: Pick Flavors</span>
               <span className={styles.sectionSubtitle}>
-                👉 Click [+] to add cookies
+                Tap photo to view · [+] to add
               </span>
             </div>
 
@@ -251,15 +397,23 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                     key={flavor.id}
                     className={`${styles.flavourItem} ${pickedCount > 0 ? styles.flavourItemPicked : ''}`}
                   >
-                    <div className={styles.flavourLeft}>
-                      {thumb ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={thumb} alt={flavor.name} className={styles.flavourThumb} />
-                      ) : (
-                        <div className={styles.flavourThumb} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>
-                          🍪
-                        </div>
-                      )}
+                    <div
+                      className={styles.flavourLeft}
+                      onClick={(e) => handleOpenFlavourPreview(flavor, e)}
+                      title="Click to view photo & details"
+                    >
+                      <div className={styles.flavourThumbWrap}>
+                        {thumb ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={thumb} alt={flavor.name} className={styles.flavourThumb} />
+                        ) : (
+                          <div className={styles.flavourThumbFallback}>
+                            🍪
+                          </div>
+                        )}
+                        <span className={styles.flavourZoomIcon} aria-hidden="true">🔍</span>
+                      </div>
+
                       <div className={styles.flavourInfo}>
                         <span className={styles.flavourName}>{flavor.name}</span>
                         {pickedCount > 0 && (
@@ -274,7 +428,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                         className={styles.stepperBtn}
                         onClick={() => handleRemoveFlavour(flavor.id)}
                         disabled={pickedCount <= 0}
-                        aria-label="Decrease"
+                        aria-label={`Decrease ${flavor.name}`}
                       >
                         −
                       </button>
@@ -284,7 +438,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                         className={styles.stepperBtn}
                         onClick={() => handleAddFlavour(flavor.id)}
                         disabled={totalSelectedCount >= targetCount}
-                        aria-label="Increase"
+                        aria-label={`Increase ${flavor.name}`}
                       >
                         +
                       </button>
@@ -304,6 +458,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 className={styles.stepperBtn}
                 onClick={() => setBoxQuantity(prev => Math.max(1, prev - 1))}
                 disabled={boxQuantity <= 1}
+                aria-label="Decrease boxes"
               >
                 −
               </button>
@@ -312,6 +467,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 type="button"
                 className={styles.stepperBtn}
                 onClick={() => setBoxQuantity(prev => prev + 1)}
+                aria-label="Increase boxes"
               >
                 +
               </button>
@@ -319,7 +475,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Sticky Footer */}
         <div className={styles.bottomFooter}>
           <button
             type="button"
@@ -332,6 +488,92 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
               : `Please select ${remainingCount} more cookie${remainingCount > 1 ? 's' : ''}`}
           </button>
         </div>
+
+        {/* Quick Cookie Photo Lightbox Preview */}
+        {previewFlavour && (
+          <div className={styles.previewOverlay} onClick={() => setPreviewFlavour(null)}>
+            <div className={styles.previewCard} onClick={e => e.stopPropagation()}>
+              <div className={styles.previewImageWrap}>
+                {previewImages.length > 0 ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={previewImages[previewImgIndex]}
+                    alt={previewFlavour.name}
+                    className={styles.previewImg}
+                  />
+                ) : (
+                  <div className={styles.placeholderImg}>🍪</div>
+                )}
+
+                <button
+                  type="button"
+                  className={styles.previewCloseBtn}
+                  onClick={() => setPreviewFlavour(null)}
+                  aria-label="Close photo preview"
+                >
+                  ✕
+                </button>
+
+                {previewImages.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      className={`${styles.navBtn} ${styles.prevBtn}`}
+                      onClick={() => setPreviewImgIndex(prev => (prev === 0 ? previewImages.length - 1 : prev - 1))}
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.navBtn} ${styles.nextBtn}`}
+                      onClick={() => setPreviewImgIndex(prev => (prev === previewImages.length - 1 ? 0 : prev + 1))}
+                    >
+                      ›
+                    </button>
+                    <div className={styles.dotsWrap}>
+                      {previewImages.map((_, idx) => (
+                        <span
+                          key={idx}
+                          className={`${styles.dot} ${idx === previewImgIndex ? styles.dotActive : ''}`}
+                          onClick={() => setPreviewImgIndex(idx)}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className={styles.previewBody}>
+                <h3 className={styles.previewTitle}>{previewFlavour.name}</h3>
+                {previewFlavour.description && (
+                  <p className={styles.previewDesc}>{previewFlavour.description}</p>
+                )}
+                <div className={styles.previewActions}>
+                  <button
+                    type="button"
+                    className={styles.previewAddBtn}
+                    onClick={() => {
+                      handleAddFlavour(previewFlavour.id);
+                      setPreviewFlavour(null);
+                    }}
+                    disabled={totalSelectedCount >= targetCount}
+                  >
+                    {totalSelectedCount >= targetCount
+                      ? 'Box is Full'
+                      : `+ Add to Box (${selectedFlavours[previewFlavour.id] || 0} in box)`}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.previewBackBtn}
+                    onClick={() => setPreviewFlavour(null)}
+                  >
+                    Back
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

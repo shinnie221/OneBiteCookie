@@ -26,8 +26,17 @@
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   margin-bottom: 24px;
+  text-decoration: none;
+}
+
+.loginLogoImg {
+  height: 64px;
+  width: auto;
+  max-width: 280px;
+  object-fit: contain;
+  display: block;
 }
 
 .logoIcon {

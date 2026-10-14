@@ -18,11 +18,48 @@
   justify-content: space-between;
 }
 
-.logo {
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo,
+.desktopLogo {
   display: flex;
   align-items: center;
   gap: 8px;
   text-decoration: none;
+}
+
+.brandLogoImg {
+  height: 50px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.desktopLogo:hover .brandLogoImg,
+.mobileCenterTitle:hover .brandLogoImg {
+  transform: scale(1.03);
+}
+
+.mobileCenterTitle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.mobileOnlyLink {
+  display: none;
+}
+
+.actionsPlaceholder {
+  width: 42px;
+  height: 42px;
 }
 
 .logoIcon { font-size: 1.6rem; }
@@ -150,8 +187,43 @@
 }
 
 @media (max-width: 768px) {
+  .navLeft {
+    min-width: 42px;
+  }
+
+  .desktopLogo {
+    display: none;
+  }
+
+  .mobileCenterTitle {
+    display: flex;
+  }
+
+  .mobileCenterTitle .brandLogoImg {
+    height: 42px;
+    max-width: 190px;
+  }
+
+  .mobileOnlyLink {
+    display: block;
+  }
+
+  .actions {
+    min-width: 42px;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
   .hamburger { 
     display: flex; 
+    font-size: 1.4rem;
+    padding: 6px;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+
+  .hamburger:hover {
+    background: #f5ede4;
   }
   
   .loginBtn { 

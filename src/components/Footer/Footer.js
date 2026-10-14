@@ -20,10 +20,9 @@ export default function Footer() {
       <div className={styles.container}>
         <div className={styles.grid}>
           <div className={styles.brand}>
-            <div className={styles.logo}>
-              <span>🍪</span>
-              <span className={styles.logoText}>One Bite</span>
-            </div>
+            <Link href="/" className={styles.logo}>
+              <img src="/logo-white.png" alt="One Bite" className={styles.footerLogoImg} />
+            </Link>
             <p className={styles.tagline}>Handcrafted cookies, baked with love.<br />Every bite tells a story.</p>
           </div>
 
@@ -32,6 +31,7 @@ export default function Footer() {
             <Link href="/">Home</Link>
             <Link href="/#menu" onClick={handleMenuClick}>Menu</Link>
             <Link href="/orders">My Orders</Link>
+            <Link href="/profile">Profile</Link>
           </div>
 
           <div className={styles.contact}>

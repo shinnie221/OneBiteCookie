@@ -14,8 +14,6 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isCartOrProfile = pathname?.startsWith('/cart') || pathname?.startsWith('/profile') || pathname?.startsWith('/checkout') || pathname?.startsWith('/payment');
-
   const handleLogout = () => {
     logout();
     router.push('/');
@@ -38,15 +36,39 @@ export default function Navbar() {
   return (
     <nav className={styles.navbar}>
       <div className={styles.container}>
-        <Link href="/" className={styles.logo}>
-          <span className={styles.logoIcon}>🍪</span>
-          <span className={styles.logoText}>One Bite</span>
+        <div className={styles.navLeft}>
+          <button 
+            type="button"
+            className={styles.hamburger} 
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileOpen ? '✕' : '☰'}
+          </button>
+
+          <Link href="/" className={styles.desktopLogo}>
+            <img src="/logo.png" alt="One Bite" className={styles.brandLogoImg} />
+          </Link>
+        </div>
+
+        {/* Mobile Center Title (Matches Home & Menu Header) */}
+        <Link href="/" className={styles.mobileCenterTitle}>
+          <img src="/logo.png" alt="One Bite" className={styles.brandLogoImg} />
         </Link>
 
         <div className={`${styles.nav} ${mobileOpen ? styles.open : ''}`}>
           <Link href="/" className={styles.navLink} onClick={() => setMobileOpen(false)}>Home</Link>
           <Link href="/#menu" className={styles.navLink} onClick={handleMenuClick}>Menu</Link>
           <Link href="/orders" className={styles.navLink} onClick={() => setMobileOpen(false)}>My Orders</Link>
+          <Link href="/cart" className={`${styles.navLink} ${styles.mobileOnlyLink}`} onClick={() => setMobileOpen(false)}>
+            Cart {totalQuantity > 0 ? `(${totalQuantity})` : ''}
+          </Link>
+
+          {isAuthenticated && user?.role === 'customer' && (
+            <Link href="/profile" className={`${styles.navLink} ${styles.mobileOnlyLink}`} onClick={() => setMobileOpen(false)}>
+              Profile
+            </Link>
+          )}
 
           {isAuthenticated && user?.role !== 'customer' && (
             <Link href="/staff/dashboard" className={styles.navLink} onClick={() => setMobileOpen(false)}>Staff Dashboard</Link>
@@ -85,36 +107,22 @@ export default function Navbar() {
         </div>
 
         <div className={styles.actions}>
-          {!isCartOrProfile && (
-            <Link href="/cart" className={styles.cartBtn} aria-label="Cart">
-              🛒
-              {totalQuantity > 0 && (
-                <span className={styles.badge}>{totalQuantity}</span>
-              )}
-            </Link>
-          )}
+          <Link href="/cart" className={styles.cartBtn} aria-label="Cart">
+            🛒
+            {totalQuantity > 0 && (
+              <span className={styles.badge}>{totalQuantity}</span>
+            )}
+          </Link>
           
-          {!isCartOrProfile && (
-            isAuthenticated ? (
-              <>
-                {user?.role === 'customer' ? (
-                  <Link href="/profile" className={styles.loginBtn}>Profile</Link>
-                ) : (
-                  <Link href="/staff/dashboard" className={styles.loginBtn}>Dashboard</Link>
-                )}
-              </>
+          {isAuthenticated ? (
+            user?.role === 'customer' ? (
+              <Link href="/profile" className={styles.loginBtn}>Profile</Link>
             ) : (
-              <Link href="/login" className={styles.loginBtn}>Sign In</Link>
+              <Link href="/staff/dashboard" className={styles.loginBtn}>Dashboard</Link>
             )
+          ) : (
+            <Link href="/login" className={styles.loginBtn}>Sign In</Link>
           )}
-
-          <button 
-            className={styles.hamburger} 
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle navigation menu"
-          >
-            {mobileOpen ? '✕' : '☰'}
-          </button>
         </div>
       </div>
 

@@ -85,8 +85,7 @@ export default function StaffLayout({ children }) {
         <div className={styles.sidebarHeader}>
           <button className={styles.closeMenu} onClick={() => setMobileOpen(false)} aria-label="关闭员工菜单">✕</button>
           <div className={styles.logo}>
-            <span className={styles.logoIcon}>🍪</span>
-            <span className={styles.logoText}>One Bite</span>
+            <img src="/logo.png" alt="One Bite" className={styles.staffLogoImg} />
           </div>
           <div className={styles.staffInfo}>
             <div className={styles.avatar}>{user?.name?.charAt(0) || 'S'}</div>
