@@ -55,6 +55,7 @@
 
 html {
   scroll-behavior: smooth;
+  background: var(--color-bg);
 }
 
 body {
@@ -63,6 +64,7 @@ body {
   background: var(--color-bg);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
 img {
@@ -93,7 +95,8 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
-  min-height: 60vh;
+  min-height: calc(100vh - 70px);
+  background: var(--color-bg);
 }
 
 @media (max-width: 600px) {
