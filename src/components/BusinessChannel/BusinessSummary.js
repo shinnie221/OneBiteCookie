@@ -75,7 +75,6 @@ export default function BusinessSummary({ refreshVersion = 0 }) {
         <Link href="/staff/orders" className={styles.channelCard} title="线上商城已完成曲奇销售（已扣除配送费）">
           <div className={styles.channelHeader}>
             <span className={styles.channelName}>线上预购 (曲奇)</span>
-            <span className={styles.channelIcon}>▤</span>
           </div>
           <strong className={styles.channelAmount}>{money(summary.preorder)}</strong>
         </Link>
@@ -83,7 +82,6 @@ export default function BusinessSummary({ refreshVersion = 0 }) {
           <Link href="/staff/expenses" className={styles.channelCard} title="Lalamove 等配送收入（合伙公款入账）">
             <div className={styles.channelHeader}>
               <span className={styles.channelName}>配送收入</span>
-              <span className={styles.channelIcon}>🛵</span>
             </div>
             <strong className={styles.channelAmount}>{money(summary.deliveryIncome)}</strong>
           </Link>
@@ -91,14 +89,12 @@ export default function BusinessSummary({ refreshVersion = 0 }) {
         <Link href="/staff/booth" className={styles.channelCard}>
           <div className={styles.channelHeader}>
             <span className={styles.channelName}>摆摊销售</span>
-            <span className={styles.channelIcon}>⌂</span>
           </div>
           <strong className={styles.channelAmount}>{money(summary.booth)}</strong>
         </Link>
         <Link href="/staff/wholesale" className={styles.channelCard}>
           <div className={styles.channelHeader}>
             <span className={styles.channelName}>批发供货</span>
-            <span className={styles.channelIcon}>▥</span>
           </div>
           <strong className={styles.channelAmount}>{money(summary.wholesale)}</strong>
         </Link>

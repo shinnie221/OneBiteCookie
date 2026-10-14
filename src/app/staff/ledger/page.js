@@ -726,7 +726,7 @@ export default function LedgerPage() {
         </div>
         {financeStats.deliveryIncome > 0 && (
           <div style={{ background: '#ecfdf5', padding: '8px 16px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
-            <strong>🛵 配送收入 (Lalamove)：</strong> {money(financeStats.deliveryIncome)} (合伙入账)
+            <strong>配送收入 (Lalamove)：</strong> {money(financeStats.deliveryIncome)} (合伙入账)
           </div>
         )}
         <div style={{ background: '#fef3c7', padding: '8px 16px', borderRadius: '8px', border: '1px solid #fde68a' }}>

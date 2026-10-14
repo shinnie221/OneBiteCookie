@@ -374,9 +374,9 @@ export default function CheckoutPage() {
                       </a>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <div className={styles.addressHeaderRow}>
                       <label style={{ margin: 0, fontWeight: 700 }}>Delivery Address (From Profile) *</label>
-                      <Link href="/profile" target="_blank" style={{ fontSize: '0.82rem', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
+                      <Link href="/profile" target="_blank" className={styles.manageAddressLink}>
                         ⚙️ Manage Addresses in Profile ↗
                       </Link>
                     </div>
@@ -392,8 +392,7 @@ export default function CheckoutPage() {
                           </p>
                           <Link
                             href="/profile"
-                            className="btn btnPrimary"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', marginTop: '6px' }}
+                            className={`btn btnPrimary ${styles.noAddressBtn}`}
                           >
                             ➕ Add Delivery Address in Profile ↗
                           </Link>

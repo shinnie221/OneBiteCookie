@@ -15,7 +15,7 @@ export default function SettingsPage() {
         <div className={styles.history}>
           <Link className={styles.historyRow} href="/staff/storefront">
             <div>
-              <strong>🎨 店铺外观与橱窗设置 (Storefront & Images)</strong>
+              <strong>店铺外观与橱窗设置 (Storefront & Images)</strong>
               <p>自定义前台大横幅、圆形Logo、店名、标语及商品展示风格</p>
             </div>
             <span>前往 →</span>

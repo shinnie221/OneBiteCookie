@@ -309,39 +309,84 @@
   font-size: 0.84rem;
 }
 
+.addressHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.manageAddressLink {
+  font-size: 0.82rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.manageAddressLink:hover {
+  text-decoration: underline;
+}
+
 /* No Address in Profile Box */
 .noAddressBox {
-  padding: 24px;
+  padding: 16px 18px;
   background: #fffbeb;
   border: 1.5px dashed #fcd34d;
   border-radius: 12px;
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 14px;
   margin-bottom: 16px;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .noAddressIcon {
-  font-size: 2rem;
-  line-height: 1;
+  font-size: 1.6rem;
+  line-height: 1.2;
+  flex-shrink: 0;
 }
 
 .noAddressContent {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
+  flex: 1;
 }
 
 .noAddressContent strong {
-  font-size: 1rem;
+  font-size: 0.98rem;
   color: #92400e;
+  word-break: break-word;
+  line-height: 1.35;
 }
 
 .noAddressContent p {
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   color: #b45309;
   line-height: 1.45;
   margin: 0;
+  word-break: break-word;
+}
+
+.noAddressBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.35;
+  box-sizing: border-box;
+  margin-top: 4px;
+  align-self: flex-start;
 }
 
 /* Selected Address Card in Checkout */
@@ -599,6 +644,16 @@
 
   .cardBody {
     padding: 14px 12px;
+  }
+
+  .noAddressBox {
+    padding: 14px 12px;
+    gap: 10px;
+  }
+
+  .noAddressBtn {
+    width: 100%;
+    align-self: stretch;
   }
 
   .radioTitle {

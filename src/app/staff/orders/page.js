@@ -789,11 +789,11 @@ function OrdersContent() {
                       </td>
                       <td>
                         {order.order_type === 'delivery' ? (
-                          <span className={styles.deliveryBadge} title={order.delivery_method === 'lalamove' ? `🛵 Lalamove配送 · 实际运费 RM${Number(order.lalamove_cost || 0).toFixed(2)}` : '🚗 管理员亲送'}>
-                            {order.delivery_method === 'lalamove' ? '🛵 Lalamove' : ' 管理员亲送'}
+                          <span className={styles.deliveryBadge} title={order.delivery_method === 'lalamove' ? `Lalamove配送 · 实际运费 RM${Number(order.lalamove_cost || 0).toFixed(2)}` : '🚗 管理员亲送'}>
+                            {order.delivery_method === 'lalamove' ? 'Lalamove' : ' 管理员亲送'}
                           </span>
                         ) : (
-                          <span className={styles.pickupBadge}>🛒 到店自取</span>
+                          <span className={styles.pickupBadge}>到店自取</span>
                         )}
                       </td>
                       <td className={styles.totalCell}>RM{order.total.toFixed(2)}</td>
@@ -1320,7 +1320,7 @@ function OrdersContent() {
                   <div className={styles.currentStatusRow}>
                     <OrderStatusBadge status={selectedOrder.order_status} lang="zh" />
                     <span className={styles.orderTypeTag}>
-                      {selectedOrder.order_type === 'delivery' ? ' 送货上门' : '🛒 到店自取'}
+                      {selectedOrder.order_type === 'delivery' ? ' 送货上门' : '到店自取'}
                     </span>
                   </div>
                 </div>
