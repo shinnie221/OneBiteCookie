@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { Check, X, Info, AlertTriangle } from 'lucide-react';
 import styles from './Toast.module.css';
 
 const ToastContext = createContext();
@@ -31,11 +32,11 @@ export function ToastProvider({ children }) {
       <div className={styles.container}>
         {toasts.map(t => (
           <div key={t.id} className={`${styles.toast} ${styles[t.type]}`}>
-            <span className={styles.icon}>
-              {t.type === 'success' && '✓'}
-              {t.type === 'error' && '✕'}
-              {t.type === 'info' && 'ℹ'}
-              {t.type === 'warning' && '⚠'}
+            <span className={styles.icon} style={{ display: 'inline-flex', alignItems: 'center' }}>
+              {t.type === 'success' && <Check size={16} />}
+              {t.type === 'error' && <X size={16} />}
+              {t.type === 'info' && <Info size={16} />}
+              {t.type === 'warning' && <AlertTriangle size={16} />}
             </span>
             <span className={styles.message}>{t.message}</span>
           </div>

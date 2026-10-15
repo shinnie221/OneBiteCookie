@@ -12,6 +12,24 @@ import {
   isStateDeliverable,
   WHATSAPP_INQUIRY_URL
 } from '@/lib/addresses.mjs';
+import {
+  MapPin,
+  Clock,
+  Map,
+  ExternalLink,
+  AlertCircle,
+  MessageCircle,
+  Settings,
+  Plus,
+  Star,
+  AlertTriangle,
+  Edit3,
+  Phone,
+  AlertOctagon,
+  Store,
+  Cookie,
+  Package
+} from 'lucide-react';
 import styles from './page.module.css';
 
 const DELIVERY_FEE = 8;
@@ -321,7 +339,9 @@ export default function CheckoutPage() {
                 {formData.order_type === 'pickup' && (
                   <div className={styles.pickupLocationCard}>
                     <div className={styles.pickupLocationHeader}>
-                      <span className={styles.pickupPinIcon}>📍</span>
+                      <span className={styles.pickupPinIcon}>
+                        <MapPin size={20} />
+                      </span>
                       <div>
                         <strong className={styles.pickupTitle}>Pickup Point: The Palette @ Danau Kota</strong>
                         <span className={styles.pickupSubtitle}>Store collection point in Setapak, Kuala Lumpur</span>
@@ -332,11 +352,12 @@ export default function CheckoutPage() {
                       <p className={styles.pickupAddress}>
                         <strong>Address:</strong> The Palette, Danau Kota, 53300 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur
                       </p>
-                      <p className={styles.pickupTime}>
-                        ⏰ <strong>Pickup Time:</strong> 11:00 AM
+                      <p className={styles.pickupTime} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Clock size={15} /> <strong>Pickup Time:</strong> 11:00 AM
                       </p>
-                      <p className={styles.pickupNote}>
-                        🕒 Ready for collection at <strong>11:00 AM</strong> once your order status is marked as <strong>Ready for Pickup</strong>.
+                      <p className={styles.pickupNote} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+                        <Clock size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span>Ready for collection at <strong>11:00 AM</strong> once your order status is marked as <strong>Ready for Pickup</strong>.</span>
                       </p>
                     </div>
 
@@ -346,8 +367,9 @@ export default function CheckoutPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.mapsLinkBtn}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                       >
-                        🗺️ View on Google Maps ↗
+                        <Map size={15} /> View on Google Maps <ExternalLink size={13} />
                       </a>
                     </div>
                   </div>
@@ -359,7 +381,9 @@ export default function CheckoutPage() {
                     {/* Delivery Notice */}
                     <div className={styles.klDeliveryNotice}>
                       <div className={styles.klDeliveryNoticeHeader}>
-                        <span>📍 <strong>Delivery Notice (Kuala Lumpur Only)</strong></span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <AlertCircle size={16} /> <strong>Delivery Notice (Kuala Lumpur Only)</strong>
+                        </span>
                       </div>
                       <p className={styles.klDeliveryNoticeText}>
                         Online delivery is strictly specific to <strong>Kuala Lumpur</strong>. Other states are not acceptable. However, customers in the <strong>Klang Valley</strong> area can contact us on WhatsApp for delivery inquiry and special arrangements.
@@ -369,22 +393,25 @@ export default function CheckoutPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.whatsappInquiryBtn}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                       >
-                        💬 Inquire for Klang Valley Delivery via WhatsApp (011-10897061) ↗
+                        <MessageCircle size={15} /> Inquire for Klang Valley Delivery via WhatsApp (011-10897061) <ExternalLink size={13} />
                       </a>
                     </div>
 
                     <div className={styles.addressHeaderRow}>
                       <label style={{ margin: 0, fontWeight: 700 }}>Delivery Address (From Profile) *</label>
-                      <Link href="/profile" target="_blank" className={styles.manageAddressLink}>
-                        ⚙️ Manage Addresses in Profile ↗
+                      <Link href="/profile" target="_blank" className={styles.manageAddressLink} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Settings size={13} /> Manage Addresses in Profile <ExternalLink size={12} />
                       </Link>
                     </div>
 
                     {/* Case 1: Customer has NOT filled an address in profile -> Prompt and link */}
                     {savedAddresses.length === 0 ? (
                       <div className={styles.noAddressBox}>
-                        <span className={styles.noAddressIcon}>📍</span>
+                        <span className={styles.noAddressIcon}>
+                          <MapPin size={24} />
+                        </span>
                         <div className={styles.noAddressContent}>
                           <strong>No Delivery Address Found in Your Profile</strong>
                           <p>
@@ -393,8 +420,9 @@ export default function CheckoutPage() {
                           <Link
                             href="/profile"
                             className={`btn btnPrimary ${styles.noAddressBtn}`}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                           >
-                            ➕ Add Delivery Address in Profile ↗
+                            <Plus size={15} /> Add Delivery Address in Profile <ExternalLink size={13} />
                           </Link>
                         </div>
                       </div>
@@ -424,8 +452,8 @@ export default function CheckoutPage() {
                                 const deliverable = isStateDeliverable(a.state);
                                 return (
                                   <option key={a.id} value={a.id}>
-                                    {!deliverable ? '⚠️ [Outside KL] ' : ''}
-                                    {a.isDefault ? '⭐ [Default] ' : ''}
+                                    {!deliverable ? '[Outside KL] ' : ''}
+                                    {a.isDefault ? '[Default] ' : ''}
                                     {a.label}: {a.recipientName} - {a.addressLine1}, {a.city}
                                   </option>
                                 );
@@ -442,27 +470,29 @@ export default function CheckoutPage() {
                                   {selectedAddr.label || 'Home'}
                                 </span>
                                 {selectedAddr.isDefault && (
-                                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', padding: '2px 6px', borderRadius: '4px' }}>
-                                    ⭐ Default
+                                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', padding: '2px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                    <Star size={11} fill="currentColor" /> Default
                                   </span>
                                 )}
                                 {!isStateDeliverable(selectedAddr.state) && (
-                                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b91c1c', background: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>
-                                    ⚠️ Outside KL
+                                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b91c1c', background: '#fee2e2', padding: '2px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                    <AlertTriangle size={11} /> Outside KL
                                   </span>
                                 )}
                               </div>
                               <Link
                                 href="/profile"
-                                style={{ fontSize: '0.82rem', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}
+                                style={{ fontSize: '0.82rem', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                               >
-                                ✏️ Edit in Profile ↗
+                                <Edit3 size={13} /> Edit in Profile <ExternalLink size={12} />
                               </Link>
                             </div>
 
                             <div className={styles.selectedRecipient}>
                               <span>{selectedAddr.recipientName}</span>
-                              <span className={styles.selectedPhone}>📞 {selectedAddr.phone}</span>
+                              <span className={styles.selectedPhone} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <Phone size={13} /> {selectedAddr.phone}
+                              </span>
                             </div>
 
                             <p className={styles.selectedAddressLines}>
@@ -474,8 +504,8 @@ export default function CheckoutPage() {
                         {/* If chosen address is not in KL, show non-KL warning */}
                         {selectedAddr && !isStateDeliverable(selectedAddr.state) && (
                           <div className={styles.nonKlBlockAlert}>
-                            <div className={styles.nonKlBlockTitle}>
-                              🚫 Delivery Not Acceptable for Selected State
+                            <div className={styles.nonKlBlockTitle} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <AlertOctagon size={18} /> Delivery Not Acceptable for Selected State
                             </div>
                             <p>
                               Your selected address state is <strong>{selectedAddr.state}</strong>. Online delivery is only available within <strong>Kuala Lumpur</strong>. Other states are not acceptable. However, if your address is located within the <strong>Klang Valley</strong> area, please contact us on WhatsApp for inquiry.
@@ -486,15 +516,17 @@ export default function CheckoutPage() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="btn btnSecondary"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                               >
-                                💬 WhatsApp Klang Valley Inquiry (011-10897061)
+                                <MessageCircle size={15} /> WhatsApp Klang Valley Inquiry (011-10897061)
                               </a>
                               <button
                                 type="button"
                                 className="btn btnPrimary"
                                 onClick={() => setFormData(prev => ({ ...prev, order_type: 'pickup' }))}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                               >
-                                🛒 Switch to Store Pickup
+                                <Store size={15} /> Switch to Store Pickup
                               </button>
                             </div>
                           </div>
@@ -532,8 +564,16 @@ export default function CheckoutPage() {
                         <div>
                           <span className={styles.itemName}>{item.product_name}</span>
                           {item.variant && (
-                            <span style={{ display: 'block', fontSize: '0.78rem', color: '#7a5230', fontWeight: 600 }}>
-                              {item.variant === 'Per piece' ? '🍪 Per piece' : `📦 ${item.variant}`}
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', color: '#7a5230', fontWeight: 600 }}>
+                              {item.variant === 'Per piece' ? (
+                                <>
+                                  <Cookie size={12} /> Per piece
+                                </>
+                              ) : (
+                                <>
+                                  <Package size={12} /> {item.variant}
+                                </>
+                              )}
                             </span>
                           )}
                           {item.flavour_summary && (

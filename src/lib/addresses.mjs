@@ -42,9 +42,9 @@ export function getDeliverableNotice(state) {
 }
 
 export const ADDRESS_LABELS = [
-  { value: 'Home', label: '🏠 Home' },
-  { value: 'Office', label: '🏢 Office' },
-  { value: 'Other', label: '📍 Other' }
+  { value: 'Home', label: 'Home' },
+  { value: 'Office', label: 'Office' },
+  { value: 'Other', label: 'Other' }
 ];
 
 export function validatePhone(phone) {

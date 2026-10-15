@@ -6,6 +6,17 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
 import { getProductPackagingOptions, getProductPriceRange, formatPrice } from '@/lib/packaging';
+import {
+  X,
+  Cookie,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  Share2,
+  Sparkles,
+  Minus,
+  Plus
+} from 'lucide-react';
 import styles from './ProductDetailModal.module.css';
 
 export default function ProductDetailModal({ product, isOpen, onClose, currencySymbol = '₱', onOpenByob = null }) {
@@ -80,7 +91,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
       } else {
         updated = [...favs, product.id];
         setIsFavorited(true);
-        toast.success(`Saved ${product.name} to favorites ❤️`);
+        toast.success(`Saved ${product.name} to favorites`);
       }
       localStorage.setItem('onebite_favorites', JSON.stringify(updated));
     } catch (err) { }
@@ -92,7 +103,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
       const shareUrl = `${window.location.origin}/#${encodeURIComponent(product.name)}`;
       if (navigator.clipboard) {
         navigator.clipboard.writeText(shareUrl).then(() => {
-          toast.success('Link copied to clipboard! 📋');
+          toast.success('Link copied to clipboard!');
         }).catch(() => {
           toast.info('Share link: ' + shareUrl);
         });
@@ -129,7 +140,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
           onClick={onClose}
           aria-label="Close detail modal"
         >
-          ✕
+          <X size={20} />
         </button>
 
         {/* Top Product Image */}
@@ -142,7 +153,9 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
               className={styles.productImg}
             />
           ) : (
-            <div className={styles.placeholderImg}>🍪</div>
+            <div className={styles.placeholderImg}>
+              <Cookie size={48} strokeWidth={1.5} />
+            </div>
           )}
 
           {hasMultipleImages && (
@@ -153,7 +166,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
                 onClick={() => setCurrentImgIndex(prev => (prev === 0 ? images.length - 1 : prev - 1))}
                 aria-label="Previous photo"
               >
-                ‹
+                <ChevronLeft size={22} />
               </button>
               <button
                 type="button"
@@ -161,7 +174,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
                 onClick={() => setCurrentImgIndex(prev => (prev === images.length - 1 ? 0 : prev + 1))}
                 aria-label="Next photo"
               >
-                ›
+                <ChevronRight size={22} />
               </button>
 
               <div className={styles.dotsWrap}>
@@ -190,7 +203,11 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
                 title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
                 aria-label="Favorite"
               >
-                {isFavorited ? '❤️' : '🤍'}
+                <Heart
+                  size={18}
+                  fill={isFavorited ? '#e11d48' : 'none'}
+                  color={isFavorited ? '#e11d48' : 'currentColor'}
+                />
               </button>
               <button
                 type="button"
@@ -199,7 +216,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
                 title="Share product link"
                 aria-label="Share"
               >
-                ↗
+                <Share2 size={18} />
               </button>
             </div>
           </div>
@@ -261,7 +278,9 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
           {onOpenByob && (
             <div className={styles.byobHintBox}>
               <div className={styles.byobHintText}>
-                <span>💡 Want to <strong>mix & match flavors</strong> in a box?</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <Sparkles size={16} style={{ color: '#d97706', flexShrink: 0 }} /> Want to <strong>mix & match flavors</strong> in a box?
+                </span>
                 <span className={styles.byobHintSub}>This option is a single-flavor box of {product.name}.</span>
               </div>
               <button
@@ -287,7 +306,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
                 disabled={quantity <= 1 || !isAvailable}
                 aria-label="Decrease quantity"
               >
-                −
+                <Minus size={14} />
               </button>
               <span className={styles.stepperValue}>{quantity}</span>
               <button
@@ -297,7 +316,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
                 disabled={!isAvailable}
                 aria-label="Increase quantity"
               >
-                +
+                <Plus size={14} />
               </button>
             </div>
           </div>

@@ -9,6 +9,19 @@ import ProductCard from '@/components/ProductCard/ProductCard';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import Footer from '@/components/Footer/Footer';
 import { DEFAULT_BANNER, DEFAULT_AVATAR } from '@/lib/storefrontDefaults';
+import {
+  Menu,
+  X,
+  Search,
+  ShoppingCart,
+  LayoutDashboard,
+  Cookie,
+  Home,
+  Package,
+  User,
+  Palette,
+  ShieldCheck
+} from 'lucide-react';
 import styles from './page.module.css';
 
 export default function HomePage() {
@@ -21,7 +34,7 @@ export default function HomePage() {
     banner_image: '',
     avatar_image: '',
     store_name: 'One Bite',
-    store_bio: 'Everything baked goods 🤎',
+    store_bio: 'Everything baked goods',
     currency_symbol: 'RM',
     cart_button_label: 'View Cart',
   });
@@ -51,7 +64,7 @@ export default function HomePage() {
           banner_image: settData.settings.banner_image || '',
           avatar_image: settData.settings.avatar_image || '',
           store_name: settData.settings.store_name || 'One Bite',
-          store_bio: settData.settings.store_bio || 'Everything baked goods 🤎',
+          store_bio: settData.settings.store_bio || 'Everything baked goods',
           currency_symbol: settData.settings.currency_symbol || 'RM',
           cart_button_label: settData.settings.cart_button_label && settData.settings.cart_button_label !== '购物车'
             ? settData.settings.cart_button_label
@@ -122,9 +135,11 @@ export default function HomePage() {
       {/* 1. Quick Staff Toolbar (visible to store owner / staff) */}
       {isStaffUser && (
         <div className={styles.staffQuickBar}>
-          <span>👋 Admin Mode Active</span>
-          <Link href="/staff/storefront" className={styles.staffQuickBtn}>
-            🎨 Storefront Settings
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <ShieldCheck size={16} /> Admin Mode Active
+          </span>
+          <Link href="/staff/storefront" className={styles.staffQuickBtn} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Palette size={15} /> Storefront Settings
           </Link>
         </div>
       )}
@@ -139,7 +154,7 @@ export default function HomePage() {
               onClick={() => setMenuDrawerOpen(true)}
               aria-label="Open navigation menu"
             >
-              ☰
+              <Menu size={20} />
             </button>
 
             <Link href="/" className={styles.desktopBrand}>
@@ -170,11 +185,11 @@ export default function HomePage() {
               onClick={() => setSearchOpen(prev => !prev)}
               aria-label="Toggle search bar"
             >
-              🔍
+              <Search size={19} />
             </button>
 
             <Link href="/cart" className={styles.cartBagButton} aria-label="View Cart">
-              🛒
+              <ShoppingCart size={19} />
               {totalQuantity > 0 && (
                 <span className={styles.cartCountBadge}>{totalQuantity}</span>
               )}
@@ -186,8 +201,8 @@ export default function HomePage() {
                   Profile
                 </Link>
               ) : (
-                <Link href="/staff/dashboard" className={styles.desktopAuthBtn}>
-                  ⚙️ Dashboard
+                <Link href="/staff/dashboard" className={styles.desktopAuthBtn} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <LayoutDashboard size={15} /> Dashboard
                 </Link>
               )
             ) : (
@@ -216,8 +231,9 @@ export default function HomePage() {
                 type="button"
                 className={styles.searchClearBtn}
                 onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
               >
-                ✕
+                <X size={16} />
               </button>
             )}
           </div>
@@ -259,7 +275,7 @@ export default function HomePage() {
       <div className={styles.bioCard}>
         {settings.store_bio
           ? String(settings.store_bio).replace(/\\n/g, '\n')
-          : 'Everything baked goods 🤎'}
+          : 'Everything baked goods'}
       </div>
 
       {/* 7. Cookies Section */}
@@ -281,7 +297,9 @@ export default function HomePage() {
           <LoadingSpinner text="Loading freshly baked cookies..." />
         ) : cookieProducts.length === 0 ? (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>🍪</div>
+            <div className={styles.emptyIcon}>
+              <Cookie size={46} strokeWidth={1.5} />
+            </div>
             <p>
               {searchQuery
                 ? `No cookies found matching "${searchQuery}"`
@@ -364,8 +382,9 @@ export default function HomePage() {
                 type="button"
                 className={styles.drawerCloseBtn}
                 onClick={() => setMenuDrawerOpen(false)}
+                aria-label="Close menu"
               >
-                ✕
+                <X size={20} />
               </button>
             </div>
 
@@ -375,7 +394,7 @@ export default function HomePage() {
                 className={styles.drawerLink}
                 onClick={() => setMenuDrawerOpen(false)}
               >
-                🏠 Home
+                <Home size={18} /> Home
               </Link>
               <a
                 href="#menu"
@@ -385,21 +404,21 @@ export default function HomePage() {
                   scrollToMenu(e);
                 }}
               >
-                🍪 Menu
+                <Cookie size={18} /> Menu
               </a>
               <Link
                 href="/orders"
                 className={styles.drawerLink}
                 onClick={() => setMenuDrawerOpen(false)}
               >
-                📦 My Orders
+                <Package size={18} /> My Orders
               </Link>
               <Link
                 href="/cart"
                 className={styles.drawerLink}
                 onClick={() => setMenuDrawerOpen(false)}
               >
-                🛒 Cart ({totalQuantity})
+                <ShoppingCart size={18} /> Cart ({totalQuantity})
               </Link>
 
               {isAuthenticated && user?.role === 'customer' && (
@@ -408,7 +427,7 @@ export default function HomePage() {
                   className={styles.drawerLink}
                   onClick={() => setMenuDrawerOpen(false)}
                 >
-                  Profile
+                  <User size={18} /> Profile
                 </Link>
               )}
 
@@ -419,21 +438,21 @@ export default function HomePage() {
                     className={`${styles.drawerLink} ${styles.drawerHighlight}`}
                     onClick={() => setMenuDrawerOpen(false)}
                   >
-                    📊 Staff Dashboard
+                    <LayoutDashboard size={18} /> Staff Dashboard
                   </Link>
                   <Link
                     href="/staff/storefront"
                     className={`${styles.drawerLink} ${styles.drawerHighlight}`}
                     onClick={() => setMenuDrawerOpen(false)}
                   >
-                    🎨 Storefront Settings
+                    <Palette size={18} /> Storefront Settings
                   </Link>
                   <Link
                     href="/staff/products"
                     className={styles.drawerLink}
                     onClick={() => setMenuDrawerOpen(false)}
                   >
-                    🍪 Products Management
+                    <Cookie size={18} /> Products Management
                   </Link>
                 </>
               )}

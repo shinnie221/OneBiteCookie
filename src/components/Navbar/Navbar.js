@@ -5,6 +5,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { Menu, X, ShoppingCart } from 'lucide-react';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
@@ -43,7 +44,7 @@ export default function Navbar() {
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle navigation menu"
           >
-            {mobileOpen ? '✕' : '☰'}
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
 
           <Link href="/" className={styles.desktopLogo}>
@@ -108,7 +109,7 @@ export default function Navbar() {
 
         <div className={styles.actions}>
           <Link href="/cart" className={styles.cartBtn} aria-label="Cart">
-            🛒
+            <ShoppingCart size={20} />
             {totalQuantity > 0 && (
               <span className={styles.badge}>{totalQuantity}</span>
             )}

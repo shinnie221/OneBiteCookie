@@ -6,6 +6,19 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
 import { getByobTiers, formatPrice } from '@/lib/packaging';
+import {
+  X,
+  Cookie,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  Share2,
+  Sparkles,
+  CheckCircle,
+  Search,
+  Minus,
+  Plus
+} from 'lucide-react';
 import styles from './ByobModal.module.css';
 
 export default function ByobModal({ product, isOpen, onClose, currencySymbol = '₱', allProducts = [] }) {
@@ -53,7 +66,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
       } else {
         updated = [...favs, product.id];
         setIsFavorited(true);
-        toast.success(`Saved ${product.name} to favorites ❤️`);
+        toast.success(`Saved ${product.name} to favorites`);
       }
       localStorage.setItem('onebite_favorites', JSON.stringify(updated));
     } catch (err) { }
@@ -65,7 +78,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
       const shareUrl = `${window.location.origin}/#${encodeURIComponent(product.name || 'byob')}`;
       if (navigator.clipboard) {
         navigator.clipboard.writeText(shareUrl).then(() => {
-          toast.success('Link copied to clipboard! 📋');
+          toast.success('Link copied to clipboard!');
         }).catch(() => {
           toast.info('Share link: ' + shareUrl);
         });
@@ -237,7 +250,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
           onClick={onClose}
           aria-label="Close modal"
         >
-          ✕
+          <X size={20} />
         </button>
 
         {/* Top Product Image Carousel (Shows BYOB photos like cookie detail modal) */}
@@ -250,7 +263,9 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
               className={styles.productImg}
             />
           ) : (
-            <div className={styles.placeholderImg}>🍪</div>
+            <div className={styles.placeholderImg}>
+              <Cookie size={48} strokeWidth={1.5} />
+            </div>
           )}
 
           {hasMultipleImages && (
@@ -261,7 +276,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 onClick={() => setCurrentImgIndex(prev => (prev === 0 ? images.length - 1 : prev - 1))}
                 aria-label="Previous photo"
               >
-                ‹
+                <ChevronLeft size={22} />
               </button>
               <button
                 type="button"
@@ -269,7 +284,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 onClick={() => setCurrentImgIndex(prev => (prev === images.length - 1 ? 0 : prev + 1))}
                 aria-label="Next photo"
               >
-                ›
+                <ChevronRight size={22} />
               </button>
 
               <div className={styles.dotsWrap}>
@@ -303,7 +318,11 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
                 aria-label="Favorite"
               >
-                {isFavorited ? '❤️' : '🤍'}
+                <Heart
+                  size={18}
+                  fill={isFavorited ? '#e11d48' : 'none'}
+                  color={isFavorited ? '#e11d48' : 'currentColor'}
+                />
               </button>
               <button
                 type="button"
@@ -312,7 +331,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 title="Share BYOB link"
                 aria-label="Share"
               >
-                ↗
+                <Share2 size={18} />
               </button>
             </div>
           </div>
@@ -339,7 +358,11 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                   >
                     <span className={styles.tierChipPieces}>{tier.pieces} Pieces</span>
                     <span className={styles.tierChipPrice}>{currencySymbol}{formatPrice(tier.price)}</span>
-                    {isBoxOf5 && <span className={styles.tierChipBadge}>⭐ Try All 5</span>}
+                    {isBoxOf5 && (
+                      <span className={styles.tierChipBadge} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <Sparkles size={11} /> Try All 5
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -350,14 +373,25 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
           <div className={styles.progressCard}>
             <div className={styles.progressTop}>
               <span className={styles.progressText}>
-                {isFull
-                  ? `✅ Box is full (${totalSelectedCount}/${targetCount} cookies)`
-                  : `🍪 Selected ${totalSelectedCount} / ${targetCount} (${remainingCount} more needed)`}
+                {isFull ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    <CheckCircle size={15} style={{ color: '#22c55e' }} /> Box is full ({totalSelectedCount}/{targetCount} cookies)
+                  </span>
+                ) : (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    <Cookie size={15} style={{ color: '#d97706' }} /> Selected {totalSelectedCount} / {targetCount} ({remainingCount} more needed)
+                  </span>
+                )}
               </span>
               <div className={styles.quickActions}>
                 {targetCount === 5 && availableFlavours.length >= 5 && (
-                  <button type="button" className={styles.quickBtn} onClick={handleFillOneOfEach}>
-                    ⭐ 1 of Each (5 Total)
+                  <button
+                    type="button"
+                    className={styles.quickBtn}
+                    onClick={handleFillOneOfEach}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Sparkles size={12} /> 1 of Each (5 Total)
                   </button>
                 )}
                 {totalSelectedCount > 0 && (
@@ -408,10 +442,12 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                           <img src={thumb} alt={flavor.name} className={styles.flavourThumb} />
                         ) : (
                           <div className={styles.flavourThumbFallback}>
-                            🍪
+                            <Cookie size={22} strokeWidth={1.5} />
                           </div>
                         )}
-                        <span className={styles.flavourZoomIcon} aria-hidden="true">🔍</span>
+                        <span className={styles.flavourZoomIcon} aria-hidden="true">
+                          <Search size={11} />
+                        </span>
                       </div>
 
                       <div className={styles.flavourInfo}>
@@ -430,7 +466,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                         disabled={pickedCount <= 0}
                         aria-label={`Decrease ${flavor.name}`}
                       >
-                        −
+                        <Minus size={13} />
                       </button>
                       <span className={styles.stepperValue}>{pickedCount}</span>
                       <button
@@ -440,7 +476,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                         disabled={totalSelectedCount >= targetCount}
                         aria-label={`Increase ${flavor.name}`}
                       >
-                        +
+                        <Plus size={13} />
                       </button>
                     </div>
                   </div>
@@ -460,7 +496,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 disabled={boxQuantity <= 1}
                 aria-label="Decrease boxes"
               >
-                −
+                <Minus size={13} />
               </button>
               <span className={styles.stepperValue}>{boxQuantity}</span>
               <button
@@ -469,7 +505,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 onClick={() => setBoxQuantity(prev => prev + 1)}
                 aria-label="Increase boxes"
               >
-                +
+                <Plus size={13} />
               </button>
             </div>
           </div>
@@ -502,7 +538,9 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                     className={styles.previewImg}
                   />
                 ) : (
-                  <div className={styles.placeholderImg}>🍪</div>
+                  <div className={styles.placeholderImg}>
+                    <Cookie size={48} strokeWidth={1.5} />
+                  </div>
                 )}
 
                 <button
@@ -511,7 +549,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                   onClick={() => setPreviewFlavour(null)}
                   aria-label="Close photo preview"
                 >
-                  ✕
+                  <X size={20} />
                 </button>
 
                 {previewImages.length > 1 && (
@@ -520,15 +558,17 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                       type="button"
                       className={`${styles.navBtn} ${styles.prevBtn}`}
                       onClick={() => setPreviewImgIndex(prev => (prev === 0 ? previewImages.length - 1 : prev - 1))}
+                      aria-label="Previous photo"
                     >
-                      ‹
+                      <ChevronLeft size={22} />
                     </button>
                     <button
                       type="button"
                       className={`${styles.navBtn} ${styles.nextBtn}`}
                       onClick={() => setPreviewImgIndex(prev => (prev === previewImages.length - 1 ? 0 : prev + 1))}
+                      aria-label="Next photo"
                     >
-                      ›
+                      <ChevronRight size={22} />
                     </button>
                     <div className={styles.dotsWrap}>
                       {previewImages.map((_, idx) => (

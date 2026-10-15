@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
+import { ArrowLeft } from 'lucide-react';
 import styles from './page.module.css';
 
 export default function LoginPage() {
@@ -39,7 +40,7 @@ export default function LoginPage() {
       })
       .catch((error) => {
         if (error.code === 'auth/popup-blocked') {
-          toast.warning('Pop-up blocked! Please click the icon (🚫) in your browser address bar and select "Always allow pop-ups".');
+          toast.warning('Pop-up blocked! Please click the pop-up icon in your browser address bar and select "Always allow pop-ups".');
         } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
           toast.error(error.message || 'Google login failed');
         }
@@ -79,8 +80,8 @@ export default function LoginPage() {
         </div>
 
         <div className={styles.footer}>
-          <Link href="/" className={styles.backLink}>
-            ← Back to Home
+          <Link href="/" className={styles.backLink} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <ArrowLeft size={16} /> Back to Home
           </Link>
         </div>
       </div>

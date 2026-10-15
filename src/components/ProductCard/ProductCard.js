@@ -5,6 +5,7 @@ import { useCart } from '@/context/CartContext';
 import ProductDetailModal from '@/components/ProductDetailModal/ProductDetailModal';
 import ByobModal from '@/components/ByobModal/ByobModal';
 import { getProductPriceRange } from '@/lib/packaging';
+import { Cookie, Camera } from 'lucide-react';
 import styles from './ProductCard.module.css';
 
 export default function ProductCard({
@@ -62,13 +63,15 @@ export default function ProductCard({
               loading="lazy"
             />
           ) : (
-            <div className={styles.placeholder}>🍪</div>
+            <div className={styles.placeholder}>
+              <Cookie size={36} strokeWidth={1.5} />
+            </div>
           )}
 
           {/* Multiple Photos Indicator */}
           {hasMultipleImages && (
-            <div className={styles.imageCountBadge}>
-              📸 {images.length}
+            <div className={styles.imageCountBadge} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <Camera size={13} /> {images.length}
             </div>
           )}
 

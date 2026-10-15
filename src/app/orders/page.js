@@ -6,13 +6,27 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar/Navbar';
 import OrderStatusBadge from '@/components/OrderStatusBadge/OrderStatusBadge';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
+import {
+  Clock,
+  ChefHat,
+  Package,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  Store,
+  Truck,
+  X,
+  AlertOctagon,
+  CreditCard,
+  MessageCircle
+} from 'lucide-react';
 import styles from './page.module.css';
 
 const ORDER_TIMELINE = [
-  { id: 'pending_verification', label: 'Payment Pending', icon: '⏳' },
-  { id: 'preparing', label: 'Preparing', icon: '🧑‍🍳' },
-  { id: 'ready_pickup', label: 'Ready / Out for Delivery', icon: '📦' },
-  { id: 'completed', label: 'Completed', icon: '✅' },
+  { id: 'pending_verification', label: 'Payment Pending', icon: Clock },
+  { id: 'preparing', label: 'Preparing', icon: ChefHat },
+  { id: 'ready_pickup', label: 'Ready / Out for Delivery', icon: Package },
+  { id: 'completed', label: 'Completed', icon: CheckCircle },
 ];
 
 export default function OrdersPage() {
@@ -108,8 +122,17 @@ export default function OrdersPage() {
                 type="button"
                 onClick={toggleAllOrders}
                 className={styles.toggleAllBtn}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               >
-                {allExpanded ? '▴ Collapse All' : '▾ Expand All Orders'}
+                {allExpanded ? (
+                  <>
+                    <ChevronUp size={14} /> Collapse All
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown size={14} /> Expand All Orders
+                  </>
+                )}
               </button>
             )}
           </div>
@@ -146,8 +169,16 @@ export default function OrdersPage() {
                       <div className={styles.headerLeft}>
                         <div className={styles.idRow}>
                           <h2 className={styles.orderId}>{order.order_id}</h2>
-                          <span className={order.order_type === 'delivery' ? styles.typeTagDelivery : styles.typeTagPickup}>
-                            {order.order_type === 'delivery' ? ' Delivery' : '🛒 Pickup'}
+                          <span className={order.order_type === 'delivery' ? styles.typeTagDelivery : styles.typeTagPickup} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            {order.order_type === 'delivery' ? (
+                              <>
+                                <Truck size={13} /> Delivery
+                              </>
+                            ) : (
+                              <>
+                                <Store size={13} /> Pickup
+                              </>
+                            )}
                           </span>
                         </div>
                         <p className={styles.orderDate}>
@@ -168,8 +199,17 @@ export default function OrdersPage() {
                             e.stopPropagation();
                             toggleOrder(order.order_id);
                           }}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                         >
-                          {isExpanded ? 'Hide Tracking ▴' : 'Track Order ▾'}
+                          {isExpanded ? (
+                            <>
+                              Hide Tracking <ChevronUp size={13} />
+                            </>
+                          ) : (
+                            <>
+                              Track Order <ChevronDown size={13} />
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>
@@ -182,7 +222,9 @@ export default function OrdersPage() {
                             <div className={styles.specialStatusCard}>
                               {order.order_status === 'rejected' && (
                                 <div className={styles.rejectedBanner}>
-                                  <div className={styles.failedIcon}>✕</div>
+                                  <div className={styles.failedIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <X size={20} />
+                                  </div>
                                   <h3>Order Denied</h3>
                                   {order.reject_reason ? (
                                     <div className={styles.reasonBox}>
@@ -200,15 +242,18 @@ export default function OrdersPage() {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className={styles.btnWhatsApp}
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                                   >
-                                    💬 WhatsApp Support (011-10897061)
+                                    <MessageCircle size={15} /> WhatsApp Support (011-10897061)
                                   </a>
                                 </div>
                               )}
 
                               {order.order_status === 'cancelled' && (
                                 <div className={styles.cancelledBanner}>
-                                  <div className={styles.failedIcon}>🚫</div>
+                                  <div className={styles.failedIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <AlertOctagon size={20} />
+                                  </div>
                                   <h3>Order Cancelled</h3>
                                   {order.staff_note && (
                                     <div className={styles.reasonBox}>
@@ -224,15 +269,18 @@ export default function OrdersPage() {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className={styles.btnWhatsApp}
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                                   >
-                                    💬 Contact Support on WhatsApp
+                                    <MessageCircle size={15} /> Contact Support on WhatsApp
                                   </a>
                                 </div>
                               )}
 
                               {order.order_status === 'refunded' && (
                                 <div className={styles.refundedBanner}>
-                                  <div className={styles.failedIcon}>💳</div>
+                                  <div className={styles.failedIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <CreditCard size={20} />
+                                  </div>
                                   <h3>Order Refunded</h3>
                                   {order.staff_note && (
                                     <div className={styles.reasonBox}>
@@ -248,8 +296,9 @@ export default function OrdersPage() {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className={styles.btnWhatsApp}
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                                   >
-                                    💬 WhatsApp Support
+                                    <MessageCircle size={15} /> WhatsApp Support
                                   </a>
                                 </div>
                               )}
@@ -269,11 +318,13 @@ export default function OrdersPage() {
                                 if (index === 2) {
                                   label = order.order_type === 'delivery' ? 'Out for Delivery' : 'Ready for Pickup';
                                 }
-
+                                const StepIcon = step.icon;
                                 return (
                                   <div key={step.id} className={`${styles.step} ${styles[status]}`}>
                                     <div className={styles.stepIconWrapper}>
-                                      <div className={styles.stepIcon}>{step.icon}</div>
+                                      <div className={styles.stepIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <StepIcon size={16} />
+                                      </div>
                                       {index < ORDER_TIMELINE.length - 1 && <div className={styles.stepLine}></div>}
                                     </div>
                                     <div className={styles.stepContent}>
@@ -301,8 +352,9 @@ export default function OrdersPage() {
                               target="_blank"
                               rel="noopener noreferrer"
                               className={styles.cancelLink}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
                             >
-                              💬 Contact us via WhatsApp
+                              <MessageCircle size={14} /> Contact us via WhatsApp
                             </a>
                           </div>
                         )}

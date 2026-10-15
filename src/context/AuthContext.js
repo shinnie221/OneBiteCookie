@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { auth } from '@/lib/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { AlertTriangle } from 'lucide-react';
 
 const AuthContext = createContext();
 
@@ -135,7 +136,9 @@ export function AuthProvider({ children }) {
           animation: 'slideUp 0.3s ease'
         }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.92rem', marginBottom: 2 }}>⚠️ 登录凭证已过期</div>
+            <div style={{ fontWeight: 700, fontSize: '0.92rem', marginBottom: 2, display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <AlertTriangle size={16} style={{ color: '#f59e0b' }} /> 登录凭证已过期
+            </div>
             <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>长时间未操作或登录已失效，请重新登录以正常使用所有功能。</div>
           </div>
           <button

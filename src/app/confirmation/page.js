@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar/Navbar';
 import OrderStatusBadge from '@/components/OrderStatusBadge/OrderStatusBadge';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
+import { Check, MessageCircle, ExternalLink } from 'lucide-react';
 import styles from './page.module.css';
 
 function ConfirmationContent() {
@@ -77,7 +78,9 @@ function ConfirmationContent() {
   return (
     <div className={styles.confirmationCard}>
       <div className={styles.successHeader}>
-        <div className={styles.checkIcon}>✓</div>
+        <div className={styles.checkIcon}>
+          <Check size={32} />
+        </div>
         <h2>Thank you for your order!</h2>
         <p>Your payment is being verified by our staff. Please wait for confirmation.</p>
       </div>
@@ -117,9 +120,9 @@ function ConfirmationContent() {
                   href="https://thepalette.com.my/the-palette-danau-kota/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: 'var(--color-primary)', textDecoration: 'underline', fontWeight: 600 }}
+                  style={{ color: 'var(--color-primary)', textDecoration: 'underline', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                 >
-                  The Palette @ Danau Kota ↗
+                  The Palette @ Danau Kota <ExternalLink size={13} />
                 </a>{' '}
                 (Setapak, Kuala Lumpur)
               </p>
@@ -164,7 +167,9 @@ function ConfirmationContent() {
       {/* WhatsApp Contact Banner */}
       <div className={styles.whatsappBanner}>
         <div className={styles.whatsappContent}>
-          <span className={styles.whatsappIcon}>💬</span>
+          <span className={styles.whatsappIcon} style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <MessageCircle size={22} />
+          </span>
           <div>
             <p className={styles.whatsappText}>
               After payment, if you encounter any issues or have questions, feel free to contact us:

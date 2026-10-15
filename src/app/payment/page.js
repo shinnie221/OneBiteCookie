@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Navbar from '@/components/Navbar/Navbar';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
+import { Camera, X } from 'lucide-react';
 import styles from './page.module.css';
 
 function compressImage(file, maxDimension = 1000, quality = 0.75) {
@@ -260,7 +261,9 @@ export default function PaymentPage() {
                     ref={fileInputRef}
                   />
                   <label htmlFor="payment_proof" className={styles.fileLabel}>
-                    <span className={styles.uploadIcon}>📸</span>
+                    <span className={styles.uploadIcon} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                      <Camera size={24} />
+                    </span>
                     <span className={styles.uploadText}>
                       {compressing 
                         ? 'Optimizing photo...' 
@@ -276,8 +279,9 @@ export default function PaymentPage() {
                       className={styles.removePreviewBtn}
                       onClick={handleRemoveFile}
                       title="Remove screenshot"
+                      aria-label="Remove screenshot"
                     >
-                      ✕
+                      <X size={16} />
                     </button>
                     <img src={previewUrl} alt="Payment Preview" className={styles.previewImage} />
                   </div>

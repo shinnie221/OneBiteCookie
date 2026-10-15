@@ -7,6 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Navbar from '@/components/Navbar/Navbar';
+import { ShoppingCart, X, Cookie, Package, Minus, Plus, Ticket } from 'lucide-react';
 import styles from './page.module.css';
 
 export default function CartPage() {
@@ -93,7 +94,9 @@ export default function CartPage() {
 
         {items.length === 0 ? (
           <div className={styles.emptyCart}>
-            <div className={styles.emptyIcon}>🛒</div>
+            <div className={styles.emptyIcon}>
+              <ShoppingCart size={54} strokeWidth={1.5} />
+            </div>
             <h2>Your cart is empty</h2>
             <p>Looks like you haven&apos;t added any cookies yet.</p>
             <Link href="/" className="btn btnPrimary mt2">Browse Menu</Link>
@@ -119,7 +122,10 @@ export default function CartPage() {
                           className={styles.removeBtn}
                           onClick={() => removeItem(itemIdentifier, item.variant)}
                           title="Remove item"
-                        >×</button>
+                          aria-label="Remove item"
+                        >
+                          <X size={15} />
+                        </button>
                         <img src={item.image || 'data:image/svg+xml;base64,...'} alt={item.product_name} className={styles.itemImage} />
                         <div className={styles.itemDetails}>
                           <h3 className={styles.itemName}>{item.product_name}</h3>
@@ -137,7 +143,15 @@ export default function CartPage() {
                               borderRadius: '6px',
                               width: 'fit-content'
                             }}>
-                              {item.variant === 'Per piece' ? '🍪 Per piece' : `📦 ${item.variant}`}
+                              {item.variant === 'Per piece' ? (
+                                <>
+                                  <Cookie size={13} /> Per piece
+                                </>
+                              ) : (
+                                <>
+                                  <Package size={13} /> {item.variant}
+                                </>
+                              )}
                             </span>
                           )}
                           {item.flavour_summary && (
@@ -166,12 +180,18 @@ export default function CartPage() {
                           <button
                             className={styles.qtyBtn}
                             onClick={() => updateQuantity(itemIdentifier, item.quantity - 1, item.variant)}
-                          >−</button>
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus size={13} />
+                          </button>
                           <span className={styles.qty}>{item.quantity}</span>
                           <button
                             className={styles.qtyBtn}
                             onClick={() => updateQuantity(itemIdentifier, item.quantity + 1, item.variant)}
-                          >+</button>
+                            aria-label="Increase quantity"
+                          >
+                            <Plus size={13} />
+                          </button>
                         </div>
                       </div>
 
@@ -220,7 +240,9 @@ export default function CartPage() {
                 {/* 1. Visible Public Vouchers (Only show if no voucher currently applied) */}
                 {!voucher && publicVouchers.length > 0 && (
                   <div className={styles.publicVouchersContainer}>
-                    <p className={styles.voucherLabel}>🎟️ Available Vouchers for You</p>
+                    <p className={styles.voucherLabel} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <Ticket size={16} /> Available Vouchers for You
+                    </p>
                     <div className={styles.voucherCardsList}>
                       {publicVouchers.map((v) => {
                         const canApply = subtotal >= v.min_order;

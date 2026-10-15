@@ -13,6 +13,22 @@ import {
   WHATSAPP_RAW_PHONE,
   WHATSAPP_INQUIRY_URL
 } from '@/lib/addresses.mjs';
+import {
+  Cookie,
+  Sparkles,
+  MapPin,
+  Package,
+  Star,
+  AlertTriangle,
+  Edit3,
+  Trash2,
+  Phone,
+  MessageCircle,
+  X,
+  ExternalLink,
+  Home,
+  Building2
+} from 'lucide-react';
 import styles from './page.module.css';
 
 const initialAddressState = {
@@ -238,12 +254,14 @@ export default function ProfilePage() {
         {/* Page Header */}
         <header className={styles.pageHeader}>
           <div className={styles.profileAvatarBox}>
-            <div className={styles.avatar}>
-              {profile.name ? profile.name.charAt(0).toUpperCase() : '🍪'}
+            <div className={styles.avatar} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {profile.name ? profile.name.charAt(0).toUpperCase() : <Cookie size={28} />}
             </div>
             <div className={styles.profileTitleLine}>
               <h1>{profile.name || 'Customer Profile'}</h1>
-              <span className={styles.profileBadge}>🍪 One Bite Member</span>
+              <span className={styles.profileBadge} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <Sparkles size={13} /> One Bite Member
+              </span>
             </div>
           </div>
           <button
@@ -324,8 +342,8 @@ export default function ProfilePage() {
         <section className={styles.card} aria-labelledby="addresses-title">
           <div className={styles.cardHeader}>
             <div>
-              <h2 id="addresses-title" className={styles.cardTitle}>
-                📍 Delivery Addresses
+              <h2 id="addresses-title" className={styles.cardTitle} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <MapPin size={20} /> Delivery Addresses
               </h2>
               <p className={styles.cardSubtitle}>
                 Save multiple delivery addresses and set your default. Standard delivery is strictly specific to <strong>Kuala Lumpur</strong>. Other states are not acceptable, except <strong>Klang Valley</strong> area where you can WhatsApp us for inquiry.
@@ -342,7 +360,9 @@ export default function ProfilePage() {
 
           {addresses.length === 0 ? (
             <div className={styles.emptyState}>
-              <span className={styles.emptyIcon}>📦</span>
+              <span className={styles.emptyIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Package size={38} />
+              </span>
               <strong>No saved delivery addresses yet</strong>
               <p>Add an address to enjoy quick and seamless 1-click checkout.</p>
               <button
@@ -366,12 +386,13 @@ export default function ProfilePage() {
                   >
                     <div className={styles.addressCardHeader}>
                       <div className={styles.badgeGroup}>
-                        <span className={styles.labelBadge}>
-                          {labelObj ? labelObj.label : addr.label || '🏠 Home'}
+                        <span className={styles.labelBadge} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          {addr.label === 'Office' ? <Building2 size={12} /> : (addr.label === 'Other' ? <MapPin size={12} /> : <Home size={12} />)}
+                          {labelObj ? labelObj.label : addr.label || 'Home'}
                         </span>
                         {addr.isDefault && (
-                          <span className={styles.defaultBadge}>
-                            ⭐ Default Address
+                          <span className={styles.defaultBadge} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                            <Star size={11} fill="currentColor" /> Default Address
                           </span>
                         )}
                         {isDeliverable ? (
@@ -379,8 +400,8 @@ export default function ProfilePage() {
                             KL Delivery Available
                           </span>
                         ) : (
-                          <span className={styles.deliveryNoBadge} title="Other states not acceptable. Klang Valley can WhatsApp for inquiry.">
-                            ⚠️ Not Acceptable (Klang Valley Inquiry via WhatsApp)
+                          <span className={styles.deliveryNoBadge} title="Other states not acceptable. Klang Valley can WhatsApp for inquiry." style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                            <AlertTriangle size={11} /> Not Acceptable (Klang Valley Inquiry via WhatsApp)
                           </span>
                         )}
                       </div>
@@ -400,15 +421,17 @@ export default function ProfilePage() {
                           type="button"
                           className={styles.actionBtn}
                           onClick={() => handleOpenEditModal(addr)}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                         >
-                          ✏️ Edit
+                          <Edit3 size={13} /> Edit
                         </button>
                         <button
                           type="button"
                           className={`${styles.actionBtn} ${styles.deleteBtn}`}
                           onClick={() => handleDeleteAddress(addr.id)}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                         >
-                          🗑️ Delete
+                          <Trash2 size={13} /> Delete
                         </button>
                       </div>
                     </div>
@@ -416,7 +439,9 @@ export default function ProfilePage() {
                     <div className={styles.addressBody}>
                       <div className={styles.recipientLine}>
                         <span>{addr.recipientName}</span>
-                        <span className={styles.recipientPhone}>📞 {addr.phone}</span>
+                        <span className={styles.recipientPhone} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Phone size={13} /> {addr.phone}
+                        </span>
                         {!isDeliverable && (
                           <a
                             href={WHATSAPP_INQUIRY_URL}
@@ -424,8 +449,9 @@ export default function ProfilePage() {
                             rel="noopener noreferrer"
                             className={styles.whatsappCardLink}
                             title="Inquire for Klang Valley delivery via WhatsApp"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                           >
-                            💬 Klang Valley Inquiry
+                            <MessageCircle size={13} /> Klang Valley Inquiry
                           </a>
                         )}
                       </div>
@@ -453,31 +479,36 @@ export default function ProfilePage() {
                 onClick={() => setModalOpen(false)}
                 aria-label="Close"
               >
-                ✕
+                <X size={20} />
               </button>
             </div>
 
             <form onSubmit={handleSaveAddress}>
               <div className={styles.modalBody}>
                 {modalError && (
-                  <div className={styles.errorBanner} role="alert">
-                    ⚠️ {modalError}
+                  <div className={styles.errorBanner} role="alert" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <AlertTriangle size={15} /> {modalError}
                   </div>
                 )}
 
                 <div className={styles.formGroup}>
                   <label>Address Label</label>
                   <div className={styles.labelButtonGroup}>
-                    {ADDRESS_LABELS.map(l => (
-                      <button
-                        key={l.value}
-                        type="button"
-                        className={`${styles.labelBtn} ${addressForm.label === l.value ? styles.labelBtnActive : ''}`}
-                        onClick={() => setAddressForm({ ...addressForm, label: l.value })}
-                      >
-                        {l.label}
-                      </button>
-                    ))}
+                    {ADDRESS_LABELS.map(l => {
+                      const IconComponent = l.value === 'Home' ? Home : (l.value === 'Office' ? Building2 : MapPin);
+                      return (
+                        <button
+                          key={l.value}
+                          type="button"
+                          className={`${styles.labelBtn} ${addressForm.label === l.value ? styles.labelBtnActive : ''}`}
+                          onClick={() => setAddressForm({ ...addressForm, label: l.value })}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                        >
+                          <IconComponent size={13} />
+                          {l.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -581,7 +612,9 @@ export default function ProfilePage() {
                   {/* Delivery coverage notice banner for Klang Valley */}
                   <div className={`${styles.stateNoticeInModal} ${styles.formGridFull}`}>
                     <div>
-                      <strong>📍 Delivery Coverage Notice: </strong>
+                      <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <MapPin size={14} /> Delivery Coverage Notice:{' '}
+                      </strong>
                       Standard online delivery is strictly specific to <strong>Kuala Lumpur</strong>. Other states are not acceptable. However, if your address is within the <strong>Klang Valley</strong> area, please contact us on WhatsApp for delivery inquiry.
                     </div>
                     <a
@@ -589,8 +622,9 @@ export default function ProfilePage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className={styles.modalWhatsAppLink}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
                     >
-                      💬 Inquire for Klang Valley Delivery via WhatsApp (011-10897061) ↗
+                      <MessageCircle size={14} /> Inquire for Klang Valley Delivery via WhatsApp (011-10897061) <ExternalLink size={13} />
                     </a>
                   </div>
                 </div>
