@@ -1,22 +1,40 @@
 .navbar {
-  background: rgba(251, 248, 244, 0.94);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-border-light);
+  background: rgba(251, 248, 244, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
   z-index: 1000;
+  width: 100%;
 }
 
 .container {
-  max-width: 1680px;
-  width: 96%;
-  margin: 0 auto;
-  padding: 0 10px;
-  height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 6px 10px;
+  max-width: 1680px;
+  margin: 0 auto;
+  width: 96%;
+}
+
+@media (min-width: 480px) {
+  .container {
+    padding: 8px 14px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 10px 18px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 10px 20px;
+  }
 }
 
 .navLeft {
@@ -239,7 +257,7 @@
   .nav {
     display: none;
     position: absolute;
-    top: 70px;
+    top: 100%;
     left: 0;
     right: 0;
     background: white;
