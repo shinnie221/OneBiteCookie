@@ -5,7 +5,7 @@ import { useCart } from '@/context/CartContext';
 import ProductDetailModal from '@/components/ProductDetailModal/ProductDetailModal';
 import ByobModal from '@/components/ByobModal/ByobModal';
 import { getProductPriceRange } from '@/lib/packaging';
-import { Cookie, Camera } from 'lucide-react';
+import { Cookie, Camera, ShoppingCart } from 'lucide-react';
 import styles from './ProductCard.module.css';
 
 export default function ProductCard({
@@ -100,12 +100,13 @@ export default function ProductCard({
               className={`${styles.addBtn} ${cartQuantity > 0 ? styles.addBtnInCart : ''} ${isUnavailable ? styles.disabled : ''}`}
               onClick={handleOpenModal}
               disabled={isUnavailable}
+              aria-label={isUnavailable ? 'Sold Out' : (cartQuantity > 0 ? `In cart (${cartQuantity})` : 'Add to cart')}
+              title={isUnavailable ? 'Sold Out' : (cartQuantity > 0 ? `In cart (${cartQuantity})` : 'Add to cart')}
             >
-              {isUnavailable
-                ? 'Sold Out'
-                : (cartQuantity > 0
-                  ? `In Cart (${cartQuantity})`
-                  : (product.is_byob ? '+ Build Box' : '+ Add to Cart'))}
+              <ShoppingCart size={15} />
+              {cartQuantity > 0 && (
+                <span className={styles.cartBadge}>{cartQuantity}</span>
+              )}
             </button>
           </div>
         </div>
