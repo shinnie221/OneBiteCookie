@@ -50,9 +50,10 @@ export function AuthProvider({ children }) {
   }, [isTokenExpired]);
 
   const loginWithGoogle = useCallback(async () => {
-    setSessionExpired(false);
     const provider = new GoogleAuthProvider();
+    // Call signInWithPopup immediately to ensure browser user-gesture activation is preserved
     const result = await signInWithPopup(auth, provider);
+    setSessionExpired(false);
     const firebaseUser = result.user;
 
     // Call our API to create/find user in Firestore and get JWT

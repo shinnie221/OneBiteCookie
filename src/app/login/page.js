@@ -23,25 +23,30 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, user, router]);
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
+    // Initiate Google pop-up immediately in direct response to the click event
+    const loginPromise = loginWithGoogle();
     setLoading(true);
-    try {
-      const data = await loginWithGoogle();
-      toast.success(`Welcome, ${data.user.name}!`);
-      if (data.user.role === 'customer') {
-        router.push('/');
-      } else {
-        router.push('/staff/dashboard');
-      }
-    } catch (error) {
-      if (error.code === 'auth/popup-blocked') {
-        toast.warning('Pop-up blocked! Please click the icon (🚫) in your browser address bar and select "Always allow pop-ups".');
-      } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-        toast.error(error.message || 'Google login failed');
-      }
-    } finally {
-      setLoading(false);
-    }
+
+    loginPromise
+      .then((data) => {
+        toast.success(`Welcome, ${data.user.name}!`);
+        if (data.user.role === 'customer') {
+          router.push('/');
+        } else {
+          router.push('/staff/dashboard');
+        }
+      })
+      .catch((error) => {
+        if (error.code === 'auth/popup-blocked') {
+          toast.warning('Pop-up blocked! Please click the icon (🚫) in your browser address bar and select "Always allow pop-ups".');
+        } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+          toast.error(error.message || 'Google login failed');
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
