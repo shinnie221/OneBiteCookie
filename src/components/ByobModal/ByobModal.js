@@ -372,17 +372,25 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
           {/* Step 2: Flavour Selection Progress Bar */}
           <div className={styles.progressCard}>
             <div className={styles.progressTop}>
-              <span className={styles.progressText}>
+              <div className={styles.progressText}>
                 {isFull ? (
                   <span className={styles.progressLabel}>
-                    <CheckCircle size={15} style={{ color: '#22c55e', flexShrink: 0 }} /> Box is full ({totalSelectedCount}/{targetCount} cookies)
+                    <CheckCircle size={15} style={{ color: '#22c55e', flexShrink: 0 }} />
+                    <span className={styles.progressTextColumn}>
+                      <span className={styles.progressMainText}>Box is full</span>
+                      <span className={styles.progressSubText}>({totalSelectedCount}/{targetCount} cookies)</span>
+                    </span>
                   </span>
                 ) : (
                   <span className={styles.progressLabel}>
-                    <Cookie size={15} style={{ color: '#d97706', flexShrink: 0 }} /> Selected {totalSelectedCount} / {targetCount} ({remainingCount} more needed)
+                    <Cookie size={15} style={{ color: '#d97706', flexShrink: 0 }} />
+                    <span className={styles.progressTextColumn}>
+                      <span className={styles.progressMainText}>Selected {totalSelectedCount} / {targetCount}</span>
+                      <span className={styles.progressSubText}>({remainingCount} more needed)</span>
+                    </span>
                   </span>
                 )}
-              </span>
+              </div>
               <div className={styles.quickActions}>
                 {targetCount === 5 && availableFlavours.length >= 5 && (
                   <button
