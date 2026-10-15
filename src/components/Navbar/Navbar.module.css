@@ -255,107 +255,137 @@
   }
 
   .nav {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    flex-direction: column;
-    gap: 0;
-    padding: 8px 0 0 0;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    border-bottom: 1px solid var(--color-border-light);
-    z-index: 999;
+    display: none !important;
   }
 
   .loginBtn {
     display: none;
   }
+}
 
-  .nav.open {
-    display: flex;
-  }
+/* ========================================
+   Slide-out Navigation Drawer (Matches Home & Menu)
+   ======================================== */
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1200;
+}
 
-  .navLink {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--color-border-light);
-    font-size: 1rem;
-  }
+.drawerMenu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 290px;
+  background: #ffffff;
+  z-index: 1300;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  animation: slideInLeft 0.25s ease;
+}
 
-  .navLink::after { display: none; }
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
 
-  .mobileAuthSection {
-    display: block;
-    padding: 16px 20px 20px;
-    background: #fdfaf6;
-    border-top: 1px solid var(--color-border-light);
-  }
+.drawerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0eae1;
+}
 
-  .mobileUserInfo {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
+.drawerLogoImg {
+  height: 48px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
+}
 
-  .mobileGreeting {
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--color-text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+.drawerCloseBtn {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--color-text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
 
-  .mobileLogoutBtn {
-    background: #fee2e2;
-    color: #ef4444;
-    border: 1px solid #fca5a5;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all 0.2s;
-  }
+.drawerCloseBtn:hover {
+  background: #f5ede4;
+  color: var(--color-text);
+}
 
-  .mobileLogoutBtn:hover {
-    background: #fecaca;
-  }
+.drawerLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+}
 
-  .mobileAuthButtons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+.drawerLink {
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
 
-  .mobileLoginBtn {
-    display: block;
-    text-align: center;
-    background: var(--color-primary);
-    color: white;
-    padding: 12px 18px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    text-decoration: none;
-    transition: background 0.2s;
-  }
+.drawerLink:hover {
+  background: var(--color-primary-lighter);
+  color: var(--color-primary-dark);
+}
 
-  .mobileLoginBtn:hover {
-    background: var(--color-primary-dark);
-  }
+.drawerLinkActive {
+  background: var(--color-primary-lighter);
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
 
-  .mobileOverlay {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 998;
-    background: rgba(0, 0, 0, 0.4);
-  }
+.drawerHighlight {
+  background: var(--color-primary-lighter);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary-dark);
+}
+
+.drawerFooter {
+  padding-top: 16px;
+  border-top: 1px solid #f0eae1;
+}
+
+.drawerLogoutBtn {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e53e3e;
+  border-radius: 12px;
+  background: transparent;
+  color: #e53e3e;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.drawerLogoutBtn:hover {
+  background: #fee2e2;
 }
