@@ -59,9 +59,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 10px;
-  max-width: 1200px;
+  max-width: 1680px;
   margin: 0 auto;
-  width: 100%;
+  width: 96%;
 }
 
 @media (min-width: 480px) {
@@ -294,9 +294,9 @@
    ======================================== */
 .heroContainer {
   padding: 0 0 2px;
-  max-width: 1200px;
+  max-width: 1680px;
   margin: 0 auto;
-  width: 100%;
+  width: 96%;
 }
 
 @media (min-width: 480px) {
@@ -376,9 +376,9 @@
 .storeInfo {
   text-align: center;
   padding: 4px 8px 2px;
-  max-width: 1200px;
+  max-width: 1680px;
   margin: 0 auto;
-  width: 100%;
+  width: 96%;
 }
 
 @media (min-width: 480px) {
@@ -467,9 +467,9 @@
   padding: 4px 4px 70px;
   flex: 1;
   scroll-margin-top: 80px;
-  max-width: 1200px;
+  max-width: 1680px;
   margin: 0 auto;
-  width: 100%;
+  width: 96%;
 }
 
 @media (min-width: 480px) {
@@ -561,8 +561,15 @@
   }
   .productList {
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: 12px;
     padding: 0;
+  }
+}
+
+@media (min-width: 1360px) {
+  .productList {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
   }
 }
 
