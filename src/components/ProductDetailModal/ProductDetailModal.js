@@ -15,7 +15,8 @@ import {
   Share2,
   Sparkles,
   Minus,
-  Plus
+  Plus,
+  Maximize2
 } from 'lucide-react';
 import styles from './ProductDetailModal.module.css';
 
@@ -41,6 +42,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
   const [quantity, setQuantity] = useState(1);
   const [descExpanded, setDescExpanded] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   // Sync favorites
   useEffect(() => {
@@ -147,11 +149,27 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
         <div className={styles.mediaContainer}>
           {images.length > 0 ? (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={images[currentImgIndex]}
-              alt={product.name}
-              className={styles.productImg}
-            />
+            <>
+              <img
+                src={images[currentImgIndex]}
+                alt={product.name}
+                className={styles.productImg}
+                onClick={() => setIsLightboxOpen(true)}
+                title="Tap to view full photo"
+              />
+              <button
+                type="button"
+                className={styles.expandBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsLightboxOpen(true);
+                }}
+                aria-label="View full photo"
+                title="View full photo"
+              >
+                <Maximize2 size={15} />
+              </button>
+            </>
           ) : (
             <div className={styles.placeholderImg}>
               <Cookie size={48} strokeWidth={1.5} />
@@ -337,6 +355,64 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
           </button>
         </div>
       </div>
+
+      {/* Fullscreen Photo Lightbox */}
+      {isLightboxOpen && images.length > 0 && (
+        <div
+          className={styles.lightboxOverlay}
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          <button
+            type="button"
+            className={styles.lightboxCloseBtn}
+            onClick={() => setIsLightboxOpen(false)}
+            aria-label="Close photo view"
+          >
+            <X size={24} />
+          </button>
+
+          {hasMultipleImages && (
+            <>
+              <button
+                type="button"
+                className={`${styles.lightboxNavBtn} ${styles.lightboxPrevBtn}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentImgIndex(prev => (prev === 0 ? images.length - 1 : prev - 1));
+                }}
+                aria-label="Previous photo"
+              >
+                <ChevronLeft size={28} />
+              </button>
+              <button
+                type="button"
+                className={`${styles.lightboxNavBtn} ${styles.lightboxNextBtn}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentImgIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
+                }}
+                aria-label="Next photo"
+              >
+                <ChevronRight size={28} />
+              </button>
+            </>
+          )}
+
+          <div className={styles.lightboxContent} onClick={e => e.stopPropagation()}>
+            <img
+              src={images[currentImgIndex]}
+              alt={product.name}
+              className={styles.lightboxImg}
+            />
+            <div className={styles.lightboxCaption}>
+              <span>{product.name}</span>
+              {hasMultipleImages && (
+                <span>{currentImgIndex + 1} / {images.length}</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
