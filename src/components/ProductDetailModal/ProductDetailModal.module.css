@@ -255,9 +255,9 @@
 
 /* Price Range */
 .priceRange {
-  font-family: var(--font-heading, inherit);
+  font-family: var(--font-body, inherit);
   font-size: 1.15rem;
-  font-weight: 800;
+  font-weight: 700;
   color: #26190f;
   margin: -6px 0 0;
   letter-spacing: -0.2px;
@@ -481,7 +481,7 @@
 }
 
 .optionPrice {
-  font-family: var(--font-heading, inherit);
+  font-family: var(--font-body, inherit);
   font-size: 1.02rem;
   font-weight: 700;
   color: #222222;
