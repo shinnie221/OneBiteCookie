@@ -58,7 +58,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
+  padding: 6px 10px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -66,19 +66,19 @@
 
 @media (min-width: 480px) {
   .topNavInner {
-    padding: 10px 16px;
+    padding: 8px 14px;
   }
 }
 
 @media (min-width: 768px) {
   .topNavInner {
-    padding: 12px 20px;
+    padding: 10px 18px;
   }
 }
 
 @media (min-width: 1024px) {
   .topNavInner {
-    padding: 12px 24px;
+    padding: 10px 20px;
   }
 }
 
@@ -237,20 +237,20 @@
 
 /* Expandable Search Input */
 .searchBar {
-  padding: 6px 12px 10px;
+  padding: 4px 10px 8px;
   background: #fbf8f4;
   border-bottom: 1px solid #f0eae1;
 }
 
 @media (min-width: 480px) {
   .searchBar {
-    padding: 6px 16px 10px;
+    padding: 6px 14px 8px;
   }
 }
 
 @media (min-width: 768px) {
   .searchBar {
-    padding: 8px 20px 12px;
+    padding: 6px 16px 10px;
   }
 }
 
@@ -293,7 +293,7 @@
    Storefront Hero Card
    ======================================== */
 .heroContainer {
-  padding: 6px 8px 4px;
+  padding: 0 0 2px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -301,7 +301,7 @@
 
 @media (min-width: 480px) {
   .heroContainer {
-    padding: 8px 12px 6px;
+    padding: 4px 8px 4px;
   }
 }
 
@@ -309,7 +309,7 @@
   width: 100%;
   height: 200px;
   background: #f2ede4;
-  border-radius: 16px;
+  border-radius: 0;
   overflow: hidden;
   position: relative;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
@@ -317,7 +317,7 @@
 
 @media (min-width: 480px) {
   .heroBannerCard {
-    border-radius: 20px;
+    border-radius: 12px;
   }
 }
 
@@ -375,7 +375,7 @@
 /* Store Info Header */
 .storeInfo {
   text-align: center;
-  padding: 8px 12px 4px;
+  padding: 4px 8px 2px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -383,27 +383,27 @@
 
 @media (min-width: 480px) {
   .storeInfo {
-    padding: 8px 16px 4px;
+    padding: 6px 12px 2px;
   }
 }
 
 .storeTitle {
-  font-size: 1.65rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: var(--color-text);
   letter-spacing: -0.3px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 /* Bio Announcement Pill Card */
 .bioCard {
-  margin: 0 8px 14px;
+  margin: 0 4px 10px;
   background: var(--color-bg-alt);
   border: 1.5px solid var(--color-border);
-  border-radius: 12px;
-  padding: 8px 12px;
+  border-radius: 10px;
+  padding: 6px 10px;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 500;
   color: var(--color-text);
   box-shadow: 0 2px 8px rgba(45, 27, 14, 0.04);
@@ -411,19 +411,19 @@
 
 @media (min-width: 480px) {
   .bioCard {
-    margin: 0 12px 16px;
-    padding: 10px 14px;
+    margin: 0 8px 12px;
+    padding: 8px 12px;
   }
 }
 
 /* Laptop View Enhancements for Hero */
 @media (min-width: 768px) {
   .heroContainer {
-    padding: 12px 16px 8px;
+    padding: 8px 12px 6px;
   }
   .heroBannerCard {
     height: 300px;
-    border-radius: 24px;
+    border-radius: 20px;
   }
   .avatarWrapper {
     margin-top: -56px;
@@ -434,29 +434,29 @@
     border-width: 5px;
   }
   .storeInfo {
-    padding: 10px 16px 4px;
+    padding: 8px 14px 2px;
   }
   .storeTitle {
     font-size: 2.2rem;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .bioCard {
     max-width: 600px;
-    margin: 0 auto 18px;
-    font-size: 0.95rem;
-    padding: 10px 20px;
+    margin: 0 auto 14px;
+    font-size: 0.92rem;
+    padding: 8px 16px;
   }
 }
 
 @media (min-width: 1024px) {
   .heroContainer {
-    padding: 16px 20px 8px;
+    padding: 10px 16px 6px;
   }
   .heroBannerCard {
-    border-radius: 28px;
+    border-radius: 24px;
   }
   .storeInfo {
-    padding: 10px 20px 4px;
+    padding: 8px 16px 2px;
   }
 }
 
@@ -464,7 +464,7 @@
    Menu Section (Clean Padded Grid)
    ======================================== */
 .menuSection {
-  padding: 8px 8px 80px;
+  padding: 4px 4px 70px;
   flex: 1;
   scroll-margin-top: 80px;
   max-width: 1200px;
@@ -474,7 +474,7 @@
 
 @media (min-width: 480px) {
   .menuSection {
-    padding: 10px 12px 80px;
+    padding: 6px 8px 75px;
   }
 }
 
@@ -482,8 +482,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0 0 6px;
-  padding-bottom: 4px;
+  margin: 0 0 4px;
+  padding-bottom: 3px;
   border-bottom: 1.5px solid #f2ece4;
 }
 
@@ -513,10 +513,10 @@
 }
 
 .categorySubtitle {
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   color: #7a6e61;
-  margin: 0 0 12px;
-  line-height: 1.4;
+  margin: 0 0 8px;
+  line-height: 1.35;
 }
 
 .categoryCount {
@@ -527,7 +527,7 @@
 .productList {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: 5px;
   padding: 0;
   width: 100%;
 }
@@ -535,33 +535,33 @@
 @media (min-width: 640px) {
   .productList {
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 8px;
     padding: 0;
   }
 }
 
 @media (min-width: 768px) {
   .menuSection {
-    padding: 14px 16px 85px;
+    padding: 10px 12px 80px;
   }
 }
 
 @media (min-width: 1024px) {
   .menuSection {
-    padding: 16px 20px 90px;
+    padding: 12px 16px 80px;
   }
   .categoryHeader {
-    margin: 0 0 8px;
+    margin: 0 0 6px;
   }
   .categorySubtitle {
-    margin: 0 0 14px;
+    margin: 0 0 10px;
   }
   .categoryTitle {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
   }
   .productList {
     grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
+    gap: 10px;
     padding: 0;
   }
 }
