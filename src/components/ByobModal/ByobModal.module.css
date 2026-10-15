@@ -302,37 +302,53 @@
   min-width: 74px;
   transition: all 0.15s ease;
   position: relative;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 
-.tierChip:hover {
-  border-color: #8b5327;
-  background: #fdfbf7;
+@media (hover: hover) {
+  .tierChip:hover:not(.tierChipActive) {
+    border-color: #8b5327;
+    background: #fdfbf7;
+  }
 }
 
-.tierChipActive {
-  background: #382415;
-  border-color: #382415;
-  box-shadow: 0 3px 8px rgba(56, 36, 21, 0.15);
+.tierChipActive,
+.tierChip.tierChipActive,
+.tierChip.tierChipActive:hover,
+.tierChip.tierChipActive:focus,
+.tierChip.tierChipActive:active {
+  background: #382415 !important;
+  border-color: #382415 !important;
+  box-shadow: 0 3px 8px rgba(56, 36, 21, 0.22);
 }
 
 .tierChipPieces {
   font-size: 0.82rem;
   font-weight: 700;
   color: #2b1d12;
+  transition: color 0.15s ease;
 }
 
-.tierChipActive .tierChipPieces {
-  color: #ffffff;
+.tierChipActive .tierChipPieces,
+.tierChip.tierChipActive .tierChipPieces,
+.tierChip.tierChipActive:hover .tierChipPieces,
+.tierChip.tierChipActive:focus .tierChipPieces {
+  color: #ffffff !important;
 }
 
 .tierChipPrice {
   font-size: 0.75rem;
   font-weight: 600;
   color: #7c6857;
+  transition: color 0.15s ease;
 }
 
-.tierChipActive .tierChipPrice {
-  color: #f7ede2;
+.tierChipActive .tierChipPrice,
+.tierChip.tierChipActive .tierChipPrice,
+.tierChip.tierChipActive:hover .tierChipPrice,
+.tierChip.tierChipActive:focus .tierChipPrice {
+  color: #f7ede2 !important;
 }
 
 .tierChipBadge {
@@ -409,8 +425,10 @@
   transition: all 0.15s;
 }
 
-.quickBtn:hover {
-  background: #fde68a;
+@media (hover: hover) {
+  .quickBtn:hover {
+    background: #fde68a;
+  }
 }
 
 .clearBtn {
@@ -424,8 +442,10 @@
   cursor: pointer;
 }
 
-.clearBtn:hover {
-  background: #e6dac6;
+@media (hover: hover) {
+  .clearBtn:hover {
+    background: #e6dac6;
+  }
 }
 
 /* Flavours Selection List */
@@ -444,11 +464,14 @@
   border: 1px solid #f0eae3;
   background: #ffffff;
   transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.flavourItem:hover {
-  border-color: #decab4;
-  background: #fcfbf9;
+@media (hover: hover) {
+  .flavourItem:hover {
+    border-color: #decab4;
+    background: #fcfbf9;
+  }
 }
 
 .flavourItemPicked {
