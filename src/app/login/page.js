@@ -34,7 +34,9 @@ export default function LoginPage() {
         router.push('/staff/dashboard');
       }
     } catch (error) {
-      if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+      if (error.code === 'auth/popup-blocked') {
+        toast.warning('Pop-up blocked! Please click the icon (🚫) in your browser address bar and select "Always allow pop-ups".');
+      } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
         toast.error(error.message || 'Google login failed');
       }
     } finally {

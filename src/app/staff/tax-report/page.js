@@ -134,6 +134,7 @@ function TaxReportContent() {
   }, [authFetch, toast]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAllData();
   }, [fetchAllData]);
 
@@ -338,6 +339,36 @@ function TaxReportContent() {
     return { gross, discount, invoiced, received, outstanding, pieces, count: supplierSales.length };
   }, [supplierSales]);
 
+  // Export formatters
+  const formatExportPaymentMethod = (m) => {
+    if (!m) return 'DuitNow QR';
+    const s = String(m).toLowerCase();
+    if (s.includes('cash') || s.includes('现金')) return 'Cash';
+    if (s.includes('bank') || s.includes('transfer') || s.includes('转账')) return 'Bank Transfer';
+    if (s.includes('qr') || s.includes('duitnow')) return 'DuitNow QR';
+    return m;
+  };
+
+  const formatExportPaymentStatus = (s) => {
+    if (!s) return 'Completed';
+    const str = String(s).toLowerCase();
+    if (str === 'verified' || str === 'completed') return 'Completed / Verified';
+    if (str === 'pending') return 'Pending';
+    if (str === 'partial_paid') return 'Partial Paid';
+    if (str === 'refunded') return 'Refunded';
+    if (str === 'cancelled') return 'Cancelled';
+    return s;
+  };
+
+  const formatExportExpensePayer = (p) => {
+    if (!p) return 'Company Account';
+    if (p === '公款账户') return 'Company Account';
+    if (p.includes('个人垫付')) {
+      return p.replace(/\s*\(个人垫付\)/g, ' (Personal Advance)').replace(/（个人垫付）/g, ' (Personal Advance)');
+    }
+    return p;
+  };
+
   // Export handlers
   const handleExportSales = () => {
     // 1. Online headers and rows
@@ -371,8 +402,8 @@ function TaxReportContent() {
       tx.discount.toFixed(2),
       tx.deliveryFee.toFixed(2),
       tx.netAmount.toFixed(2),
-      tx.paymentMethod,
-      tx.paymentStatus,
+      formatExportPaymentMethod(tx.paymentMethod),
+      formatExportPaymentStatus(tx.paymentStatus),
       tx.refundAmount.toFixed(2),
       tx.transactionRef,
       tx.notes
@@ -401,8 +432,8 @@ function TaxReportContent() {
       tx.subtotal.toFixed(2),
       tx.discount.toFixed(2),
       tx.netAmount.toFixed(2),
-      tx.paymentMethod,
-      tx.paymentStatus,
+      'DuitNow QR / Cash',
+      tx.orderStatus === 'completed' || tx.paymentStatus === 'verified' || tx.paymentStatus === 'completed' ? 'Completed' : 'In Progress',
       tx.transactionRef
     ]);
 
@@ -434,26 +465,26 @@ function TaxReportContent() {
       tx.totalAmount.toFixed(2),
       tx.netAmount.toFixed(2),
       (tx.outstanding || 0).toFixed(2),
-      tx.paymentStatus,
+      (tx.outstanding || 0) > 0 ? 'Partial Paid' : 'Fully Paid',
       tx.notes
     ]);
 
     if (channelFilter === 'online') {
       exportToExcel(`OneBite_Online_Orders_${dateFrom}_to_${dateTo}`, 'Online Orders', onlineHeaders, onlineRows);
-      toast.success('线上预购报表已导出为 Excel (.xlsx) 表格文件');
+      toast.success('Online orders report exported as Excel (.xlsx)');
     } else if (channelFilter === 'booth') {
       exportToExcel(`OneBite_Booth_Sales_${dateFrom}_to_${dateTo}`, 'Booth Sales', boothHeaders, boothRows);
-      toast.success('集市摆摊报表已导出为 Excel (.xlsx) 表格文件');
+      toast.success('Booth sales report exported as Excel (.xlsx)');
     } else if (channelFilter === 'supplier') {
       exportToExcel(`OneBite_Supplier_Wholesale_${dateFrom}_to_${dateTo}`, 'Supplier & Wholesale', supplierHeaders, supplierRows);
-      toast.success('供货商与批发报表已导出为 Excel (.xlsx) 表格文件');
+      toast.success('Supplier & wholesale report exported as Excel (.xlsx)');
     } else {
       exportMultiSheetExcel(`OneBite_Sales_Report_All_Sections_${dateFrom}_to_${dateTo}`, [
         { sheetName: 'Online Orders', headers: onlineHeaders, rows: onlineRows },
         { sheetName: 'Booth Sales', headers: boothHeaders, rows: boothRows },
         { sheetName: 'Supplier & Wholesale', headers: supplierHeaders, rows: supplierRows },
       ]);
-      toast.success('全渠道销售报表（含线上预购、集市摆摊、供货商批发3个独立工作表）已导出为 Excel (.xlsx) 文件');
+      toast.success('All-channel sales report exported as Excel (.xlsx) with 3 sheets');
     }
   };
 
@@ -478,39 +509,39 @@ function TaxReportContent() {
       exp.supplierName || '-',
       exp.amount.toFixed(2),
       exp.isCapital ? 'Capital Allowance (Non-deductible operational)' : 'Fully Allowable Operating Expense',
-      exp.paymentMethod,
-      exp.claimStatus,
+      formatExportExpensePayer(exp.paymentMethod),
+      exp.claimStatus === 'claimed' ? 'Claimed / Settled' : 'Pending Reimbursement',
       exp.receiptUrl || '-',
       exp.notes
     ]);
 
     const filename = `OneBite_Expense_Report_${dateFrom}_to_${dateTo}`;
     exportToExcel(filename, 'Expense Report', headers, rows);
-    toast.success('支出报表已导出为 Excel (.xlsx) 表格文件');
+    toast.success('Expense report exported as Excel (.xlsx)');
   };
 
   const handleExportPnL = () => {
     const headers = ['Financial Metric (LHDN Form B / P Preparation)', 'Amount (RM)', 'Tax Treatment / Remarks'];
     const rows = [
-      ['Gross Cookie Sales (营业毛额)', pnlSummary.grossSales.toFixed(2), 'Gross receipts before discounts'],
-      ['Less: Discounts & Vouchers (折扣减免)', `-${pnlSummary.discounts.toFixed(2)}`, 'Promotional and customer discounts'],
-      ['Add: Delivery Charges Collected (代收配送费)', pnlSummary.deliveryCharges.toFixed(2), 'Delivery fee income'],
-      ['Less: Order Refunds (退款扣除)', `-${pnlSummary.refunds.toFixed(2)}`, 'Returned and refunded transactions'],
-      ['NET BUSINESS REVENUE (营业净收入)', pnlSummary.netSales.toFixed(2), 'Total recognized business revenue'],
+      ['Gross Cookie Sales', pnlSummary.grossSales.toFixed(2), 'Gross receipts before discounts'],
+      ['Less: Discounts & Vouchers', `-${pnlSummary.discounts.toFixed(2)}`, 'Promotional and customer discounts'],
+      ['Add: Delivery Charges Collected', pnlSummary.deliveryCharges.toFixed(2), 'Delivery fee income'],
+      ['Less: Order Refunds', `-${pnlSummary.refunds.toFixed(2)}`, 'Returned and refunded transactions'],
+      ['NET BUSINESS REVENUE', pnlSummary.netSales.toFixed(2), 'Total recognized business revenue'],
       ['----------------------------------------', '----------', '----------------------------------------'],
-      ['Allowable Operating Expenses (可扣除营运开销)', `-${pnlSummary.allowableExpenses.toFixed(2)}`, 'Ingredients, packaging, rental, utilities, bank fees'],
-      ['Capital Expenditures (设备资产购置)', `-${pnlSummary.capitalExpenditures.toFixed(2)}`, 'Ovens, mixers, machinery (Schedule 3 assets)'],
-      ['TOTAL BUSINESS EXPENSES (总支出费用)', `-${pnlSummary.totalExpenses.toFixed(2)}`, 'Sum of all cash and fund disbursements'],
+      ['Allowable Operating Expenses', `-${pnlSummary.allowableExpenses.toFixed(2)}`, 'Ingredients, packaging, rental, utilities, bank fees'],
+      ['Capital Expenditures (Schedule 3 Assets)', `-${pnlSummary.capitalExpenditures.toFixed(2)}`, 'Ovens, mixers, machinery (Schedule 3 assets)'],
+      ['TOTAL BUSINESS EXPENSES', `-${pnlSummary.totalExpenses.toFixed(2)}`, 'Sum of all cash and fund disbursements'],
       ['----------------------------------------', '----------', '----------------------------------------'],
-      ['ACCOUNTING NET PROFIT / (LOSS) (会计净利润)', pnlSummary.accountingProfit.toFixed(2), 'Book profit under standard accounting rules'],
-      ['Add Back: Capital Asset Purchases (设备购置加回)', `+${pnlSummary.capitalExpenditures.toFixed(2)}`, 'Non-deductible as revenue expense under LHDN rules'],
-      ['Less: Estimated Capital Allowance (法定折旧扣除)', `-${pnlSummary.estimatedCapitalAllowance.toFixed(2)}`, 'Est. 32% (20% Initial + 12% Annual Allowance)'],
-      ['ESTIMATED TAXABLE BUSINESS INCOME (法定应税所得)', pnlSummary.taxableIncome.toFixed(2), 'Statutory business income for LHDN Form B/P preparation']
+      ['ACCOUNTING NET PROFIT / (LOSS)', pnlSummary.accountingProfit.toFixed(2), 'Book profit under standard accounting rules'],
+      ['Add Back: Capital Asset Purchases', `+${pnlSummary.capitalExpenditures.toFixed(2)}`, 'Non-deductible as revenue expense under LHDN rules'],
+      ['Less: Estimated Capital Allowance (Initial 20% + Annual 12%)', `-${pnlSummary.estimatedCapitalAllowance.toFixed(2)}`, 'Est. 32% (20% Initial + 12% Annual Allowance)'],
+      ['ESTIMATED TAXABLE BUSINESS INCOME', pnlSummary.taxableIncome.toFixed(2), 'Statutory business income for LHDN Form B/P preparation']
     ];
 
     const filename = `OneBite_PnL_Tax_Summary_${dateFrom}_to_${dateTo}`;
     exportToExcel(filename, 'PnL & Tax Summary', headers, rows);
-    toast.success('损益与税务报表已导出为 Excel (.xlsx) 表格文件');
+    toast.success('PnL & Tax report exported as Excel (.xlsx)');
   };
 
   const handleExportInventory = () => {
@@ -536,7 +567,7 @@ function TaxReportContent() {
 
     const filename = `OneBite_Inventory_Stock_${today}`;
     exportToExcel(filename, 'Inventory Stock', headers, rows);
-    toast.success('库存盘点报表已导出为 Excel (.xlsx) 表格文件');
+    toast.success('Inventory stock report exported as Excel (.xlsx)');
   };
 
   // Add Expense submission
@@ -711,26 +742,11 @@ function TaxReportContent() {
         </div>
       </div>
 
-      {/* Malaysian LHDN Statutory Retention & Rule Banner */}
-      <div className={styles.lhdnBanner}>
-        <div className={styles.lhdnContent}>
-          <div className={styles.lhdnIcon}>📋</div>
-          <div className={styles.lhdnText}>
-            <h4>马来西亚内陆税收局 (LHDN) 税务存盘规范 · 7年法定记录保留</h4>
-            <p>
-              根据马来西亚《1967年所得税法》第82条文，所有企业必须保留账目、销售发票及采购收据至少 <strong>7 年</strong>。
-              本系统严格根据实际数据库记录实时核算，准确区分<strong>会计净利润</strong>与<strong>估算应税营业所得</strong>（资本性设备购置与税收折旧折算），为报税准备（Form B / Form P）提供合规依据。
-            </p>
-          </div>
-        </div>
-        <div className={styles.lhdnBadge}>Section 82 ITA 1967 合规</div>
-      </div>
-
       {/* Date Filter Toolbar & 7-Year Historical Selector */}
       <div className={styles.toolbarCard}>
         <div className={styles.toolbarRow}>
           <div className={styles.yearPills}>
-            <span className={styles.yearPillLabel}>快速周期:</span>
+            <span className={styles.yearPillLabel}></span>
             <button
               type="button"
               className={`${styles.pillBtn} ${dateRangeMode === 'today' ? styles.pillBtnActive : ''}`}
@@ -1041,8 +1057,8 @@ function TaxReportContent() {
                                   {tx.paymentMethod.includes('cash')
                                     ? '💵 现金'
                                     : tx.paymentMethod.includes('bank')
-                                    ? '🏦 银行转账'
-                                    : '📱 DuitNow QR'}
+                                      ? '🏦 银行转账'
+                                      : '📱 DuitNow QR'}
                                 </span>
                               </td>
                               <td>

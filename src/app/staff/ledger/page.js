@@ -79,20 +79,23 @@ export default function LedgerPage() {
   }, [loadData]);
 
   // Compute active date range [from, to]
-  const { from, to, dateLabel } = useMemo(() => {
+  const { from, to, dateLabel, dateLabelEn } = useMemo(() => {
     if (mode === 'daily') {
       const label = dailyDate === today ? '今天' : dailyDate === yesterday ? '昨天' : dailyDate;
-      return { from: dailyDate, to: dailyDate, dateLabel: `日流水 (${label})` };
+      const labelEn = dailyDate === today ? 'Today' : dailyDate === yesterday ? 'Yesterday' : dailyDate;
+      return { from: dailyDate, to: dailyDate, dateLabel: `日流水 (${label})`, dateLabelEn: `Daily (${labelEn})` };
     }
     if (mode === 'monthly') {
       const label = monthlyMonth === thisMonth ? '本月' : monthlyMonth === lastMonth ? '上月' : monthlyMonth;
-      return { from: `${monthlyMonth}-01`, to: `${monthlyMonth}-31`, dateLabel: `月流水 (${label})` };
+      const labelEn = monthlyMonth === thisMonth ? 'This Month' : monthlyMonth === lastMonth ? 'Last Month' : monthlyMonth;
+      return { from: `${monthlyMonth}-01`, to: `${monthlyMonth}-31`, dateLabel: `月流水 (${label})`, dateLabelEn: `Monthly (${labelEn})` };
     }
     if (mode === 'yearly') {
       const label = yearlyYear === thisYear ? '本年' : yearlyYear === lastYear ? '去年' : yearlyYear;
-      return { from: `${yearlyYear}-01-01`, to: `${yearlyYear}-12-31`, dateLabel: `年流水 (${label})` };
+      const labelEn = yearlyYear === thisYear ? 'This Year' : yearlyYear === lastYear ? 'Last Year' : yearlyYear;
+      return { from: `${yearlyYear}-01-01`, to: `${yearlyYear}-12-31`, dateLabel: `年流水 (${label})`, dateLabelEn: `Yearly (${labelEn})` };
     }
-    return { from: customFrom, to: customTo, dateLabel: `自定义区间 (${customFrom} 至 ${customTo})` };
+    return { from: customFrom, to: customTo, dateLabel: `自定义区间 (${customFrom} 至 ${customTo})`, dateLabelEn: `Custom Period (${customFrom} to ${customTo})` };
   }, [mode, dailyDate, monthlyMonth, yearlyYear, customFrom, customTo, today, yesterday, thisMonth, lastMonth, thisYear, lastYear]);
 
   // Filter Online Orders: Only completed orders count towards sales, on the date of completion
@@ -375,28 +378,28 @@ export default function LedgerPage() {
     const lines = [];
 
     // Header
-    lines.push(['One Bite 手工曲奇 - 总结流水账本报表']);
-    lines.push(['统计维度', dateLabel]);
-    lines.push(['统计时间区间', `${from} 至 ${to}`]);
-    lines.push(['报表导出时间', new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Kuala_Lumpur' })]);
+    lines.push(['One Bite Handmade Cookies - Summary Ledger Report']);
+    lines.push(['Reporting Dimension', dateLabelEn || dateLabel]);
+    lines.push(['Date Period', `${from} to ${to}`]);
+    lines.push(['Exported At', new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' })]);
     lines.push([]);
 
     // Part 1: KPI Summary
-    lines.push(['【一、全渠道财务综合汇总】']);
-    lines.push(['销售渠道/开支项目', '交易笔数/场次', '售出总片数', '销售营业额 (RM)', '已记支出 (RM)', '净营业额 (RM)', '待收尾款 (RM)'].map(cleanCSV).join(','));
-    lines.push(['线上预购 (曲奇销售)', orderStats.count, orderStats.pieces, orderStats.sales.toFixed(2), '0.00', orderStats.net.toFixed(2), '0.00'].map(cleanCSV).join(','));
+    lines.push(['[1. Omnichannel Financial Summary]']);
+    lines.push(['Channel / Expense Category', 'Transaction Count', 'Total Pieces Sold', 'Gross Sales (RM)', 'Recorded Expenses (RM)', 'Net Revenue (RM)', 'Outstanding Receivables (RM)'].map(cleanCSV).join(','));
+    lines.push(['Online Orders (Cookie Sales)', orderStats.count, orderStats.pieces, orderStats.sales.toFixed(2), '0.00', orderStats.net.toFixed(2), '0.00'].map(cleanCSV).join(','));
     if (financeStats.deliveryIncome > 0) {
-      lines.push(['配送收入 (Lalamove)', '-', '-', financeStats.deliveryIncome.toFixed(2), '0.00', financeStats.deliveryIncome.toFixed(2), '0.00'].map(cleanCSV).join(','));
+      lines.push(['Delivery Income (Lalamove)', '-', '-', financeStats.deliveryIncome.toFixed(2), '0.00', financeStats.deliveryIncome.toFixed(2), '0.00'].map(cleanCSV).join(','));
     }
-    lines.push(['摆摊销售', boothStats.count, boothStats.pieces, boothStats.sales.toFixed(2), boothStats.expenses.toFixed(2), boothStats.net.toFixed(2), '0.00'].map(cleanCSV).join(','));
-    lines.push(['批发供货', wholesaleStats.count, wholesaleStats.pieces, wholesaleStats.sales.toFixed(2), wholesaleStats.expenses.toFixed(2), wholesaleStats.net.toFixed(2), wholesaleStats.outstanding.toFixed(2)].map(cleanCSV).join(','));
-    lines.push(['成本支出 (含Lalamove运费)', financeStats.count, '0', '0.00', financeStats.expenses.toFixed(2), (-financeStats.expenses).toFixed(2), '0.00'].map(cleanCSV).join(','));
-    lines.push(['全渠道总计', combinedStats.count, combinedStats.pieces, combinedStats.sales.toFixed(2), combinedStats.expenses.toFixed(2), combinedStats.net.toFixed(2), combinedStats.outstanding.toFixed(2)].map(cleanCSV).join(','));
+    lines.push(['Booth / Pop-up Sales', boothStats.count, boothStats.pieces, boothStats.sales.toFixed(2), boothStats.expenses.toFixed(2), boothStats.net.toFixed(2), '0.00'].map(cleanCSV).join(','));
+    lines.push(['Wholesale & Consignment', wholesaleStats.count, wholesaleStats.pieces, wholesaleStats.sales.toFixed(2), wholesaleStats.expenses.toFixed(2), wholesaleStats.net.toFixed(2), wholesaleStats.outstanding.toFixed(2)].map(cleanCSV).join(','));
+    lines.push(['Operating Expenses (incl. Lalamove Delivery)', financeStats.count, '0', '0.00', financeStats.expenses.toFixed(2), (-financeStats.expenses).toFixed(2), '0.00'].map(cleanCSV).join(','));
+    lines.push(['Total Across Channels', combinedStats.count, combinedStats.pieces, combinedStats.sales.toFixed(2), combinedStats.expenses.toFixed(2), combinedStats.net.toFixed(2), combinedStats.outstanding.toFixed(2)].map(cleanCSV).join(','));
     lines.push([]);
 
     // Part 2: Online Orders Detail
-    lines.push(['【二、线上预购明细清单】']);
-    lines.push(['订单编号', '完成日期', '订购日期', '顾客姓名', '联系电话', '履约方式', '送货选项', '顾客配送费 (RM)', 'Lalamove实际运费 (RM)', '多出差额 (RM)', '运费垫付人', '预取/配送日期', '曲奇总片数', '订单入账金额 (RM)', '状态'].map(cleanCSV).join(','));
+    lines.push(['[2. Online Orders Breakdown]']);
+    lines.push(['Order ID', 'Completion Date', 'Order Date', 'Customer Name', 'Contact Phone', 'Fulfillment Method', 'Delivery Option', 'Customer Delivery Fee (RM)', 'Lalamove Actual Cost (RM)', 'Excess Shipping Difference (RM)', 'Shipping Payer', 'Pickup / Delivery Date', 'Total Pieces', 'Recorded Revenue (RM)', 'Status'].map(cleanCSV).join(','));
     for (const o of filteredOrders) {
       const completionDate = getOrderCompletionDate(o) || '';
       const orderDate = o.created_at ? businessDate(o.created_at) : '';
@@ -406,13 +409,13 @@ export default function LedgerPage() {
       const isLalamove = isDelivery && o.delivery_method === 'lalamove';
       const isAdminDelivery = isDelivery && o.delivery_method !== 'lalamove';
 
-      const deliveryOption = isDelivery ? (isLalamove ? 'Lalamove第三方' : '管理员本人亲送') : '—';
+      const deliveryOption = isDelivery ? (isLalamove ? 'Lalamove 3rd-Party' : 'Owner Personal Delivery') : '—';
       const customerFee = isDelivery ? (Number(o.delivery_fee) || 8).toFixed(2) : '0.00';
       const actualCost = isLalamove ? Number(o.lalamove_cost || 0).toFixed(2) : '—';
       const extraAmount = isLalamove ? Math.max(0, (Number(o.lalamove_cost) || 0) - 8).toFixed(2) : '—';
-      const payer = isLalamove ? (o.lalamove_payer === 'Yunxuan' ? 'Yunxuan个人先行垫付' : 'Shinnie个人先行垫付') : '—';
+      const payer = isLalamove ? (o.lalamove_payer === 'Yunxuan' ? 'Yunxuan (Personal Advance)' : 'Shinnie (Personal Advance)') : '—';
 
-      // 入账金额 (排除亲送RM8补贴，Lalamove单独记配送收入，此处纯曲奇入账)
+      // Recorded revenue (excluding RM8 personal delivery subsidy, Lalamove recorded under delivery income)
       let recordedAmount = Number(o.total ?? o.total_amount) || 0;
       if (isDelivery) {
         recordedAmount = Math.max(0, recordedAmount - (Number(o.delivery_fee) || 8));
@@ -424,7 +427,7 @@ export default function LedgerPage() {
         orderDate,
         o.customer_name || '',
         o.phone || o.customer_phone || '',
-        isDelivery ? '送货上门' : '到店自取',
+        isDelivery ? 'Delivery' : 'Store Pickup',
         deliveryOption,
         customerFee,
         actualCost,
@@ -433,14 +436,14 @@ export default function LedgerPage() {
         o.delivery_date || '',
         pieces,
         recordedAmount.toFixed(2),
-        isAdminDelivery ? '已完成入账 (RM8亲送补贴不入账)' : '已完成入账'
+        isAdminDelivery ? 'Completed (RM8 owner subsidy excluded)' : 'Completed & Recorded'
       ].map(cleanCSV).join(','));
     }
     lines.push([]);
 
     // Part 3: Booth Sales Detail
-    lines.push(['【三、摆摊销售明细清单】']);
-    lines.push(['摆摊日期', '市集/地点名称', '状态', '准备出摊片数', '实际售出片数', '试吃损耗片数', '结余库存片数', '销售额 (RM)', '现场支出费用 (RM)', '净利润 (RM)', '备注'].map(cleanCSV).join(','));
+    lines.push(['[3. Booth & Pop-up Sales Breakdown]']);
+    lines.push(['Booth Date', 'Venue / Event Name', 'Status', 'Prepared Pieces', 'Sold Pieces', 'Samples & Wastage', 'Remaining Stock', 'Gross Sales (RM)', 'On-site Expenses (RM)', 'Net Profit (RM)', 'Notes'].map(cleanCSV).join(','));
     for (const b of filteredBooths) {
       const prep = b.items.reduce((s, it) => s + (it.prepared || 0), 0);
       const sold = b.items.reduce((s, it) => s + (it.quantity || 0), 0);
@@ -449,7 +452,7 @@ export default function LedgerPage() {
       lines.push([
         b.date,
         b.title,
-        b.status === 'preparing' ? '摆摊中(待结单)' : '已结单',
+        b.status === 'preparing' ? 'In Progress' : 'Closed',
         prep,
         sold,
         waste,
@@ -463,8 +466,8 @@ export default function LedgerPage() {
     lines.push([]);
 
     // Part 4: Wholesale Detail
-    lines.push(['【四、批发供货明细清单】']);
-    lines.push(['订单日期', '合作批发商', '联系方式', '订购片数', '供货总额 (RM)', '已收金额 (RM)', '待收尾款 (RM)', '相关支出 (RM)', '备注'].map(cleanCSV).join(','));
+    lines.push(['[4. Wholesale & Consignment Breakdown]']);
+    lines.push(['Order Date', 'Partner / Buyer Name', 'Contact Phone', 'Quantity (Pieces)', 'Total Invoiced (RM)', 'Amount Received (RM)', 'Outstanding Balance (RM)', 'Associated Expenses (RM)', 'Notes'].map(cleanCSV).join(','));
     for (const w of filteredWholesale) {
       const pieces = w.items.reduce((s, it) => s + (it.quantity || 0), 0);
       lines.push([
@@ -482,23 +485,42 @@ export default function LedgerPage() {
     lines.push([]);
 
     // Part 5: General Expenses Detail
-    lines.push(['【五、成本支出与配送收支明细清单】']);
-    lines.push(['收支日期', '交易类型', '收支类别', '供应商 / 开销项目', '金额 (RM)', '关联业务', '运费垫付人 / 差额说明', '凭证链接'].map(cleanCSV).join(','));
+    lines.push(['[5. Operating Expenses & Logistics Breakdown]']);
+    lines.push(['Transaction Date', 'Type', 'Category', 'Supplier / Expense Item', 'Amount (RM)', 'Associated Channel', 'Payer / Reimbursement Notes', 'Receipt Link'].map(cleanCSV).join(','));
     for (const exp of filteredFinance) {
       let payerDesc = '';
       if (exp.payer) {
-        payerDesc = `${exp.payer === 'Yunxuan' ? 'Yunxuan' : 'Shinnie'}个人先行垫付 (公款报销)`;
+        payerDesc = `${exp.payer === 'Yunxuan' ? 'Yunxuan' : 'Shinnie'} (Personal Advance · Company Reimbursement)`;
         if (exp.extra_amount !== undefined && exp.extra_amount !== null) {
-          payerDesc += ` · 公款补贴差额 RM${Number(exp.extra_amount).toFixed(2)}`;
+          payerDesc += ` · Subsidized Diff RM${Number(exp.extra_amount).toFixed(2)}`;
         }
       }
+      const transType = exp.transactionType === '支出' ? 'Expense' : (exp.transactionType === '收入' ? 'Income' : (exp.transactionType || 'Expense'));
+      const cat = exp.category === '配送相关' ? 'Delivery / Logistics'
+        : exp.category === '原材料采购' || exp.category === '食材' ? 'Raw Materials & Ingredients'
+        : exp.category === '包装耗材' || exp.category === '包装' ? 'Packaging Supplies'
+        : exp.category === '市集租金' || exp.category === '摆摊支出' ? 'Booth / Pop-up Expenses'
+        : exp.category === '厨房租金' ? 'Kitchen Rental'
+        : exp.category === '水电杂费' || exp.category === '水电燃气' ? 'Utilities & Gas'
+        : exp.category === '设备器具' || exp.category === '设备资产' ? 'Equipment Assets'
+        : exp.category === '兼职人工费' ? 'Staff & Labor'
+        : exp.category === '营销推广' || exp.category === '广告物料' ? 'Marketing & Promotion'
+        : exp.category === '银行手续费' ? 'Bank & Gateway Fees'
+        : exp.category === 'Supplier采购' ? 'Supplier Purchases'
+        : (exp.category || 'General Expense');
+      const orderType = exp.orderType === '通用成本' ? 'General Overhead'
+        : exp.orderType === '集市摆摊' ? 'Booth / Market'
+        : exp.orderType === '批发供货' ? 'Wholesale'
+        : exp.orderType === '线上预购' ? 'Online Orders'
+        : (exp.orderType || 'General Overhead');
+
       lines.push([
         exp.date,
-        exp.transactionType || '支出',
-        exp.category || '',
+        transType,
+        cat,
         `${exp.supplierName ? exp.supplierName + ' - ' : ''}${exp.note || ''}`,
         (Number(exp.amount) || 0).toFixed(2),
-        exp.orderType || '通用成本',
+        orderType,
         payerDesc,
         exp.receiptUrl || ''
       ].map(cleanCSV).join(','));
@@ -509,7 +531,7 @@ export default function LedgerPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `one-bite-总结流水账本-${from}_${to}.csv`;
+    link.download = `one-bite-summary-ledger-${from}_${to}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
