@@ -371,14 +371,16 @@ export default function StorefrontSettingsPage() {
 
               <div className={styles.formGroup}>
                 <label htmlFor="store_bio">店铺公告标语胶囊 (Bio / Slogan)</label>
-                <input
-                  type="text"
+                <textarea
                   id="store_bio"
                   name="store_bio"
+                  rows={2}
                   value={formData.store_bio}
                   onChange={handleInputChange}
-                  placeholder="例如：Everything baked goods 🤎"
+                  placeholder="例如：Everything baked goods 🤎&#10;Next Delivery and Pick Up: 1 Nov 11am"
+                  className={styles.bioTextarea}
                 />
+                <span className={styles.helperText}>支持换行（直接按 Enter 即可分为两行显示）</span>
               </div>
 
               <div className={styles.formGroup}>

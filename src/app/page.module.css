@@ -428,6 +428,8 @@
   font-weight: 500;
   color: var(--color-text);
   box-shadow: 0 2px 8px rgba(45, 27, 14, 0.04);
+  white-space: pre-line;
+  line-height: 1.45;
 }
 
 @media (min-width: 480px) {

@@ -257,14 +257,16 @@ export default function HomePage() {
 
       {/* 6. Bio / Slogan Card */}
       <div className={styles.bioCard}>
-        {settings.store_bio || 'Everything baked goods 🤎'}
+        {settings.store_bio
+          ? String(settings.store_bio).replace(/\\n/g, '\n')
+          : 'Everything baked goods 🤎'}
       </div>
 
       {/* 7. Cookies Section */}
       <section className={styles.menuSection} id="menu" style={{ paddingBottom: '32px' }}>
         <div className={styles.categoryHeader}>
           <div className={styles.categoryHeaderLeft}>
-            <h2 className={styles.categoryTitle}>🍪 Cookies</h2>
+            <h2 className={styles.categoryTitle}>Cookies</h2>
             <span className={styles.categoryBadge}>Single Flavors</span>
           </div>
           <span className={styles.categoryCount}>
