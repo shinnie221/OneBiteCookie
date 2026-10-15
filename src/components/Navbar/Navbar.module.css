@@ -9,10 +9,11 @@
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1680px;
+  width: 96%;
   margin: 0 auto;
-  padding: 0 20px;
-  height: 70px;
+  padding: 0 10px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -76,93 +77,95 @@
 
 .nav {
   display: flex;
-  gap: 32px;
+  align-items: center;
+  gap: 8px;
 }
 
 .navLink {
-  color: var(--color-text);
+  color: #55483d;
   text-decoration: none;
-  font-weight: 500;
-  font-size: 0.95rem;
-  transition: color 0.2s;
+  font-weight: 600;
+  font-size: 0.88rem;
+  transition: all 0.2s ease;
   position: relative;
+  padding: 7px 16px;
+  height: 36px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .navLink:hover {
-  color: var(--color-primary);
-}
-
-.navLink::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--color-primary);
-  transition: width 0.3s;
-}
-
-.navLink:hover::after {
-  width: 100%;
+  color: var(--color-primary-dark);
+  background: #f2ede5;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .cartBtn {
   position: relative;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   text-decoration: none;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  display: flex;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg-alt);
+  background: transparent;
   transition: all 0.2s;
 }
 
 .cartBtn:hover {
-  background: var(--color-primary-light);
-  transform: scale(1.05);
+  background: #f2ede5;
+  transform: none;
 }
 
 .badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -2px;
+  right: -2px;
   background: var(--color-primary);
   color: white;
   font-size: 0.65rem;
   font-weight: 700;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
+  padding: 0 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .loginBtn {
-  background: var(--color-primary);
-  color: white;
-  padding: 8px 18px;
-  border-radius: 10px;
+  background: var(--color-primary-lighter);
+  color: var(--color-primary-dark);
+  border: 1px solid var(--color-border);
+  padding: 7px 16px;
+  height: 36px;
+  border-radius: 20px;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   text-decoration: none;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .loginBtn:hover {
-  background: var(--color-primary-dark);
-  transform: translateY(-1px);
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  transform: none;
 }
 
 .mobileAuthSection {

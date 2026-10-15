@@ -92,14 +92,16 @@
 .navIconButton {
   background: transparent;
   border: none;
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   cursor: pointer;
   color: #222;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
-  border-radius: 8px;
+  padding: 0;
+  border-radius: 50%;
   transition: background 0.15s;
 }
 
@@ -145,46 +147,62 @@
 .desktopNavLinks {
   display: none;
   align-items: center;
-  gap: 28px;
+  gap: 8px;
 }
 
 .desktopNavLink {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: #55483d;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
   position: relative;
-  padding: 4px 0;
+  padding: 7px 16px;
+  height: 36px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .desktopNavLink:hover {
-  color: var(--color-primary);
+  color: var(--color-primary-dark);
+  background: #f2ede5;
 }
 
 /* Right Actions */
 .navActions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .cartBagButton {
   position: relative;
   background: transparent;
   border: none;
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   cursor: pointer;
-  padding: 4px 8px;
-  display: flex;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
   text-decoration: none;
+  transition: background 0.15s;
+}
+
+.cartBagButton:hover {
+  background: #f5ede4;
 }
 
 .cartCountBadge {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -2px;
+  right: -2px;
   background: var(--color-primary);
   color: white;
   font-size: 0.65rem;
@@ -202,16 +220,19 @@
 .desktopAuthBtn {
   display: none;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: var(--color-primary-lighter);
   color: var(--color-primary-dark);
   border: 1px solid var(--color-border);
-  padding: 8px 18px;
+  padding: 7px 16px;
+  height: 36px;
   border-radius: 20px;
   font-weight: 600;
   font-size: 0.88rem;
   text-decoration: none;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .desktopAuthBtn:hover {
