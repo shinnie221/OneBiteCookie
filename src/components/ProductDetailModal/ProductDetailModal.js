@@ -278,9 +278,12 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
           {onOpenByob && (
             <div className={styles.byobHintBox}>
               <div className={styles.byobHintText}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                  <Sparkles size={16} style={{ color: '#d97706', flexShrink: 0 }} /> Want to <strong>mix & match flavors</strong> in a box?
-                </span>
+                <div className={styles.byobHintTitle}>
+                  <Sparkles size={15} className={styles.byobHintIcon} />
+                  <span>
+                    Want to <strong>mix & match flavors</strong> in a box?
+                  </span>
+                </div>
                 <span className={styles.byobHintSub}>This option is a single-flavor box of {product.name}.</span>
               </div>
               <button

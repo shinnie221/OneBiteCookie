@@ -296,13 +296,32 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.byobHintTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.82rem;
   color: #4a3424;
+  line-height: 1.35;
+}
+
+.byobHintTitle span {
+  display: inline;
+}
+
+.byobHintIcon {
+  color: #d97706;
+  flex-shrink: 0;
 }
 
 .byobHintSub {
   font-size: 0.74rem;
   color: #7c6857;
+  line-height: 1.3;
 }
 
 .byobHintBtn {
@@ -321,6 +340,27 @@
 
 .byobHintBtn:hover {
   background: #332014;
+}
+
+@media (max-width: 600px) {
+  .byobHintBox {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .byobHintTitle {
+    font-size: 0.78rem;
+    gap: 5px;
+  }
+
+  .byobHintSub {
+    font-size: 0.7rem;
+  }
+
+  .byobHintBtn {
+    padding: 6px 10px;
+    font-size: 0.74rem;
+  }
 }
 
 .optionItem {
