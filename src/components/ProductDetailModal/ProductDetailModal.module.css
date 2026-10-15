@@ -316,30 +316,27 @@
   background: #fdfaf5;
   border: 1px dashed #cfbba5;
   border-radius: 12px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
   margin-top: 4px;
 }
 
 .byobHintText {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
+  gap: 3px;
+  width: 100%;
 }
 
 .byobHintTitle {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.8rem;
+  gap: 6px;
+  font-size: 0.84rem;
   color: #4a3424;
-  line-height: 1.25;
+  line-height: 1.3;
   white-space: nowrap;
 }
 
@@ -354,12 +351,18 @@
 }
 
 .byobHintSub {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   color: #7c6857;
-  line-height: 1.3;
+  line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.byobHintBtnRow {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
 }
 
 .byobHintBtn {
@@ -367,13 +370,12 @@
   color: #ffffff;
   border: none;
   border-radius: 16px;
-  padding: 6px 12px;
-  font-size: 0.76rem;
+  padding: 6px 14px;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s;
-  flex-shrink: 0;
 }
 
 .byobHintBtn:hover {
@@ -382,58 +384,37 @@
 
 @media (max-width: 480px) {
   .byobHintBox {
-    padding: 7px 10px;
-    gap: 8px;
-  }
-
-  .byobHintTitle {
-    font-size: 0.71rem;
-    gap: 4px;
-    white-space: nowrap;
-  }
-
-  .byobHintTitle span {
-    white-space: nowrap;
-  }
-
-  .byobHintIcon {
-    width: 13px;
-    height: 13px;
-  }
-
-  .byobHintSub {
-    font-size: 0.64rem;
-    line-height: 1.25;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .byobHintBtn {
-    padding: 5px 9px;
-    font-size: 0.69rem;
-    border-radius: 14px;
-  }
-}
-
-@media (max-width: 360px) {
-  .byobHintBox {
-    padding: 6px 8px;
+    padding: 8px 12px;
     gap: 6px;
   }
 
   .byobHintTitle {
-    font-size: 0.66rem;
-    gap: 3px;
+    font-size: 0.78rem;
+    gap: 5px;
   }
 
   .byobHintSub {
-    font-size: 0.6rem;
+    font-size: 0.71rem;
   }
 
   .byobHintBtn {
-    padding: 4px 7px;
-    font-size: 0.64rem;
+    padding: 5px 12px;
+    font-size: 0.74rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .byobHintTitle {
+    font-size: 0.72rem;
+  }
+
+  .byobHintSub {
+    font-size: 0.66rem;
+  }
+
+  .byobHintBtn {
+    padding: 4px 10px;
+    font-size: 0.7rem;
   }
 }
 

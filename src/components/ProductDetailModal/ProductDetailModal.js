@@ -304,13 +304,15 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
                 </div>
                 <span className={styles.byobHintSub}>This option is a single-flavor box of {product.name}.</span>
               </div>
-              <button
-                type="button"
-                className={styles.byobHintBtn}
-                onClick={onOpenByob}
-              >
-                Build Your Own Box
-              </button>
+              <div className={styles.byobHintBtnRow}>
+                <button
+                  type="button"
+                  className={styles.byobHintBtn}
+                  onClick={onOpenByob}
+                >
+                  Build Your Own Box
+                </button>
+              </div>
             </div>
           )}
 
