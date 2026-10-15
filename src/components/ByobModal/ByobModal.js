@@ -374,12 +374,12 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
             <div className={styles.progressTop}>
               <span className={styles.progressText}>
                 {isFull ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                    <CheckCircle size={15} style={{ color: '#22c55e' }} /> Box is full ({totalSelectedCount}/{targetCount} cookies)
+                  <span className={styles.progressLabel}>
+                    <CheckCircle size={15} style={{ color: '#22c55e', flexShrink: 0 }} /> Box is full ({totalSelectedCount}/{targetCount} cookies)
                   </span>
                 ) : (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                    <Cookie size={15} style={{ color: '#d97706' }} /> Selected {totalSelectedCount} / {targetCount} ({remainingCount} more needed)
+                  <span className={styles.progressLabel}>
+                    <Cookie size={15} style={{ color: '#d97706', flexShrink: 0 }} /> Selected {totalSelectedCount} / {targetCount} ({remainingCount} more needed)
                   </span>
                 )}
               </span>
@@ -389,7 +389,6 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                     type="button"
                     className={styles.quickBtn}
                     onClick={handleFillOneOfEach}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                   >
                     <Sparkles size={12} /> 1 of Each (5 Total)
                   </button>

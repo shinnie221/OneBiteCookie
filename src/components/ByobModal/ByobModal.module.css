@@ -374,16 +374,16 @@
   background: #fbf8f4;
   border: 1px solid #ebd8c0;
   border-radius: 12px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .progressTop {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 8px;
 }
 
@@ -391,6 +391,14 @@
   font-size: 0.82rem;
   font-weight: 700;
   color: #2b1d12;
+  width: 100%;
+}
+
+.progressLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.35;
 }
 
 .progressBarWrap {
@@ -410,7 +418,8 @@
 .quickActions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .quickBtn {
@@ -419,9 +428,13 @@
   color: #78350f;
   font-size: 0.74rem;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 14px;
   cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   transition: all 0.15s;
 }
 
@@ -437,9 +450,11 @@
   color: #4a3424;
   font-size: 0.72rem;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 14px;
   cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
 }
 
 @media (hover: hover) {
