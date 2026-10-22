@@ -1,7 +1,7 @@
 import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy } from 'firebase/firestore';
 import { verifyAuth } from '@/lib/auth';
-import { sendOrderNotificationEmail } from '@/lib/email';
+import { sendOrderNotificationEmail, sendStaffOrderNotificationEmail } from '@/lib/email';
 import { isStateDeliverable } from '@/lib/addresses.mjs';
 import { getProductPackagingOptions } from '@/lib/packaging';
 import { NextResponse } from 'next/server';
@@ -361,8 +361,14 @@ export async function POST(request) {
         orderTotal: total,
         items: resolvedItems,
         isNewCustomer: isNewCustomerCreated
-      }).catch(e => console.error('Email notification error:', e));
+      }).catch(e => console.error('Customer email notification error:', e));
     }
+
+    // Send email notification to staff team
+    sendStaffOrderNotificationEmail({
+      order: newOrder,
+      db
+    }).catch(e => console.error('Staff email notification error:', e));
 
     // Update voucher usage if applied
     if (matchedVoucherDocRef && matchedVoucherData) {

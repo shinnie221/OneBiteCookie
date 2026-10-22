@@ -23,7 +23,7 @@ export default function SettingsPage() {
           <Link className={styles.historyRow} href="/staff/qr-payment">
             <div>
               <strong>店铺信息与收款设置</strong>
-              <p>收款二维码、联系方式及配送选项配置</p>
+              <p>收款二维码、联系方式、员工接单通知邮箱及配送选项配置</p>
             </div>
             <span>前往 →</span>
           </Link>

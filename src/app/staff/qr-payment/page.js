@@ -14,7 +14,8 @@ export default function QrPaymentPage() {
     qr_code: '',
     delivery_enabled: 'true',
     shop_phone: '',
-    shop_email: ''
+    shop_email: '',
+    staff_notification_email: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -176,6 +177,23 @@ export default function QrPaymentPage() {
                     onChange={handleInputChange}
                   />
                 </div>
+              </div>
+
+              <div className="formGroup mb2" style={{ marginTop: '10px' }}>
+                <label htmlFor="staff_notification_email">
+                  🔔 员工接单提醒邮箱 (Staff Order Notification Email)
+                </label>
+                <input 
+                  type="text" 
+                  id="staff_notification_email"
+                  name="staff_notification_email"
+                  placeholder="例如: staff1@gmail.com, staff2@gmail.com (支持填入多个，以逗号分隔)"
+                  value={settings.staff_notification_email || ''}
+                  onChange={handleInputChange}
+                />
+                <small style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>
+                  当顾客在官网下单或提交新订单时，系统将自动发送完整订单详情至此邮箱。支持填入多个，用逗号分隔。未填写时默认发送至系统管理员及客服邮箱。
+                </small>
               </div>
             </div>
             

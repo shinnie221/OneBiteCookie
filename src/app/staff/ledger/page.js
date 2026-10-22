@@ -498,21 +498,21 @@ export default function LedgerPage() {
       const transType = exp.transactionType === '支出' ? 'Expense' : (exp.transactionType === '收入' ? 'Income' : (exp.transactionType || 'Expense'));
       const cat = exp.category === '配送相关' ? 'Delivery / Logistics'
         : exp.category === '原材料采购' || exp.category === '食材' ? 'Raw Materials & Ingredients'
-        : exp.category === '包装耗材' || exp.category === '包装' ? 'Packaging Supplies'
-        : exp.category === '市集租金' || exp.category === '摆摊支出' ? 'Booth / Pop-up Expenses'
-        : exp.category === '厨房租金' ? 'Kitchen Rental'
-        : exp.category === '水电杂费' || exp.category === '水电燃气' ? 'Utilities & Gas'
-        : exp.category === '设备器具' || exp.category === '设备资产' ? 'Equipment Assets'
-        : exp.category === '兼职人工费' ? 'Staff & Labor'
-        : exp.category === '营销推广' || exp.category === '广告物料' ? 'Marketing & Promotion'
-        : exp.category === '银行手续费' ? 'Bank & Gateway Fees'
-        : exp.category === 'Supplier采购' ? 'Supplier Purchases'
-        : (exp.category || 'General Expense');
+          : exp.category === '包装耗材' || exp.category === '包装' ? 'Packaging Supplies'
+            : exp.category === '市集租金' || exp.category === '摆摊支出' ? 'Booth / Pop-up Expenses'
+              : exp.category === '厨房租金' ? 'Kitchen Rental'
+                : exp.category === '水电杂费' || exp.category === '水电燃气' ? 'Utilities & Gas'
+                  : exp.category === '设备器具' || exp.category === '设备资产' ? 'Equipment Assets'
+                    : exp.category === '兼职人工费' ? 'Staff & Labor'
+                      : exp.category === '营销推广' || exp.category === '广告物料' ? 'Marketing & Promotion'
+                        : exp.category === '银行手续费' ? 'Bank & Gateway Fees'
+                          : exp.category === 'Supplier采购' ? 'Supplier Purchases'
+                            : (exp.category || 'General Expense');
       const orderType = exp.orderType === '通用成本' ? 'General Overhead'
         : exp.orderType === '集市摆摊' ? 'Booth / Market'
-        : exp.orderType === '批发供货' ? 'Wholesale'
-        : exp.orderType === '线上预购' ? 'Online Orders'
-        : (exp.orderType || 'General Overhead');
+          : exp.orderType === '批发供货' ? 'Wholesale'
+            : exp.orderType === '线上预购' ? 'Online Orders'
+              : (exp.orderType || 'General Overhead');
 
       lines.push([
         exp.date,
