@@ -1279,38 +1279,19 @@ function ExpensesContent() {
             </div>
 
             <div className={styles.photoUploadBox}>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <div>
-                  <input
-                    type="file"
-                    id="expenseModalCameraInput"
-                    accept="image/*"
-                    capture="environment"
-                    className={styles.photoUploadInput}
-                    onChange={e => handlePhotoUpload(e)}
-                    disabled={uploadingPhoto}
-                  />
-                  <label htmlFor="expenseModalCameraInput" className={styles.photoUploadBtn} style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7' }}>
-                    {uploadingPhoto ? '⏳ 正在上传中...' : '📷 现场拍照'}
-                  </label>
-                </div>
-
-                <div>
-                  <input
-                    type="file"
-                    id="expenseModalGalleryInput"
-                    accept="image/*"
-                    className={styles.photoUploadInput}
-                    onChange={e => handlePhotoUpload(e)}
-                    disabled={uploadingPhoto}
-                  />
-                  <label htmlFor="expenseModalGalleryInput" className={styles.photoUploadBtn} style={{ background: '#f8fafc', color: '#0f172a', borderColor: '#cbd5e1' }}>
-                    {uploadingPhoto ? '⏳ 正在上传中...' : '🖼️ 从手机相册选图 / 上传'}
-                  </label>
-                </div>
-              </div>
+              <input
+                type="file"
+                id="expenseModalPhotoInput"
+                accept="image/*,image/jpeg,image/png,image/webp,image/heic"
+                className={styles.photoUploadInput}
+                onChange={e => handlePhotoUpload(e)}
+                disabled={uploadingPhoto}
+              />
+              <label htmlFor="expenseModalPhotoInput" className={styles.photoUploadBtn}>
+                {uploadingPhoto ? '⏳ 正在上传中...' : '📷 上传相册照片 / 拍摄单据发票'}
+              </label>
               <p style={{ margin: '8px 0 0', fontSize: '0.76rem', color: '#64748b', textAlign: 'center' }}>
-                手机端支持直接「📷 现场拍照」或「🖼️ 从相册选图」；电脑端可上传收据截图或扫描文件
+                手机端可选择相册已有照片/截图，或现场调起相机拍照；电脑端可上传文件
               </p>
 
               {formData.receiptUrl && (
@@ -1517,35 +1498,17 @@ function ExpensesContent() {
                   团队要求每笔支出均需拍照存证。您可以直接调起手机相机拍照上传，或存入 Google Drive 文件夹。
                 </p>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                  <div>
-                    <input
-                      type="file"
-                      id="quickCameraReceiptInput"
-                      accept="image/*"
-                      capture="environment"
-                      className={styles.photoUploadInput}
-                      onChange={e => handlePhotoUpload(e, previewReceiptRecord)}
-                      disabled={uploadingPhoto}
-                    />
-                    <label htmlFor="quickCameraReceiptInput" className={styles.photoUploadBtn} style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7' }}>
-                      {uploadingPhoto ? '⏳ 上传中...' : '📷 现场拍照'}
-                    </label>
-                  </div>
-
-                  <div>
-                    <input
-                      type="file"
-                      id="quickGalleryReceiptInput"
-                      accept="image/*"
-                      className={styles.photoUploadInput}
-                      onChange={e => handlePhotoUpload(e, previewReceiptRecord)}
-                      disabled={uploadingPhoto}
-                    />
-                    <label htmlFor="quickGalleryReceiptInput" className={styles.photoUploadBtn} style={{ background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' }}>
-                      {uploadingPhoto ? '⏳ 上传中...' : '🖼️ 从相册选择照片'}
-                    </label>
-                  </div>
-
+                  <input
+                    type="file"
+                    id="quickUploadReceiptInput"
+                    accept="image/*,image/jpeg,image/png,image/webp,image/heic"
+                    className={styles.photoUploadInput}
+                    onChange={e => handlePhotoUpload(e, previewReceiptRecord)}
+                    disabled={uploadingPhoto}
+                  />
+                  <label htmlFor="quickUploadReceiptInput" className={styles.photoUploadBtn} style={{ background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' }}>
+                    {uploadingPhoto ? '⏳ 正在上传...' : '📷 上传相册照片 / 拍摄单据凭证'}
+                  </label>
                   <a
                     href={GOOGLE_DRIVE_RECEIPTS_URL}
                     target="_blank"
@@ -1584,35 +1547,18 @@ function ExpensesContent() {
                 </a>
               </div>
 
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <div>
-                  <input
-                    type="file"
-                    id="replaceCameraReceiptPhotoInput"
-                    accept="image/*"
-                    capture="environment"
-                    className={styles.photoUploadInput}
-                    onChange={e => handlePhotoUpload(e, previewReceiptRecord)}
-                    disabled={uploadingPhoto}
-                  />
-                  <label htmlFor="replaceCameraReceiptPhotoInput" className="btn btnSecondary" style={{ fontSize: '0.8rem', padding: '6px 12px', cursor: 'pointer' }}>
-                    {uploadingPhoto ? '⏳ 上传中...' : '📷 重新拍照'}
-                  </label>
-                </div>
-
-                <div>
-                  <input
-                    type="file"
-                    id="replaceGalleryReceiptPhotoInput"
-                    accept="image/*"
-                    className={styles.photoUploadInput}
-                    onChange={e => handlePhotoUpload(e, previewReceiptRecord)}
-                    disabled={uploadingPhoto}
-                  />
-                  <label htmlFor="replaceGalleryReceiptPhotoInput" className="btn btnSecondary" style={{ fontSize: '0.8rem', padding: '6px 12px', cursor: 'pointer' }}>
-                    {uploadingPhoto ? '⏳ 上传中...' : '🖼️ 相册选图'}
-                  </label>
-                </div>
+              <div>
+                <input
+                  type="file"
+                  id="replaceReceiptPhotoInput"
+                  accept="image/*,image/jpeg,image/png,image/webp,image/heic"
+                  className={styles.photoUploadInput}
+                  onChange={e => handlePhotoUpload(e, previewReceiptRecord)}
+                  disabled={uploadingPhoto}
+                />
+                <label htmlFor="replaceReceiptPhotoInput" className="btn btnSecondary" style={{ fontSize: '0.8rem', padding: '6px 12px', cursor: 'pointer' }}>
+                  {uploadingPhoto ? '⏳ 正在上传中...' : '📷 更换单据照片 (相册/拍照)'}
+                </label>
               </div>
             </div>
 
