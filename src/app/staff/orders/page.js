@@ -972,7 +972,6 @@ function OrdersContent() {
                                   type="file"
                                   id="orderLalamovePhotoInput"
                                   accept="image/*"
-                                  capture="environment"
                                   style={{ display: 'none' }}
                                   disabled={uploadingLalamovePhoto}
                                   onChange={async (e) => {

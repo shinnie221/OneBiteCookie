@@ -1755,7 +1755,6 @@ export default function BoothPOS() {
                 type="file"
                 id="boothExpensePhotoInput"
                 accept="image/*"
-                capture="environment"
                 style={{ display: 'none' }}
                 onChange={async e => {
                   const file = e.target.files?.[0];

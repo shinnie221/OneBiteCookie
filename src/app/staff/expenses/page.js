@@ -1267,16 +1267,15 @@ function ExpensesContent() {
                 type="file"
                 id="expenseModalPhotoInput"
                 accept="image/*"
-                capture="environment"
                 className={styles.photoUploadInput}
                 onChange={e => handlePhotoUpload(e)}
                 disabled={uploadingPhoto}
               />
               <label htmlFor="expenseModalPhotoInput" className={styles.photoUploadBtn}>
-                {uploadingPhoto ? '⏳ 正在拍照上传中...' : '📷 拍照 / 上传单据发票照片'}
+                {uploadingPhoto ? '⏳ 正在上传中...' : '📷 上传 / 拍摄单据发票照片'}
               </label>
               <p style={{ margin: '8px 0 0', fontSize: '0.76rem', color: '#64748b' }}>
-                手机端可直接调起相机拍照；电脑端可上传截图或扫描件
+                手机端可选择相册照片或现场拍照；电脑端可上传截图或扫描件
               </p>
 
               {formData.receiptUrl && (
@@ -1480,20 +1479,19 @@ function ExpensesContent() {
                   此笔支出尚未上传凭证或拍照
                 </strong>
                 <p style={{ fontSize: '0.82rem', color: 'var(--color-text-light)', maxWidth: '380px', margin: '0 auto 16px' }}>
-                  团队要求每笔支出均需拍照存证。您可以直接调起手机相机拍照上传，或存入 Google Drive 文件夹。
+                  团队要求每笔支出均需拍照或上传存证。您可以从手机相册选择照片、调起相机拍照上传，或存入 Google Drive 文件夹。
                 </p>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <input
                     type="file"
                     id="quickUploadReceiptInput"
                     accept="image/*"
-                    capture="environment"
                     className={styles.photoUploadInput}
                     onChange={e => handlePhotoUpload(e, previewReceiptRecord)}
                     disabled={uploadingPhoto}
                   />
                   <label htmlFor="quickUploadReceiptInput" className={styles.photoUploadBtn} style={{ background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' }}>
-                    {uploadingPhoto ? '⏳ 正在上传...' : '📷 立即拍照 / 上传截图凭证'}
+                    {uploadingPhoto ? '⏳ 正在上传...' : '📷 拍照 / 上传相册截图凭证'}
                   </label>
                   <a
                     href={GOOGLE_DRIVE_RECEIPTS_URL}
@@ -1538,13 +1536,12 @@ function ExpensesContent() {
                   type="file"
                   id="replaceReceiptPhotoInput"
                   accept="image/*"
-                  capture="environment"
                   className={styles.photoUploadInput}
                   onChange={e => handlePhotoUpload(e, previewReceiptRecord)}
                   disabled={uploadingPhoto}
                 />
                 <label htmlFor="replaceReceiptPhotoInput" className="btn btnSecondary" style={{ fontSize: '0.8rem', padding: '6px 12px', cursor: 'pointer' }}>
-                  {uploadingPhoto ? '⏳ 正在上传中...' : '📷 更换/重拍凭证照片'}
+                  {uploadingPhoto ? '⏳ 正在上传中...' : '📷 更换/重新上传凭证照片'}
                 </label>
               </div>
             </div>
