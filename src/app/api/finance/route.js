@@ -13,6 +13,7 @@ const VALID_CATEGORIES = [
   '配送相关',
   '广告物料',
   '设备资产',
+  '证书费用',
   '水电杂费',
   '银行手续费',
   '样品/试吃损耗',
@@ -28,6 +29,8 @@ const VALID_CATEGORIES = [
   'delivery',
   'marketing',
   'equipment',
+  'certification',
+  'licenses',
   'utilities',
   'bank_fees'
 ];

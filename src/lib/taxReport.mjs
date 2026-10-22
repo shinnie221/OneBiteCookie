@@ -36,6 +36,7 @@ export const LHDN_CATEGORIES = [
   { key: 'delivery', labelZh: '配送费用 (Delivery)', labelEn: 'Delivery Charges', deductible: true, icon: '🛵' },
   { key: 'marketing', labelZh: '广告与营销 (Marketing)', labelEn: 'Marketing & Ads', deductible: true, icon: '📢' },
   { key: 'equipment', labelZh: '设备资产 (Equipment - 资本支出)', labelEn: 'Equipment & Machinery', deductible: false, isCapital: true, icon: '🛠️' },
+  { key: 'certification', labelZh: '证书与认证执照 (Certificates & Licensing)', labelEn: 'Certificates & Licensing', deductible: true, icon: '📜' },
   { key: 'utilities', labelZh: '水电杂费 (Utilities)', labelEn: 'Utilities', deductible: true, icon: '⚡' },
   { key: 'bank_fees', labelZh: '银行/支付手续费 (Bank Fees)', labelEn: 'Bank & Payment Fees', deductible: true, icon: '💳' },
   { key: 'wages', labelZh: '兼职人工费 (Part-time Wages)', labelEn: 'Wages & Helpers', deductible: true, icon: '👥' },
@@ -51,6 +52,7 @@ export function mapToLhdnCategory(rawCat) {
   if (cat.includes('厨房') || cat === 'kitchen_rental') return 'kitchen_rental';
   if (cat.includes('摊位') || cat.includes('摆摊') || cat === 'booth_rental') return 'booth_rental';
   if (cat.includes('配送') || cat.includes('运费') || cat === 'delivery') return 'delivery';
+  if (cat.includes('证书') || cat.includes('认证') || cat.includes('执照') || cat.includes('halal') || cat === 'certification' || cat === 'licenses') return 'certification';
   if (cat.includes('广告') || cat.includes('物料') || cat.includes('营销') || cat === 'marketing') return 'marketing';
   if (cat.includes('设备') || cat.includes('资产') || cat === 'equipment' || cat.includes('机械') || cat.includes('烤箱')) return 'equipment';
   if (cat.includes('水电') || cat.includes('燃气') || cat === 'utilities') return 'utilities';

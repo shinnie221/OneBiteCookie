@@ -1850,6 +1850,7 @@ function TaxReportContent() {
                 <option value="配送相关">🛵 配送运费 (Delivery Charges)</option>
                 <option value="广告物料">📢 广告营销/印刷物料 (Marketing & Promotion)</option>
                 <option value="设备资产">🛠️ 设备资产购置 (Equipment - 烤箱/打蛋机/冷柜)</option>
+                <option value="证书费用">📜 证书认证/卫生执照费 (Certificates & Licensing)</option>
                 <option value="水电杂费">⚡ 水电燃气杂支 (Utilities)</option>
                 <option value="银行手续费">💳 银行/DuitNow手续费 (Bank & Transaction Fees)</option>
                 <option value="兼职人工费">👥 兼职小工人工费 (Part-time Wages)</option>

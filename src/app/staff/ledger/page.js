@@ -501,6 +501,7 @@ export default function LedgerPage() {
           : exp.category === '包装耗材' || exp.category === '包装' ? 'Packaging Supplies'
             : exp.category === '市集租金' || exp.category === '摆摊支出' ? 'Booth / Pop-up Expenses'
               : exp.category === '厨房租金' ? 'Kitchen Rental'
+                : exp.category === '证书费用' ? 'Certificates & Licensing'
                 : exp.category === '水电杂费' || exp.category === '水电燃气' ? 'Utilities & Gas'
                   : exp.category === '设备器具' || exp.category === '设备资产' ? 'Equipment Assets'
                     : exp.category === '兼职人工费' ? 'Staff & Labor'

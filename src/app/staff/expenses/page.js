@@ -17,9 +17,9 @@ const CATEGORIES = [
   { id: '包装', label: '包装耗材 (铁盒/纸盒/胶带/贴纸)', badgeClass: styles.badgePackage },
   { id: '摆摊支出', label: '🎪 摆摊/集市现场支出 (摊位费/停车/物料)', badgeClass: styles.badgeBooth },
   { id: 'Supplier采购', label: '🏭 供应商采购支出 (原料/包材批发商)', badgeClass: styles.badgeSupplier },
-  { id: '厨房租金', label: '厨房租金 / 水电燃气', badgeClass: styles.badgeKitchen },
+  { id: '厨房租金', label: '厨房租金 / 场地租金', badgeClass: styles.badgeKitchen },
+  { id: '证书费用', label: '📜 证书费用 (清真Halal/食品安全/卫生培训/执照)', badgeClass: styles.badgeCert },
   { id: '设备资产', label: '🛠️ 设备资产 (烤箱/打蛋机/冷柜 - 资本支出)', badgeClass: styles.badgeOther },
-  { id: '水电杂费', label: '⚡ 水电杂费 / 燃气网费', badgeClass: styles.badgeOther },
   { id: '银行手续费', label: '💳 银行手续费 / DuitNow结算费', badgeClass: styles.badgeOther },
   { id: '兼职人工费', label: '兼职人工费', badgeClass: styles.badgeOther },
   { id: '配送相关', label: '配送耗材 / 运费', badgeClass: styles.badgeOther },
@@ -1164,7 +1164,13 @@ function ExpensesContent() {
             </div>
             <div className={styles.formField}>
               <label>
-                {formData.category === 'Supplier采购' ? '供应商 / 合作厂商 *' : formData.category === '摆摊支出' ? '摆摊活动 / 市集地点 *' : '供应商 / 采购商行'}
+                {formData.category === 'Supplier采购'
+                  ? '供应商 / 合作厂商 *'
+                  : formData.category === '摆摊支出'
+                    ? '摆摊活动 / 市集地点 *'
+                    : formData.category === '证书费用'
+                      ? '认证机构 / 培训颁证单位'
+                      : '供应商 / 采购商行'}
               </label>
               {formData.category === 'Supplier采购' && suppliers.length > 0 && (
                 <select
@@ -1187,7 +1193,9 @@ function ExpensesContent() {
                     ? '例如: Bake With Yen / 顶好食品批发'
                     : formData.category === '摆摊支出'
                       ? '例如: 谷中城周末集市 / Pavilion 快闪店 / 社区市集'
-                      : '例如: Bake With Yen / Sheng Siong'
+                      : formData.category === '证书费用'
+                        ? '例如: JAKIM / 卫生局 / 食品安全培训机构 / SSM'
+                        : '例如: Bake With Yen / Sheng Siong'
                 }
                 value={formData.supplierName}
                 onChange={e => setFormData({ ...formData, supplierName: e.target.value })}
@@ -1230,7 +1238,13 @@ function ExpensesContent() {
 
           <div className={styles.formField}>
             <label>
-              {formData.category === '摆摊支出' ? '摆摊现场支出品项说明 *' : formData.category === 'Supplier采购' ? '供应商采购商品明细与批号 *' : '原料品项与规格说明 *'}
+              {formData.category === '摆摊支出'
+                ? '摆摊现场支出品项说明 *'
+                : formData.category === 'Supplier采购'
+                  ? '供应商采购商品明细与批号 *'
+                  : formData.category === '证书费用'
+                    ? '证书/认证培训品项与有效期限说明 *'
+                    : '原料品项与规格说明 *'}
             </label>
             <input
               type="text"
@@ -1240,7 +1254,9 @@ function ExpensesContent() {
                   ? '例如: 摊位租金 2 天 / 现场冰块与矿泉水 / 停车费与油费补贴'
                   : formData.category === 'Supplier采购'
                     ? '例如: Anchor 动物黄油 20 箱 (批次 202610A) / 定制曲奇铁盒 500 个'
-                    : '例如: Anchor 动物黄油 10 箱 / 顶级高筋面粉 50kg'
+                    : formData.category === '证书费用'
+                      ? '例如: 清真Halal认证初审年费 / 食品卫生培训证书 (Typhoid疫苗及Kursus) / 商业执照'
+                      : '例如: Anchor 动物黄油 10 箱 / 顶级高筋面粉 50kg'
               }
               value={formData.note}
               onChange={e => setFormData({ ...formData, note: e.target.value })}
