@@ -32,6 +32,8 @@ const NAV_GROUPS = [
   },
 ];
 
+const SIDEBAR_KEY = 'onebite_staff_sidebar';
+
 export default function StaffLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -43,6 +45,25 @@ export default function StaffLayout({ children }) {
   const { isAuthenticated, loading, logout, user } = useAuth();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Icon-only rail; defaults on for tablet widths so pages like the POS get the room
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(SIDEBAR_KEY);
+      const width = window.innerWidth;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCollapsed(saved ? saved === 'collapsed' : width > 900 && width < 1280);
+    } catch { }
+  }, []);
+
+  const toggleCollapsed = () => {
+    setCollapsed(prev => {
+      const next = !prev;
+      try { localStorage.setItem(SIDEBAR_KEY, next ? 'collapsed' : 'expanded'); } catch { }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!loading) {
@@ -68,7 +89,7 @@ export default function StaffLayout({ children }) {
   };
 
   return (
-    <div className={styles.layout}>
+    <div className={`${styles.layout} ${collapsed ? styles.collapsed : ''}`}>
       {/* Mobile Header */}
       <div className={styles.mobileHeader}>
         <div className={styles.logo}>
@@ -84,12 +105,21 @@ export default function StaffLayout({ children }) {
       <aside id="staff-navigation" className={`${styles.sidebar} ${mobileOpen ? styles.open : ''}`}>
         <div className={styles.sidebarHeader}>
           <button className={styles.closeMenu} onClick={() => setMobileOpen(false)} aria-label="关闭员工菜单">✕</button>
+          <button
+            className={styles.collapseBtn}
+            onClick={toggleCollapsed}
+            aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
+            title={collapsed ? '展开侧边栏' : '收起侧边栏'}
+          >
+            {collapsed ? '»' : '«'}
+          </button>
           <div className={styles.logo}>
             <img src="/logo.png" alt="One Bite" className={styles.staffLogoImg} />
+            <span className={styles.logoMark} aria-hidden="true">🍪</span>
           </div>
           <div className={styles.staffInfo}>
             <div className={styles.avatar}>{user?.name?.charAt(0) || 'S'}</div>
-            <div>
+            <div className={styles.staffText}>
               <div className={styles.staffName}>{user?.name || '员工'}</div>
               <div className={styles.staffRole}>{user?.role === 'admin' ? '超级管理员' : '员工'}</div>
             </div>
@@ -104,9 +134,11 @@ export default function StaffLayout({ children }) {
                 <Link key={item.path} href={item.path}
                   aria-current={activePath === item.path ? 'page' : undefined}
                   className={`${styles.navItem} ${activePath === item.path ? styles.active : ''}`}
+                  title={collapsed ? item.label : undefined}
+                  data-label={item.label}
                   onClick={() => setMobileOpen(false)}>
                   <span className={styles.navIcon} aria-hidden="true">{item.icon}</span>
-                  {item.label}
+                  <span className={styles.navLabel}>{item.label}</span>
                 </Link>
               ))}
             </div>
@@ -114,9 +146,9 @@ export default function StaffLayout({ children }) {
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <button className={`${styles.navItem} ${styles.logoutBtn}`} onClick={handleLogout}>
+          <button className={`${styles.navItem} ${styles.logoutBtn}`} onClick={handleLogout} title={collapsed ? '退出登录' : undefined}>
             <span className={styles.navIcon}>🚪</span>
-            退出登录
+            <span className={styles.navLabel}>退出登录</span>
           </button>
         </div>
       </aside>

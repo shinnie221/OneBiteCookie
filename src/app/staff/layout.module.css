@@ -268,3 +268,130 @@
     cursor: pointer;
   }
 }
+/* Collapsible icon rail (desktop / tablet only) */
+.collapseBtn {
+  position: absolute;
+  top: 18px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-light);
+  background: white;
+  color: var(--color-text-light);
+  cursor: pointer;
+  font-size: .95rem;
+  line-height: 1;
+}
+
+.collapseBtn:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary-light);
+}
+
+.collapseBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.sidebarHeader {
+  position: relative;
+}
+
+.logoMark {
+  display: none;
+  font-size: 1.5rem;
+}
+
+.navLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 901px) {
+  .sidebar {
+    transition: width .2s ease;
+  }
+
+  .layout:not(.collapsed) .logo {
+    padding-right: 36px;
+  }
+
+  .collapsed .sidebar {
+    width: 76px;
+  }
+
+  .collapsed .sidebarHeader {
+    padding: 14px 10px 12px;
+  }
+
+  .collapsed .collapseBtn {
+    position: static;
+    display: block;
+    margin: 0 auto 12px;
+  }
+
+  .collapsed .logo {
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+
+  .collapsed .staffLogoImg {
+    display: none;
+  }
+
+  .collapsed .logoMark {
+    display: inline;
+  }
+
+  .collapsed .staffInfo {
+    justify-content: center;
+    padding: 6px;
+    background: transparent;
+  }
+
+  .collapsed .staffText {
+    display: none;
+  }
+
+  .collapsed .nav {
+    padding: 12px 10px;
+  }
+
+  .collapsed .groupLabel {
+    font-size: 0;
+    padding: 0;
+    height: 1px;
+    margin: 4px 8px 8px;
+    background: var(--color-border-light);
+  }
+
+  .collapsed .navGroup + .navGroup {
+    margin-top: 8px;
+  }
+
+  .collapsed .navItem {
+    justify-content: center;
+    padding: 12px 0;
+    position: relative;
+  }
+
+  .collapsed .navLabel {
+    display: none;
+  }
+
+  .collapsed .navIcon {
+    opacity: .85;
+  }
+
+  .collapsed .sidebarFooter {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .collapseBtn {
+    display: none;
+  }
+}
