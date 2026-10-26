@@ -86,7 +86,7 @@
 .mediaContainer {
   position: relative;
   width: 100%;
-  height: 260px;
+  height: min(220px, 28vh);
   background: #f6f3ee;
   overflow: hidden;
   flex-shrink: 0;
@@ -94,8 +94,17 @@
 
 @media (min-width: 640px) {
   .mediaContainer {
-    height: 300px;
+    height: min(260px, 32vh);
   }
+}
+
+/* Details column: scrollable steps + sticky add-to-cart footer */
+.detailsPane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
 }
 
 .productImg {
@@ -813,4 +822,58 @@
 
 .previewBackBtn:hover {
   background: #e7dac5;
+}
+
+/* Wide screens: photo on the left, box builder on the right so it fits without scrolling */
+@media (min-width: 768px) {
+  .modal {
+    flex-direction: row;
+    max-width: 1000px;
+    height: min(720px, 92vh);
+    max-height: 92vh;
+  }
+
+  .mediaContainer {
+    width: 42%;
+    height: auto;
+  }
+
+  .contentBody {
+    padding: 22px 22px 12px;
+    gap: 10px;
+  }
+
+  .headerRow {
+    padding-right: 40px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .tierGrid {
+    padding-top: 12px;
+  }
+
+  .flavourList {
+    gap: 5px;
+  }
+
+  .flavourItem {
+    padding: 5px 10px;
+  }
+
+  .flavourThumbWrap {
+    width: 38px;
+    height: 38px;
+  }
+
+  .bottomFooter {
+    padding: 12px 22px 18px;
+    box-shadow: none;
+  }
+
+  .submitBtn {
+    padding: 13px 20px;
+  }
 }

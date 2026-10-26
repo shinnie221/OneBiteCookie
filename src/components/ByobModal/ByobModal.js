@@ -303,242 +303,245 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
           )}
         </div>
 
-        {/* Scrollable Content Body */}
-        <div className={styles.contentBody}>
-          {/* Header Row: Title & Actions */}
-          <div className={styles.headerRow}>
-            <div className={styles.titleArea}>
-              <h2 className={styles.title}>{product.name || 'Build Your Own Box'}</h2>
-              <p className={styles.subtitle}>
-                {product.description || 'Custom Gift Box · Mix & match your favorite flavors'}
-              </p>
-            </div>
-            <div className={styles.actionIcons}>
-              <button
-                type="button"
-                className={`${styles.iconBtn} ${isFavorited ? styles.iconBtnActive : ''}`}
-                onClick={handleToggleFavorite}
-                title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-                aria-label="Favorite"
-              >
-                <Heart
-                  size={18}
-                  fill={isFavorited ? '#e11d48' : 'none'}
-                  color={isFavorited ? '#e11d48' : 'currentColor'}
-                />
-              </button>
-              <button
-                type="button"
-                className={styles.iconBtn}
-                onClick={handleShare}
-                title="Share BYOB link"
-                aria-label="Share"
-              >
-                <Share2 size={18} />
-              </button>
-            </div>
-          </div>
-
-          {/* Step 1: Choose Box Size */}
-          <div className={styles.sectionWrap}>
-            <div className={styles.sectionTitleRow}>
-              <span className={styles.sectionTitle}>Step 1: Choose Box Size</span>
-              <span className={styles.currentTierHighlight}>
-                {selectedTier?.name} · {currencySymbol}{formatPrice(selectedTier?.price)}
-              </span>
-            </div>
-
-            <div className={styles.tierGrid}>
-              {tiers.map(tier => {
-                const isSelected = tier.id === selectedTierId;
-                const isBoxOf5 = tier.pieces === 5;
-                return (
-                  <button
-                    type="button"
-                    key={tier.id}
-                    className={`${styles.tierChip} ${isSelected ? styles.tierChipActive : ''}`}
-                    onClick={() => handleSelectTier(tier.id)}
-                  >
-                    <span className={styles.tierChipPieces}>{tier.pieces} Pieces</span>
-                    <span className={styles.tierChipPrice}>{currencySymbol}{formatPrice(tier.price)}</span>
-                    {isBoxOf5 && (
-                      <span className={styles.tierChipBadge} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Sparkles size={11} /> Try All 5
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Step 2: Flavour Selection Progress Bar */}
-          <div className={styles.progressCard}>
-            <div className={styles.progressTop}>
-              <div className={styles.progressText}>
-                {isFull ? (
-                  <span className={styles.progressLabel}>
-                    <CheckCircle size={15} style={{ color: '#22c55e', flexShrink: 0 }} />
-                    <span className={styles.progressTextColumn}>
-                      <span className={styles.progressMainText}>Box is full</span>
-                      <span className={styles.progressSubText}>({totalSelectedCount}/{targetCount} cookies)</span>
-                    </span>
-                  </span>
-                ) : (
-                  <span className={styles.progressLabel}>
-                    <Cookie size={15} style={{ color: '#d97706', flexShrink: 0 }} />
-                    <span className={styles.progressTextColumn}>
-                      <span className={styles.progressMainText}>Selected {totalSelectedCount} / {targetCount}</span>
-                      <span className={styles.progressSubText}>({remainingCount} more needed)</span>
-                    </span>
-                  </span>
-                )}
+        {/* Details Pane (right column on wide screens, below the photo on phones) */}
+        <div className={styles.detailsPane}>
+          {/* Scrollable Content Body */}
+          <div className={styles.contentBody}>
+            {/* Header Row: Title & Actions */}
+            <div className={styles.headerRow}>
+              <div className={styles.titleArea}>
+                <h2 className={styles.title}>{product.name || 'Build Your Own Box'}</h2>
+                <p className={styles.subtitle}>
+                  {product.description || 'Custom Gift Box · Mix & match your favorite flavors'}
+                </p>
               </div>
-              <div className={styles.quickActions}>
-                {targetCount === 5 && availableFlavours.length >= 5 && (
-                  <button
-                    type="button"
-                    className={styles.quickBtn}
-                    onClick={handleFillOneOfEach}
-                  >
-                    <Sparkles size={12} /> 1 of Each (5 Total)
-                  </button>
-                )}
-                {totalSelectedCount > 0 && (
-                  <button type="button" className={styles.clearBtn} onClick={handleClearSelection}>
-                    Clear
-                  </button>
-                )}
+              <div className={styles.actionIcons}>
+                <button
+                  type="button"
+                  className={`${styles.iconBtn} ${isFavorited ? styles.iconBtnActive : ''}`}
+                  onClick={handleToggleFavorite}
+                  title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                  aria-label="Favorite"
+                >
+                  <Heart
+                    size={18}
+                    fill={isFavorited ? '#e11d48' : 'none'}
+                    color={isFavorited ? '#e11d48' : 'currentColor'}
+                  />
+                </button>
+                <button
+                  type="button"
+                  className={styles.iconBtn}
+                  onClick={handleShare}
+                  title="Share BYOB link"
+                  aria-label="Share"
+                >
+                  <Share2 size={18} />
+                </button>
               </div>
             </div>
 
-            <div className={styles.progressBarWrap}>
-              <div
-                className={styles.progressBarFill}
-                style={{
-                  width: `${Math.min(100, (totalSelectedCount / targetCount) * 100)}%`,
-                  backgroundColor: isFull ? '#22c55e' : '#d97706'
-                }}
-              />
-            </div>
-          </div>
+            {/* Step 1: Choose Box Size */}
+            <div className={styles.sectionWrap}>
+              <div className={styles.sectionTitleRow}>
+                <span className={styles.sectionTitle}>Step 1: Choose Box Size</span>
+                <span className={styles.currentTierHighlight}>
+                  {selectedTier?.name} · {currencySymbol}{formatPrice(selectedTier?.price)}
+                </span>
+              </div>
 
-          {/* Step 3: Flavours List with Photo Thumbnails & Preview */}
-          <div className={styles.sectionWrap}>
-            <div className={styles.sectionTitleRow}>
-              <span className={styles.sectionTitle}>Step 2: Pick Flavors</span>
-              <span className={styles.sectionSubtitle}>
-                Tap photo to view · [+] to add
-              </span>
-            </div>
-
-            <div className={styles.flavourList}>
-              {availableFlavours.map(flavor => {
-                const pickedCount = selectedFlavours[flavor.id] || 0;
-                const thumb = (flavor.images && flavor.images[0]) || flavor.image;
-                return (
-                  <div
-                    key={flavor.id}
-                    className={`${styles.flavourItem} ${pickedCount > 0 ? styles.flavourItemPicked : ''}`}
-                  >
-                    <div
-                      className={styles.flavourLeft}
-                      onClick={(e) => handleOpenFlavourPreview(flavor, e)}
-                      title="Click to view photo & details"
+              <div className={styles.tierGrid}>
+                {tiers.map(tier => {
+                  const isSelected = tier.id === selectedTierId;
+                  const isBoxOf5 = tier.pieces === 5;
+                  return (
+                    <button
+                      type="button"
+                      key={tier.id}
+                      className={`${styles.tierChip} ${isSelected ? styles.tierChipActive : ''}`}
+                      onClick={() => handleSelectTier(tier.id)}
                     >
-                      <div className={styles.flavourThumbWrap}>
-                        {thumb ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={thumb}
-                            alt={flavor.name}
-                            className={styles.flavourThumb}
-                            loading="lazy"
-                            decoding="async"
-                          />
-                        ) : (
-                          <div className={styles.flavourThumbFallback}>
-                            <Cookie size={22} strokeWidth={1.5} />
-                          </div>
-                        )}
-                        <span className={styles.flavourZoomIcon} aria-hidden="true">
-                          <Search size={11} />
+                      <span className={styles.tierChipPieces}>{tier.pieces} Pieces</span>
+                      <span className={styles.tierChipPrice}>{currencySymbol}{formatPrice(tier.price)}</span>
+                      {isBoxOf5 && (
+                        <span className={styles.tierChipBadge} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <Sparkles size={11} /> Try All 5
                         </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Step 2: Flavour Selection Progress Bar */}
+            <div className={styles.progressCard}>
+              <div className={styles.progressTop}>
+                <div className={styles.progressText}>
+                  {isFull ? (
+                    <span className={styles.progressLabel}>
+                      <CheckCircle size={15} style={{ color: '#22c55e', flexShrink: 0 }} />
+                      <span className={styles.progressTextColumn}>
+                        <span className={styles.progressMainText}>Box is full</span>
+                        <span className={styles.progressSubText}>({totalSelectedCount}/{targetCount} cookies)</span>
+                      </span>
+                    </span>
+                  ) : (
+                    <span className={styles.progressLabel}>
+                      <Cookie size={15} style={{ color: '#d97706', flexShrink: 0 }} />
+                      <span className={styles.progressTextColumn}>
+                        <span className={styles.progressMainText}>Selected {totalSelectedCount} / {targetCount}</span>
+                        <span className={styles.progressSubText}>({remainingCount} more needed)</span>
+                      </span>
+                    </span>
+                  )}
+                </div>
+                <div className={styles.quickActions}>
+                  {targetCount === 5 && availableFlavours.length >= 5 && (
+                    <button
+                      type="button"
+                      className={styles.quickBtn}
+                      onClick={handleFillOneOfEach}
+                    >
+                      <Sparkles size={12} /> 1 of Each (5 Total)
+                    </button>
+                  )}
+                  {totalSelectedCount > 0 && (
+                    <button type="button" className={styles.clearBtn} onClick={handleClearSelection}>
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.progressBarWrap}>
+                <div
+                  className={styles.progressBarFill}
+                  style={{
+                    width: `${Math.min(100, (totalSelectedCount / targetCount) * 100)}%`,
+                    backgroundColor: isFull ? '#22c55e' : '#d97706'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Step 3: Flavours List with Photo Thumbnails & Preview */}
+            <div className={styles.sectionWrap}>
+              <div className={styles.sectionTitleRow}>
+                <span className={styles.sectionTitle}>Step 2: Pick Flavors</span>
+                <span className={styles.sectionSubtitle}>
+                  Tap photo to view · [+] to add
+                </span>
+              </div>
+
+              <div className={styles.flavourList}>
+                {availableFlavours.map(flavor => {
+                  const pickedCount = selectedFlavours[flavor.id] || 0;
+                  const thumb = (flavor.images && flavor.images[0]) || flavor.image;
+                  return (
+                    <div
+                      key={flavor.id}
+                      className={`${styles.flavourItem} ${pickedCount > 0 ? styles.flavourItemPicked : ''}`}
+                    >
+                      <div
+                        className={styles.flavourLeft}
+                        onClick={(e) => handleOpenFlavourPreview(flavor, e)}
+                        title="Click to view photo & details"
+                      >
+                        <div className={styles.flavourThumbWrap}>
+                          {thumb ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img
+                              src={thumb}
+                              alt={flavor.name}
+                              className={styles.flavourThumb}
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          ) : (
+                            <div className={styles.flavourThumbFallback}>
+                              <Cookie size={22} strokeWidth={1.5} />
+                            </div>
+                          )}
+                          <span className={styles.flavourZoomIcon} aria-hidden="true">
+                            <Search size={11} />
+                          </span>
+                        </div>
+
+                        <div className={styles.flavourInfo}>
+                          <span className={styles.flavourName}>{flavor.name}</span>
+                          {pickedCount > 0 && (
+                            <span className={styles.flavourPickedCount}>{pickedCount} selected</span>
+                          )}
+                        </div>
                       </div>
 
-                      <div className={styles.flavourInfo}>
-                        <span className={styles.flavourName}>{flavor.name}</span>
-                        {pickedCount > 0 && (
-                          <span className={styles.flavourPickedCount}>{pickedCount} selected</span>
-                        )}
+                      <div className={styles.flavourStepper}>
+                        <button
+                          type="button"
+                          className={styles.stepperBtn}
+                          onClick={() => handleRemoveFlavour(flavor.id)}
+                          disabled={pickedCount <= 0}
+                          aria-label={`Decrease ${flavor.name}`}
+                        >
+                          <Minus size={13} />
+                        </button>
+                        <span className={styles.stepperValue}>{pickedCount}</span>
+                        <button
+                          type="button"
+                          className={styles.stepperBtn}
+                          onClick={() => handleAddFlavour(flavor.id)}
+                          disabled={totalSelectedCount >= targetCount}
+                          aria-label={`Increase ${flavor.name}`}
+                        >
+                          <Plus size={13} />
+                        </button>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                    <div className={styles.flavourStepper}>
-                      <button
-                        type="button"
-                        className={styles.stepperBtn}
-                        onClick={() => handleRemoveFlavour(flavor.id)}
-                        disabled={pickedCount <= 0}
-                        aria-label={`Decrease ${flavor.name}`}
-                      >
-                        <Minus size={13} />
-                      </button>
-                      <span className={styles.stepperValue}>{pickedCount}</span>
-                      <button
-                        type="button"
-                        className={styles.stepperBtn}
-                        onClick={() => handleAddFlavour(flavor.id)}
-                        disabled={totalSelectedCount >= targetCount}
-                        aria-label={`Increase ${flavor.name}`}
-                      >
-                        <Plus size={13} />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Step 4: Box Quantity */}
+            <div className={styles.boxQtyRow}>
+              <span className={styles.boxQtyLabel}>Number of Boxes</span>
+              <div className={styles.flavourStepper}>
+                <button
+                  type="button"
+                  className={styles.stepperBtn}
+                  onClick={() => setBoxQuantity(prev => Math.max(1, prev - 1))}
+                  disabled={boxQuantity <= 1}
+                  aria-label="Decrease boxes"
+                >
+                  <Minus size={13} />
+                </button>
+                <span className={styles.stepperValue}>{boxQuantity}</span>
+                <button
+                  type="button"
+                  className={styles.stepperBtn}
+                  onClick={() => setBoxQuantity(prev => prev + 1)}
+                  aria-label="Increase boxes"
+                >
+                  <Plus size={13} />
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Step 4: Box Quantity */}
-          <div className={styles.boxQtyRow}>
-            <span className={styles.boxQtyLabel}>Number of Boxes</span>
-            <div className={styles.flavourStepper}>
-              <button
-                type="button"
-                className={styles.stepperBtn}
-                onClick={() => setBoxQuantity(prev => Math.max(1, prev - 1))}
-                disabled={boxQuantity <= 1}
-                aria-label="Decrease boxes"
-              >
-                <Minus size={13} />
-              </button>
-              <span className={styles.stepperValue}>{boxQuantity}</span>
-              <button
-                type="button"
-                className={styles.stepperBtn}
-                onClick={() => setBoxQuantity(prev => prev + 1)}
-                aria-label="Increase boxes"
-              >
-                <Plus size={13} />
-              </button>
-            </div>
+          {/* Sticky Footer */}
+          <div className={styles.bottomFooter}>
+            <button
+              type="button"
+              className={styles.submitBtn}
+              onClick={handleAddToCart}
+              disabled={!isFull}
+            >
+              {isFull
+                ? `Add to Cart · ${currencySymbol}${formatPrice(totalPrice)}`
+                : `Please select ${remainingCount} more cookie${remainingCount > 1 ? 's' : ''}`}
+            </button>
           </div>
-        </div>
-
-        {/* Sticky Footer */}
-        <div className={styles.bottomFooter}>
-          <button
-            type="button"
-            className={styles.submitBtn}
-            onClick={handleAddToCart}
-            disabled={!isFull}
-          >
-            {isFull
-              ? `Add to Cart · ${currencySymbol}${formatPrice(totalPrice)}`
-              : `Please select ${remainingCount} more cookie${remainingCount > 1 ? 's' : ''}`}
-          </button>
         </div>
 
         {/* Quick Cookie Photo Lightbox Preview */}
