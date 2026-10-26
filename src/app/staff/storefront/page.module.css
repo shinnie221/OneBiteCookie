@@ -563,3 +563,32 @@
 .mockupAnnounceDraft {
   opacity: 0.45;
 }
+
+/* Mobile vs desktop hero banner slots */
+.bannerVariantLabel {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.bannerVariantLabel span {
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+}
+
+.bannerVariantLabel .bannerFallbackNote {
+  color: #b45309;
+}
+
+.bannerPreviewBoxDesktop {
+  height: auto;
+  aspect-ratio: 3 / 1;
+}
+
+/* Desktop slot showing the mobile banner as a stand-in */
+.bannerPreviewFallback {
+  opacity: 0.6;
+}

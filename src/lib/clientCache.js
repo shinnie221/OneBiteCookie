@@ -130,6 +130,7 @@ export async function warmupStorefrontCache() {
     // Collect and preload all product and brand images
     const imageUrls = [];
     if (settingsObj?.banner_image) imageUrls.push(settingsObj.banner_image);
+    if (settingsObj?.banner_image_desktop) imageUrls.push(settingsObj.banner_image_desktop);
     if (settingsObj?.avatar_image) imageUrls.push(settingsObj.avatar_image);
     imageUrls.push('/logo.png', '/logo-white.png');
 

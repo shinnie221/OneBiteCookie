@@ -24,6 +24,28 @@ const ANNOUNCEMENT_MAX_LENGTH = 160;
 // Keep inline (data URL) images well under Firestore's 1 MiB document limit
 const MAX_INLINE_IMAGE_LENGTH = 600 * 1024;
 
+// Every editable storefront image: which settings field it saves to and what to tell the admin
+const IMAGE_TARGETS = {
+  banner: {
+    field: 'banner_image',
+    savedMsg: '手机版横幅已保存并同步到顾客主页！',
+    resetMsg: '已恢复默认横幅',
+    cropTitle: '✂️ 裁剪手机版横幅（推荐 2:1）',
+  },
+  banner_desktop: {
+    field: 'banner_image_desktop',
+    savedMsg: '电脑版横幅已保存并同步到顾客主页！',
+    resetMsg: '已移除电脑版横幅，电脑端将改用手机版横幅',
+    cropTitle: '✂️ 裁剪电脑版横幅（推荐 3:1）',
+  },
+  avatar: {
+    field: 'avatar_image',
+    savedMsg: '圆形Logo已保存并同步到顾客主页！',
+    resetMsg: '已恢复默认Logo',
+    cropTitle: '✂️ 裁剪品牌圆形Logo / 头像',
+  },
+};
+
 export default function StorefrontSettingsPage() {
   const { authFetch } = useAuth();
   const toast = useToast();
@@ -37,16 +59,18 @@ export default function StorefrontSettingsPage() {
 
   // Image Cropper States
   const [cropModalOpen, setCropModalOpen] = useState(false);
-  const [cropTarget, setCropTarget] = useState('banner'); // 'banner' | 'avatar'
+  const [cropTarget, setCropTarget] = useState('banner'); // key of IMAGE_TARGETS
   const [cropImageSrc, setCropImageSrc] = useState('');
   const [pendingFile, setPendingFile] = useState(null);
   const [isCroppingProcessing, setIsCroppingProcessing] = useState(false);
 
   const bannerFileRef = useRef(null);
+  const desktopBannerFileRef = useRef(null);
   const avatarFileRef = useRef(null);
 
   const [formData, setFormData] = useState({
     banner_image: '',
+    banner_image_desktop: '',
     avatar_image: '',
     currency_symbol: 'RM',
     cart_button_label: '购物车',
@@ -66,6 +90,7 @@ export default function StorefrontSettingsPage() {
           setFormData(prev => ({
             ...prev,
             banner_image: data.settings.banner_image || '',
+            banner_image_desktop: data.settings.banner_image_desktop || '',
             avatar_image: data.settings.avatar_image || '',
             currency_symbol: data.settings.currency_symbol || 'RM',
             cart_button_label: data.settings.cart_button_label || '购物车',
@@ -127,14 +152,14 @@ export default function StorefrontSettingsPage() {
       throw new Error('图床暂时无法上传，且图片过大无法直接保存，请稍后重试或换一张较小的图片');
     }
 
-    const field = target === 'banner' ? 'banner_image' : 'avatar_image';
-    await persistImageField(field, finalUrl);
-    toast.success(target === 'banner' ? '横幅背景图片已保存并同步到顾客主页！' : '圆形Logo已保存并同步到顾客主页！');
+    await persistImageField(IMAGE_TARGETS[target].field, finalUrl);
+    toast.success(IMAGE_TARGETS[target].savedMsg);
   };
 
   // Open cropper for new file upload
-  const handleBannerFileSelect = (e) => {
+  const handleFileSelect = (target) => (e) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
 
     if (file.size > 25 * 1024 * 1024) {
@@ -143,28 +168,10 @@ export default function StorefrontSettingsPage() {
     }
 
     const objectUrl = URL.createObjectURL(file);
-    setCropTarget('banner');
+    setCropTarget(target);
     setCropImageSrc(objectUrl);
     setPendingFile(file);
     setCropModalOpen(true);
-    if (bannerFileRef.current) bannerFileRef.current.value = '';
-  };
-
-  const handleAvatarFileSelect = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 25 * 1024 * 1024) {
-      toast.error('图片文件过大，请选择小于 25MB 的照片');
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(file);
-    setCropTarget('avatar');
-    setCropImageSrc(objectUrl);
-    setPendingFile(file);
-    setCropModalOpen(true);
-    if (avatarFileRef.current) avatarFileRef.current.value = '';
   };
 
   // Open cropper to crop existing / active image
@@ -180,10 +187,10 @@ export default function StorefrontSettingsPage() {
   };
 
   // Restore the built-in default banner / logo (saved immediately like uploads)
-  const handleResetImage = async (field) => {
+  const handleResetImage = async (target) => {
     try {
-      await persistImageField(field, '');
-      toast.success(field === 'banner_image' ? '已恢复默认横幅' : '已恢复默认Logo');
+      await persistImageField(IMAGE_TARGETS[target].field, '');
+      toast.success(IMAGE_TARGETS[target].resetMsg);
     } catch (err) {
       toast.error(err?.message || '恢复默认失败');
     }
@@ -322,6 +329,7 @@ export default function StorefrontSettingsPage() {
   }
 
   const activeBanner = formData.banner_image || DEFAULT_BANNER;
+  const activeDesktopBanner = formData.banner_image_desktop || activeBanner;
   const activeAvatar = formData.avatar_image || DEFAULT_AVATAR;
 
   return (
@@ -347,10 +355,15 @@ export default function StorefrontSettingsPage() {
             <section className={styles.card}>
               <div className={styles.cardHeader}>
                 <h2>1. 顶部大横幅背景 (Hero Banner)</h2>
-                <p>展示在手机端顶部的品牌大卡片背景图，建议比例 2:1 或 16:9。</p>
+                <p>手机和电脑分别使用不同比例的横幅：手机版建议 2:1，电脑版建议 3:1，避免电脑端横幅占满整个屏幕。</p>
               </div>
 
+              {/* 1a. Mobile banner */}
               <div className={styles.uploadSection}>
+                <div className={styles.bannerVariantLabel}>
+                  <strong>📱 手机版横幅</strong>
+                  <span>推荐 2:1</span>
+                </div>
                 <div className={styles.bannerPreviewBox}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -364,7 +377,7 @@ export default function StorefrontSettingsPage() {
                   <input
                     type="file"
                     ref={bannerFileRef}
-                    onChange={handleBannerFileSelect}
+                    onChange={handleFileSelect('banner')}
                     accept="image/*"
                     className={styles.hiddenInput}
                   />
@@ -387,13 +400,69 @@ export default function StorefrontSettingsPage() {
                   {formData.banner_image && (
                     <button
                       type="button"
-                      onClick={() => handleResetImage('banner_image')}
+                      onClick={() => handleResetImage('banner')}
                       className={styles.btnActionReset}
                     >
                       恢复默认横幅
                     </button>
                   )}
                 </div>
+              </div>
+
+              {/* 1b. Desktop banner */}
+              <div className={styles.uploadSection}>
+                <div className={styles.bannerVariantLabel}>
+                  <strong>💻 电脑版横幅</strong>
+                  <span>推荐 3:1</span>
+                  {!formData.banner_image_desktop && (
+                    <span className={styles.bannerFallbackNote}>未上传 · 电脑端暂时将手机版横幅裁成 3:1 显示</span>
+                  )}
+                </div>
+                <div className={`${styles.bannerPreviewBox} ${styles.bannerPreviewBoxDesktop}`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={activeDesktopBanner}
+                    alt="电脑版横幅预览"
+                    className={`${styles.bannerPreviewImg} ${formData.banner_image_desktop ? '' : styles.bannerPreviewFallback}`}
+                  />
+                </div>
+
+                <div className={styles.actionButtons}>
+                  <input
+                    type="file"
+                    ref={desktopBannerFileRef}
+                    onChange={handleFileSelect('banner_desktop')}
+                    accept="image/*"
+                    className={styles.hiddenInput}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => desktopBannerFileRef.current?.click()}
+                    className={`${styles.btnAction} ${styles.btnActionPrimary}`}
+                  >
+                    📷 上传电脑版横幅
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCropModal('banner_desktop', activeDesktopBanner)}
+                    className={`${styles.btnAction} ${styles.btnActionCrop}`}
+                    title={formData.banner_image_desktop ? '重新裁剪电脑版横幅' : '从当前手机版横幅裁出一张 3:1 电脑版横幅'}
+                  >
+                    ✂️ {formData.banner_image_desktop ? '裁剪电脑版横幅' : '从手机版裁剪 3:1'}
+                  </button>
+                  {formData.banner_image_desktop && (
+                    <button
+                      type="button"
+                      onClick={() => handleResetImage('banner_desktop')}
+                      className={styles.btnActionReset}
+                    >
+                      移除电脑版横幅
+                    </button>
+                  )}
+                </div>
+                <span className={styles.helperText}>
+                  提示：上传原始照片（而非已裁好的 2:1 图片）再裁成 3:1，画质会更清晰。
+                </span>
               </div>
             </section>
 
@@ -419,7 +488,7 @@ export default function StorefrontSettingsPage() {
                     <input
                       type="file"
                       ref={avatarFileRef}
-                      onChange={handleAvatarFileSelect}
+                      onChange={handleFileSelect('avatar')}
                       accept="image/*"
                       className={styles.hiddenInput}
                     />
@@ -442,7 +511,7 @@ export default function StorefrontSettingsPage() {
                     {formData.avatar_image && (
                       <button
                         type="button"
-                        onClick={() => handleResetImage('avatar_image')}
+                        onClick={() => handleResetImage('avatar')}
                         className={styles.btnActionReset}
                       >
                         恢复默认Logo
@@ -630,7 +699,7 @@ export default function StorefrontSettingsPage() {
         }}
         imageSrc={cropImageSrc}
         cropType={cropTarget}
-        title={cropTarget === 'banner' ? '✂️ 裁剪店铺大横幅背景图片' : '✂️ 裁剪品牌圆形Logo / 头像'}
+        title={IMAGE_TARGETS[cropTarget].cropTitle}
         onConfirmCrop={handleConfirmCrop}
         onSkipCrop={pendingFile ? handleSkipCrop : null}
         isProcessing={isCroppingProcessing}

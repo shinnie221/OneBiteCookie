@@ -39,6 +39,7 @@ export default function HomePage() {
   const [products, setProducts] = useState([]);
   const [settings, setSettings] = useState({
     banner_image: '',
+    banner_image_desktop: '',
     avatar_image: '',
     currency_symbol: 'RM',
     cart_button_label: 'View Cart',
@@ -69,6 +70,7 @@ export default function HomePage() {
       setSettings(prev => ({
         ...prev,
         banner_image: cachedSettings.banner_image || prev.banner_image,
+        banner_image_desktop: cachedSettings.banner_image_desktop || '',
         avatar_image: cachedSettings.avatar_image || prev.avatar_image,
         currency_symbol: cachedSettings.currency_symbol || prev.currency_symbol,
         cart_button_label: cachedSettings.cart_button_label && cachedSettings.cart_button_label !== '购物车'
@@ -93,6 +95,7 @@ export default function HomePage() {
         setSettings(prev => ({
           ...prev,
           banner_image: settData.settings.banner_image || '',
+          banner_image_desktop: settData.settings.banner_image_desktop || '',
           avatar_image: settData.settings.avatar_image || '',
           currency_symbol: settData.settings.currency_symbol || 'RM',
           cart_button_label: settData.settings.cart_button_label && settData.settings.cart_button_label !== '购物车'
@@ -105,6 +108,7 @@ export default function HomePage() {
       // Preload all product photos and brand banners into browser & service worker cache
       const imagesToPreload = [];
       if (settData?.settings?.banner_image) imagesToPreload.push(settData.settings.banner_image);
+      if (settData?.settings?.banner_image_desktop) imagesToPreload.push(settData.settings.banner_image_desktop);
       if (settData?.settings?.avatar_image) imagesToPreload.push(settData.settings.avatar_image);
       if (prodData?.products) {
         prodData.products.forEach(p => {
@@ -286,15 +290,21 @@ export default function HomePage() {
       {/* 4. Hero Banner Card */}
       <section className={styles.heroContainer}>
         <div className={styles.heroBannerCard}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={settings.banner_image || DEFAULT_BANNER}
-            alt="Bakery Banner"
-            className={styles.heroBannerImg}
-            loading="eager"
-            fetchPriority="high"
-            decoding="async"
-          />
+          {/* Desktop gets its own wider (3:1) banner; phones keep the 2:1 one */}
+          <picture>
+            {settings.banner_image_desktop && (
+              <source media="(min-width: 768px)" srcSet={settings.banner_image_desktop} />
+            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={settings.banner_image || DEFAULT_BANNER}
+              alt="Bakery Banner"
+              className={`${styles.heroBannerImg} ${settings.banner_image_desktop ? '' : styles.heroBannerImgNoDesktop}`}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+            />
+          </picture>
         </div>
 
         {/* Circular Avatar / Logo overlapping banner */}

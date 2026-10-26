@@ -328,7 +328,6 @@
 
 .heroBannerCard {
   width: 100%;
-  height: 200px;
   background: #f2ede4;
   border-radius: 0;
   overflow: hidden;
@@ -342,9 +341,15 @@
   }
 }
 
+/* Show the whole banner at its own proportions instead of a cropped fixed-height strip.
+   Reserves a 2:1 box (the cropper's default) until the image loads to avoid layout shift,
+   and caps very tall uploads so they can't take over the page. */
 .heroBannerImg {
+  display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: auto 2 / 1;
+  max-height: min(600px, 70vh);
   object-fit: cover;
 }
 
@@ -407,12 +412,22 @@
 
 /* Laptop View Enhancements for Hero */
 @media (min-width: 768px) {
+  /* Cap the banner width so it isn't stretched across very wide screens */
   .heroContainer {
     padding: 8px 12px 6px;
+    max-width: 1200px;
   }
   .heroBannerCard {
-    height: 300px;
     border-radius: 20px;
+  }
+  /* Desktop uses the wider 3:1 banner so it doesn't fill the whole first screen */
+  .heroBannerImg {
+    aspect-ratio: auto 3 / 1;
+    max-height: min(450px, 55vh);
+  }
+  /* No desktop banner uploaded yet: show the mobile one trimmed to 3:1 */
+  .heroBannerImgNoDesktop {
+    aspect-ratio: 3 / 1;
   }
   .avatarWrapper {
     margin-top: -56px;

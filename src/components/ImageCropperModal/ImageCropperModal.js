@@ -13,7 +13,7 @@ export default function ImageCropperModal({
   isOpen,
   onClose,
   imageSrc,
-  cropType = 'banner', // 'banner' | 'avatar' | 'general'
+  cropType = 'banner', // 'banner' | 'banner_desktop' | 'avatar' | 'general'
   title,
   onConfirmCrop,
   onSkipCrop,
@@ -36,6 +36,13 @@ export default function ImageCropperModal({
       { label: '16:9 (宽屏展示)', value: 16 / 9 },
       { label: '自由比例', value: null }
     ];
+  } else if (cropType === 'banner_desktop') {
+    aspectPresets = [
+      { label: '3:1 (推荐电脑横幅)', value: 3 },
+      { label: '4:1 (更窄)', value: 4 },
+      { label: '21:9 (宽屏)', value: 21 / 9 },
+      { label: '2:1', value: 2 }
+    ];
   } else {
     aspectPresets = [
       { label: '2:1 (推荐横幅)', value: 2 },
@@ -47,7 +54,9 @@ export default function ImageCropperModal({
     ];
   }
 
-  const defaultRatio = (cropType === 'avatar' || cropType === 'product' || cropType === 'cookie') ? 1 : 2;
+  const defaultRatio = (cropType === 'avatar' || cropType === 'product' || cropType === 'cookie')
+    ? 1
+    : (cropType === 'banner_desktop' ? 3 : 2);
   const [aspectRatio, setAspectRatio] = useState(defaultRatio);
   const [showCircleMask, setShowCircleMask] = useState(cropType === 'avatar');
 
@@ -81,7 +90,7 @@ export default function ImageCropperModal({
     setPan({ x: 0, y: 0 });
     setRotation(0);
     setFlipH(false);
-    setAspectRatio(cropType === 'avatar' ? 1 : 2);
+    setAspectRatio(cropType === 'avatar' ? 1 : (cropType === 'banner_desktop' ? 3 : 2));
     setShowCircleMask(cropType === 'avatar');
 
     // For remote URLs (http/https), route through our proxy to prevent canvas CORS taint
@@ -259,8 +268,10 @@ export default function ImageCropperModal({
     const box = currentCropBox;
 
     // Determine target canvas resolution
-    // High-definition export: min 1200px width for banner, 900px for products, 600px for avatar
-    const exportWidth = cropType === 'avatar' ? 600 : (cropType === 'product' || cropType === 'cookie' ? 900 : 1200);
+    // High-definition export: 1600px for the wide desktop banner, 1200px for banner, 900px for products, 600px for avatar
+    const exportWidth = cropType === 'avatar'
+      ? 600
+      : (cropType === 'product' || cropType === 'cookie' ? 900 : (cropType === 'banner_desktop' ? 1600 : 1200));
     const exportHeight = Math.round(exportWidth / box.ratio);
 
     const canvas = document.createElement('canvas');
