@@ -21,6 +21,8 @@ import {
 import styles from './page.module.css';
 
 const ANNOUNCEMENT_MAX_LENGTH = 160;
+// Keep inline (data URL) images well under Firestore's 1 MiB document limit
+const MAX_INLINE_IMAGE_LENGTH = 600 * 1024;
 
 export default function StorefrontSettingsPage() {
   const { authFetch } = useAuth();
@@ -91,30 +93,43 @@ export default function StorefrontSettingsPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Upload and set image helper
+  // Write a single image field straight to Firestore so uploads never sit unsaved in local state
+  const persistImageField = async (field, url) => {
+    const res = await authFetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [field]: url })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      console.error(`Saving ${field} failed:`, data);
+      throw new Error('图片已上传，但保存到店铺设置失败，请重试');
+    }
+    setFormData(prev => ({ ...prev, [field]: url }));
+  };
+
+  // Upload, save to Firestore, then apply image helper
   const uploadAndApplyImage = async (fileOrBlob, fallbackDataUrl, target) => {
     let finalUrl = '';
     try {
       finalUrl = await uploadImageToImgBB(fileOrBlob);
     } catch {
-      if (fallbackDataUrl) {
-        finalUrl = fallbackDataUrl;
-      } else {
-        finalUrl = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (ev) => resolve(ev.target.result);
-          reader.readAsDataURL(fileOrBlob);
-        });
-      }
+      finalUrl = fallbackDataUrl || await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target.result);
+        reader.readAsDataURL(fileOrBlob);
+      });
     }
 
-    if (target === 'banner') {
-      setFormData(prev => ({ ...prev, banner_image: finalUrl }));
-      toast.success('横幅背景图片已成功裁剪并应用！');
-    } else {
-      setFormData(prev => ({ ...prev, avatar_image: finalUrl }));
-      toast.success('圆形Logo已成功裁剪并应用！');
+    // If ImgBB is unavailable the image falls back to an inline data URL, which lives inside the
+    // settings document. Firestore caps a document at 1 MiB, so refuse anything that would blow it.
+    if (finalUrl.startsWith('data:') && finalUrl.length > MAX_INLINE_IMAGE_LENGTH) {
+      throw new Error('图床暂时无法上传，且图片过大无法直接保存，请稍后重试或换一张较小的图片');
     }
+
+    const field = target === 'banner' ? 'banner_image' : 'avatar_image';
+    await persistImageField(field, finalUrl);
+    toast.success(target === 'banner' ? '横幅背景图片已保存并同步到顾客主页！' : '圆形Logo已保存并同步到顾客主页！');
   };
 
   // Open cropper for new file upload
@@ -164,6 +179,16 @@ export default function StorefrontSettingsPage() {
     setCropModalOpen(true);
   };
 
+  // Restore the built-in default banner / logo (saved immediately like uploads)
+  const handleResetImage = async (field) => {
+    try {
+      await persistImageField(field, '');
+      toast.success(field === 'banner_image' ? '已恢复默认横幅' : '已恢复默认Logo');
+    } catch (err) {
+      toast.error(err?.message || '恢复默认失败');
+    }
+  };
+
   // Confirm cropped image handler
   const handleConfirmCrop = async (croppedBlob, croppedDataUrl) => {
     setIsCroppingProcessing(true);
@@ -175,7 +200,7 @@ export default function StorefrontSettingsPage() {
       setPendingFile(null);
     } catch (err) {
       console.error('Cropped image upload error:', err);
-      toast.error('保存裁剪图片失败，请重试');
+      toast.error(err?.message || '保存裁剪图片失败，请重试');
     } finally {
       setIsCroppingProcessing(false);
     }
@@ -192,10 +217,9 @@ export default function StorefrontSettingsPage() {
       await uploadAndApplyImage(pendingFile, null, cropTarget);
       setCropModalOpen(false);
       setPendingFile(null);
-      toast.success(cropTarget === 'banner' ? '已直接使用原图作为横幅' : '已直接使用原图作为Logo');
     } catch (err) {
       console.error('Skip crop upload error:', err);
-      toast.error('上传图片失败');
+      toast.error(err?.message || '上传图片失败');
     } finally {
       setIsCroppingProcessing(false);
     }
@@ -363,7 +387,7 @@ export default function StorefrontSettingsPage() {
                   {formData.banner_image && (
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, banner_image: '' }))}
+                      onClick={() => handleResetImage('banner_image')}
                       className={styles.btnActionReset}
                     >
                       恢复默认横幅
@@ -418,7 +442,7 @@ export default function StorefrontSettingsPage() {
                     {formData.avatar_image && (
                       <button
                         type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, avatar_image: '' }))}
+                        onClick={() => handleResetImage('avatar_image')}
                         className={styles.btnActionReset}
                       >
                         恢复默认Logo
