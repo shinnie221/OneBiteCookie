@@ -2,6 +2,7 @@ import { CartProvider } from '@/context/CartContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister/ServiceWorkerRegister';
+import AnnouncementBar from '@/components/AnnouncementBar/AnnouncementBar';
 import './globals.css';
 
 export const metadata = {
@@ -22,6 +23,7 @@ export default function RootLayout({ children }) {
           <CartProvider>
             <ToastProvider>
               <ServiceWorkerRegister />
+              <AnnouncementBar />
               {children}
             </ToastProvider>
           </CartProvider>

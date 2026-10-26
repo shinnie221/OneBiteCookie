@@ -3,6 +3,7 @@
 export const CACHE_KEYS = {
   PRODUCTS: 'one_bite_cached_products',
   SETTINGS: 'one_bite_cached_settings',
+  ANNOUNCEMENT: 'one_bite_cached_announcement',
   TIMESTAMP: 'one_bite_cache_timestamp',
 };
 

@@ -393,53 +393,16 @@
   }
 }
 
-/* Store Info Header */
-.storeInfo {
-  text-align: center;
-  padding: 4px 8px 2px;
-  max-width: 1680px;
-  margin: 0 auto;
-  width: 96%;
-}
-
-@media (min-width: 480px) {
-  .storeInfo {
-    padding: 6px 12px 2px;
-  }
-}
-
-.storeTitle {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--color-text);
-  letter-spacing: -0.3px;
-  margin-bottom: 4px;
-}
-
-/* Bio Announcement Pill Card */
-.bioCard {
-  width: fit-content;
-  max-width: 90%;
-  margin: 0 auto 10px;
-  background: var(--color-bg-alt);
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
-  padding: 4px 12px;
-  text-align: center;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--color-text);
-  box-shadow: 0 1px 4px rgba(45, 27, 14, 0.04);
-  white-space: pre-line;
-  line-height: 1.35;
-}
-
-@media (min-width: 480px) {
-  .bioCard {
-    margin: 0 auto 12px;
-    padding: 5px 14px;
-    font-size: 0.82rem;
-  }
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Laptop View Enhancements for Hero */
@@ -459,19 +422,6 @@
     height: 110px;
     border-width: 5px;
   }
-  .storeInfo {
-    padding: 8px 14px 2px;
-  }
-  .storeTitle {
-    font-size: 2.2rem;
-    margin-bottom: 6px;
-  }
-  .bioCard {
-    max-width: 500px;
-    margin: 0 auto 14px;
-    font-size: 0.86rem;
-    padding: 6px 16px;
-  }
 }
 
 @media (min-width: 1024px) {
@@ -480,9 +430,6 @@
   }
   .heroBannerCard {
     border-radius: 24px;
-  }
-  .storeInfo {
-    padding: 8px 16px 2px;
   }
 }
 

@@ -1,0 +1,56 @@
+/* Static store-wide announcement bar (sits above the sticky navbar) */
+
+.bar {
+  width: 100%;
+  background: #382415;
+  color: #fbf3ea;
+  font-family: var(--font-body, inherit);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 8px 16px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  letter-spacing: 0.1px;
+}
+
+a.inner:hover .text {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.icon,
+.chevron {
+  flex-shrink: 0;
+  color: #e3b98f;
+}
+
+.text {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .inner {
+    padding: 7px 12px;
+    font-size: 0.78rem;
+    gap: 6px;
+  }
+}
+
+/* Compact variant used inside the admin phone mockup */
+.compact .inner {
+  padding: 5px 10px;
+  font-size: 0.66rem;
+  gap: 5px;
+}

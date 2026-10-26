@@ -13,7 +13,14 @@ import {
   PRESET_AVATARS
 } from '@/lib/storefrontDefaults';
 import ImageCropperModal from '@/components/ImageCropperModal/ImageCropperModal';
+import {
+  AnnouncementStrip,
+  ANNOUNCEMENT_UPDATED_EVENT,
+  sanitizeAnnouncementLink
+} from '@/components/AnnouncementBar/AnnouncementBar';
 import styles from './page.module.css';
+
+const ANNOUNCEMENT_MAX_LENGTH = 160;
 
 export default function StorefrontSettingsPage() {
   const { authFetch } = useAuth();
@@ -23,6 +30,8 @@ export default function StorefrontSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [publishingAnnouncement, setPublishingAnnouncement] = useState(false);
+  const [announcementUpdatedAt, setAnnouncementUpdatedAt] = useState(null);
 
   // Image Cropper States
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -37,10 +46,11 @@ export default function StorefrontSettingsPage() {
   const [formData, setFormData] = useState({
     banner_image: '',
     avatar_image: '',
-    store_name: 'One Bite',
-    store_bio: 'Everything baked goods 🤎',
     currency_symbol: 'RM',
     cart_button_label: '购物车',
+    announcement_enabled: false,
+    announcement_text: '',
+    announcement_link: '',
   });
 
   useEffect(() => {
@@ -55,11 +65,13 @@ export default function StorefrontSettingsPage() {
             ...prev,
             banner_image: data.settings.banner_image || '',
             avatar_image: data.settings.avatar_image || '',
-            store_name: data.settings.store_name || 'One Bite',
-            store_bio: data.settings.store_bio || 'Everything baked goods 🤎',
             currency_symbol: data.settings.currency_symbol || 'RM',
             cart_button_label: data.settings.cart_button_label || '购物车',
+            announcement_enabled: Boolean(data.settings.announcement_enabled),
+            announcement_text: data.settings.announcement_text || '',
+            announcement_link: data.settings.announcement_link || '',
           }));
+          setAnnouncementUpdatedAt(data.settings.announcement_updated_at || null);
         }
         setLoading(false);
       })
@@ -189,17 +201,87 @@ export default function StorefrontSettingsPage() {
     }
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setSaving(true);
+  // Normalised announcement fields, stamped with the publish time
+  const buildAnnouncementPayload = (overrides = {}) => {
+    const merged = { ...formData, ...overrides };
+    return {
+      announcement_enabled: Boolean(merged.announcement_enabled) && merged.announcement_text.trim() !== '',
+      announcement_text: merged.announcement_text.trim().slice(0, ANNOUNCEMENT_MAX_LENGTH),
+      announcement_link: sanitizeAnnouncementLink(merged.announcement_link),
+      announcement_updated_at: new Date().toISOString(),
+    };
+  };
+
+  // Push the saved announcement to the live bar in this browser (other visitors pick it up on next load / tab focus)
+  const broadcastAnnouncement = (payload) => {
+    setAnnouncementUpdatedAt(payload.announcement_updated_at);
+    setFormData(prev => ({
+      ...prev,
+      announcement_enabled: payload.announcement_enabled,
+      announcement_text: payload.announcement_text,
+      announcement_link: payload.announcement_link,
+    }));
+    window.dispatchEvent(new CustomEvent(ANNOUNCEMENT_UPDATED_EVENT, {
+      detail: {
+        enabled: payload.announcement_enabled,
+        text: payload.announcement_text,
+        link: payload.announcement_link,
+        updated_at: payload.announcement_updated_at,
+      }
+    }));
+  };
+
+  // Publish / take down the announcement on its own, without saving the rest of the form
+  const handlePublishAnnouncement = async (enabled) => {
+    if (enabled && !formData.announcement_text.trim()) {
+      toast.error('请先填写公告内容');
+      return;
+    }
+    if (formData.announcement_link.trim() && !sanitizeAnnouncementLink(formData.announcement_link)) {
+      toast.error('链接需以 https:// 或 / 开头');
+      return;
+    }
+
+    setPublishingAnnouncement(true);
     try {
+      const payload = buildAnnouncementPayload({ announcement_enabled: enabled });
       const res = await authFetch('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       if (res.ok) {
+        broadcastAnnouncement(payload);
+        toast.success(enabled ? '公告已发布到顶部公告栏！' : '公告已撤下');
+      } else {
+        toast.error('发布公告失败');
+      }
+    } catch {
+      toast.error('发布公告出错');
+    } finally {
+      setPublishingAnnouncement(false);
+    }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (formData.announcement_link.trim() && !sanitizeAnnouncementLink(formData.announcement_link)) {
+      toast.error('公告链接需以 https:// 或 / 开头');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const announcementPayload = buildAnnouncementPayload();
+      const res = await authFetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, ...announcementPayload })
+      });
+
+      if (res.ok) {
+        broadcastAnnouncement(announcementPayload);
         toast.success('店铺外观设置已成功保存！');
       } else {
         toast.error('保存设置失败');
@@ -224,7 +306,7 @@ export default function StorefrontSettingsPage() {
         <div>
           <h1 className={styles.title}>店铺外观与橱窗展示设置</h1>
           <p className={styles.subtitle}>
-            自定义顾客主页（Take.app 风格）的顶部横幅、圆形头像、店铺名、文案标语及货币符号。
+            自定义顾客主页（Take.app 风格）的顶部横幅、圆形头像及顶部公告栏。
           </p>
         </div>
         <Link href="/" target="_blank" className={styles.viewStoreBtn}>
@@ -347,52 +429,75 @@ export default function StorefrontSettingsPage() {
               </div>
             </section>
 
-            {/* 3. Store Info & Text */}
+            {/* 3. Announcement Bar */}
             <section className={styles.card}>
               <div className={styles.cardHeader}>
-                <h2>3. 店铺信息与文字文案</h2>
-                <p>调整店名、店铺公告标语及购物车常驻条文字。</p>
+                <h2>3. 顶部公告栏 (Announcement Bar)</h2>
+                <p>固定显示在顾客端所有页面最顶部的公告条，可用于通知取货时间、促销活动、暂停接单等。</p>
               </div>
 
-              <div className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="store_name">店铺名称 (Store Name) *</label>
-                  <input
-                    type="text"
-                    id="store_name"
-                    name="store_name"
-                    value={formData.store_name}
-                    onChange={handleInputChange}
-                    placeholder="例如：One Bite 或 One Bite Cookie"
-                    required
-                  />
-                </div>
+              <div className={styles.announceStatusRow}>
+                <span className={`${styles.announceStatus} ${formData.announcement_enabled ? styles.announceStatusLive : ''}`}>
+                  {formData.announcement_enabled ? '● 公告展示中' : '○ 公告未展示'}
+                </span>
+                {announcementUpdatedAt && (
+                  <span className={styles.helperText}>
+                    最后更新：{new Date(announcementUpdatedAt).toLocaleString('zh-CN', { hour12: false })}
+                  </span>
+                )}
               </div>
 
               <div className={styles.formGroup}>
-                <label htmlFor="store_bio">店铺公告标语胶囊 (Bio / Slogan)</label>
+                <label htmlFor="announcement_text">公告内容 *</label>
                 <textarea
-                  id="store_bio"
-                  name="store_bio"
+                  id="announcement_text"
+                  name="announcement_text"
                   rows={2}
-                  value={formData.store_bio}
+                  maxLength={ANNOUNCEMENT_MAX_LENGTH}
+                  value={formData.announcement_text}
                   onChange={handleInputChange}
-                  placeholder="例如：Everything baked goods 🤎&#10;Next Delivery and Pick Up: 1 Nov 11am"
+                  placeholder="例如：🎉 新品 Strawberry White Choc 上架！下次取货时间：11月1日 11am"
                   className={styles.bioTextarea}
                 />
-                <span className={styles.helperText}>支持换行（直接按 Enter 即可分为两行显示）</span>
+                <span className={styles.helperText}>
+                  {formData.announcement_text.length} / {ANNOUNCEMENT_MAX_LENGTH} 字 · 建议一句话，手机端会自动换行
+                </span>
               </div>
 
               <div className={styles.formGroup}>
-                <label htmlFor="cart_button_label">底部购物车常驻条文字</label>
+                <label htmlFor="announcement_link">点击跳转链接（可选）</label>
                 <input
                   type="text"
-                  id="cart_button_label"
-                  name="cart_button_label"
-                  value={formData.cart_button_label}
+                  id="announcement_link"
+                  name="announcement_link"
+                  value={formData.announcement_link}
                   onChange={handleInputChange}
-                  placeholder="购物车 或 View Cart"
+                  placeholder="例如：/#menu 或 https://instagram.com/onebite"
                 />
+                <span className={styles.helperText}>留空则公告不可点击；站内页面以 / 开头，外部链接以 https:// 开头</span>
+              </div>
+
+              <div className={styles.actionButtons}>
+                <button
+                  type="button"
+                  onClick={() => handlePublishAnnouncement(true)}
+                  className={`${styles.btnAction} ${styles.btnActionPrimary}`}
+                  disabled={publishingAnnouncement || saving}
+                >
+                  {publishingAnnouncement
+                    ? '正在发布...'
+                    : formData.announcement_enabled ? '📢 更新公告' : '📢 立即发布公告'}
+                </button>
+                {formData.announcement_enabled && (
+                  <button
+                    type="button"
+                    onClick={() => handlePublishAnnouncement(false)}
+                    className={styles.btnActionReset}
+                    disabled={publishingAnnouncement || saving}
+                  >
+                    撤下公告
+                  </button>
+                )}
               </div>
             </section>
 
@@ -414,6 +519,16 @@ export default function StorefrontSettingsPage() {
                 <span>11:52</span>
                 <span>📶 4G 🔋 95</span>
               </div>
+
+              {formData.announcement_text.trim() && (
+                <div className={formData.announcement_enabled ? '' : styles.mockupAnnounceDraft}>
+                  <AnnouncementStrip
+                    text={formData.announcement_text}
+                    link={formData.announcement_link}
+                    compact
+                  />
+                </div>
+              )}
 
               <div className={styles.mockupHeader}>
                 <span style={{ fontSize: '1.1rem' }}>☰</span>
@@ -445,16 +560,6 @@ export default function StorefrontSettingsPage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={activeAvatar} alt="Avatar Logo Preview" />
                   </div>
-                </div>
-
-                {/* Store Info */}
-                <div className={styles.mockupInfo}>
-                  <div className={styles.mockupTitle}>{formData.store_name || 'One Bite'}</div>
-                </div>
-
-                {/* Bio Pill */}
-                <div className={styles.mockupBioPill}>
-                  {formData.store_bio || 'Everything baked goods 🤎'}
                 </div>
 
                 {/* Sample product list row */}

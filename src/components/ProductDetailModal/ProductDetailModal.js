@@ -211,153 +211,156 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
           )}
         </div>
 
-        {/* Scrollable Content */}
-        <div className={styles.contentBody}>
-          {/* Header Row: Title & Actions */}
-          <div className={styles.headerRow}>
-            <h2 className={styles.productTitle}>{product.name}</h2>
-            <div className={styles.actionIcons}>
-              <button
-                type="button"
-                className={`${styles.iconBtn} ${isFavorited ? styles.iconBtnActive : ''}`}
-                onClick={handleToggleFavorite}
-                title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-                aria-label="Favorite"
-              >
-                <Heart
-                  size={18}
-                  fill={isFavorited ? '#e11d48' : 'none'}
-                  color={isFavorited ? '#e11d48' : 'currentColor'}
-                />
-              </button>
-              <button
-                type="button"
-                className={styles.iconBtn}
-                onClick={handleShare}
-                title="Share product link"
-                aria-label="Share"
-              >
-                <Share2 size={18} />
-              </button>
-            </div>
-          </div>
-
-          {/* Price Range */}
-          <div className={styles.priceRange}>
-            {priceRangeString}
-          </div>
-
-          {/* Description */}
-          {product.description && (
-            <div className={styles.descriptionWrap}>
-              <p className={`${styles.descriptionText} ${!descExpanded ? styles.descriptionClamped : ''}`}>
-                {product.description}
-              </p>
-              {product.description.length > 70 && (
+        {/* Details Pane (right column on wide screens, below the photo on phones) */}
+        <div className={styles.detailsPane}>
+          {/* Scrollable Content */}
+          <div className={styles.contentBody}>
+            {/* Header Row: Title & Actions */}
+            <div className={styles.headerRow}>
+              <h2 className={styles.productTitle}>{product.name}</h2>
+              <div className={styles.actionIcons}>
                 <button
                   type="button"
-                  className={styles.toggleDescBtn}
-                  onClick={() => setDescExpanded(prev => !prev)}
+                  className={`${styles.iconBtn} ${isFavorited ? styles.iconBtnActive : ''}`}
+                  onClick={handleToggleFavorite}
+                  title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                  aria-label="Favorite"
                 >
-                  {descExpanded ? 'Show less' : 'Read more'}
+                  <Heart
+                    size={18}
+                    fill={isFavorited ? '#e11d48' : 'none'}
+                    color={isFavorited ? '#e11d48' : 'currentColor'}
+                  />
                 </button>
-              )}
-            </div>
-          )}
-
-          <hr className={styles.divider} />
-
-          {/* Packaging Options Radio Group */}
-          <div className={styles.optionsList}>
-            {packagingOptions.map(option => {
-              const isSelected = option.id === selectedOptionId;
-              return (
-                <div
-                  key={option.id}
-                  className={`${styles.optionItem} ${isSelected ? styles.optionItemActive : ''}`}
-                  onClick={() => setSelectedOptionId(option.id)}
-                  role="radio"
-                  aria-checked={isSelected}
-                  tabIndex={0}
+                <button
+                  type="button"
+                  className={styles.iconBtn}
+                  onClick={handleShare}
+                  title="Share product link"
+                  aria-label="Share"
                 >
-                  <div className={styles.optionLeft}>
-                    <div className={`${styles.radioCircle} ${isSelected ? styles.radioCircleChecked : ''}`}>
-                      {isSelected && <div className={styles.radioDot} />}
+                  <Share2 size={18} />
+                </button>
+              </div>
+            </div>
+  
+            {/* Price Range */}
+            <div className={styles.priceRange}>
+              {priceRangeString}
+            </div>
+  
+            {/* Description */}
+            {product.description && (
+              <div className={styles.descriptionWrap}>
+                <p className={`${styles.descriptionText} ${!descExpanded ? styles.descriptionClamped : ''}`}>
+                  {product.description}
+                </p>
+                {product.description.length > 70 && (
+                  <button
+                    type="button"
+                    className={styles.toggleDescBtn}
+                    onClick={() => setDescExpanded(prev => !prev)}
+                  >
+                    {descExpanded ? 'Show less' : 'Read more'}
+                  </button>
+                )}
+              </div>
+            )}
+  
+            <hr className={styles.divider} />
+  
+            {/* Packaging Options Radio Group */}
+            <div className={styles.optionsList}>
+              {packagingOptions.map(option => {
+                const isSelected = option.id === selectedOptionId;
+                return (
+                  <div
+                    key={option.id}
+                    className={`${styles.optionItem} ${isSelected ? styles.optionItemActive : ''}`}
+                    onClick={() => setSelectedOptionId(option.id)}
+                    role="radio"
+                    aria-checked={isSelected}
+                    tabIndex={0}
+                  >
+                    <div className={styles.optionLeft}>
+                      <div className={`${styles.radioCircle} ${isSelected ? styles.radioCircleChecked : ''}`}>
+                        {isSelected && <div className={styles.radioDot} />}
+                      </div>
+                      <span className={styles.optionName}>{option.name}</span>
                     </div>
-                    <span className={styles.optionName}>{option.name}</span>
+  
+                    <span className={styles.optionPrice}>
+                      {currencySymbol}{formatPrice(option.price)}
+                    </span>
                   </div>
-
-                  <span className={styles.optionPrice}>
-                    {currencySymbol}{formatPrice(option.price)}
-                  </span>
+                );
+              })}
+            </div>
+  
+            {/* Hint banner for customers who want mixed flavors */}
+            {onOpenByob && (
+              <div className={styles.byobHintBox}>
+                <div className={styles.byobHintText}>
+                  <div className={styles.byobHintTitle}>
+                    <Sparkles size={15} className={styles.byobHintIcon} />
+                    <span>
+                      Want to <strong>mix & match flavors</strong> in a box?
+                    </span>
+                  </div>
+                  <span className={styles.byobHintSub}>This option is a single-flavor box of {product.name}.</span>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Hint banner for customers who want mixed flavors */}
-          {onOpenByob && (
-            <div className={styles.byobHintBox}>
-              <div className={styles.byobHintText}>
-                <div className={styles.byobHintTitle}>
-                  <Sparkles size={15} className={styles.byobHintIcon} />
-                  <span>
-                    Want to <strong>mix & match flavors</strong> in a box?
-                  </span>
+                <div className={styles.byobHintBtnRow}>
+                  <button
+                    type="button"
+                    className={styles.byobHintBtn}
+                    onClick={onOpenByob}
+                  >
+                    Build Your Own Box
+                  </button>
                 </div>
-                <span className={styles.byobHintSub}>This option is a single-flavor box of {product.name}.</span>
               </div>
-              <div className={styles.byobHintBtnRow}>
+            )}
+  
+            <hr className={styles.divider} />
+  
+            {/* Quantity Stepper */}
+            <div className={styles.quantityRow}>
+              <span className={styles.quantityLabel}>Quantity</span>
+              <div className={styles.quantityStepper}>
                 <button
                   type="button"
-                  className={styles.byobHintBtn}
-                  onClick={onOpenByob}
+                  className={styles.stepperBtn}
+                  onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                  disabled={quantity <= 1 || !isAvailable}
+                  aria-label="Decrease quantity"
                 >
-                  Build Your Own Box
+                  <Minus size={14} />
+                </button>
+                <span className={styles.stepperValue}>{quantity}</span>
+                <button
+                  type="button"
+                  className={styles.stepperBtn}
+                  onClick={() => setQuantity(prev => prev + 1)}
+                  disabled={!isAvailable}
+                  aria-label="Increase quantity"
+                >
+                  <Plus size={14} />
                 </button>
               </div>
             </div>
-          )}
-
-          <hr className={styles.divider} />
-
-          {/* Quantity Stepper */}
-          <div className={styles.quantityRow}>
-            <span className={styles.quantityLabel}>Quantity</span>
-            <div className={styles.quantityStepper}>
-              <button
-                type="button"
-                className={styles.stepperBtn}
-                onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                disabled={quantity <= 1 || !isAvailable}
-                aria-label="Decrease quantity"
-              >
-                <Minus size={14} />
-              </button>
-              <span className={styles.stepperValue}>{quantity}</span>
-              <button
-                type="button"
-                className={styles.stepperBtn}
-                onClick={() => setQuantity(prev => prev + 1)}
-                disabled={!isAvailable}
-                aria-label="Increase quantity"
-              >
-                <Plus size={14} />
-              </button>
-            </div>
           </div>
-        </div>
-
-        {/* Sticky Bottom Add Button */}
-        <div className={styles.bottomFooter}>
-          <button
-            type="button"
-            className={styles.submitBtn}
-            onClick={handleAddToCart}
-            disabled={!isAvailable}
-          >
-            {isAvailable ? `Add to Cart · ${currencySymbol}${formatPrice(totalPrice)}` : 'Sold Out'}
-          </button>
+  
+          {/* Sticky Bottom Add Button */}
+          <div className={styles.bottomFooter}>
+            <button
+              type="button"
+              className={styles.submitBtn}
+              onClick={handleAddToCart}
+              disabled={!isAvailable}
+            >
+              {isAvailable ? `Add to Cart · ${currencySymbol}${formatPrice(totalPrice)}` : 'Sold Out'}
+            </button>
+          </div>
         </div>
       </div>
 

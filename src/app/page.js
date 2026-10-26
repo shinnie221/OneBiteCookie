@@ -40,8 +40,6 @@ export default function HomePage() {
   const [settings, setSettings] = useState({
     banner_image: '',
     avatar_image: '',
-    store_name: 'One Bite',
-    store_bio: 'Everything baked goods',
     currency_symbol: 'RM',
     cart_button_label: 'View Cart',
   });
@@ -72,8 +70,6 @@ export default function HomePage() {
         ...prev,
         banner_image: cachedSettings.banner_image || prev.banner_image,
         avatar_image: cachedSettings.avatar_image || prev.avatar_image,
-        store_name: cachedSettings.store_name || prev.store_name,
-        store_bio: cachedSettings.store_bio || prev.store_bio,
         currency_symbol: cachedSettings.currency_symbol || prev.currency_symbol,
         cart_button_label: cachedSettings.cart_button_label && cachedSettings.cart_button_label !== '购物车'
           ? cachedSettings.cart_button_label
@@ -98,8 +94,6 @@ export default function HomePage() {
           ...prev,
           banner_image: settData.settings.banner_image || '',
           avatar_image: settData.settings.avatar_image || '',
-          store_name: settData.settings.store_name || 'One Bite',
-          store_bio: settData.settings.store_bio || 'Everything baked goods',
           currency_symbol: settData.settings.currency_symbol || 'RM',
           cart_button_label: settData.settings.cart_button_label && settData.settings.cart_button_label !== '购物车'
             ? settData.settings.cart_button_label
@@ -319,21 +313,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. Store Information */}
-      <section className={styles.storeInfo}>
-        <h1 className={styles.storeTitle}>
-          {settings.store_name || 'One Bite'}
-        </h1>
-      </section>
+      {/* Page heading for screen readers & SEO (the logo already shows the brand visually) */}
+      <h1 className={styles.srOnly}>One Bite</h1>
 
-      {/* 6. Bio / Slogan Card */}
-      <div className={styles.bioCard}>
-        {settings.store_bio
-          ? String(settings.store_bio).replace(/\\n/g, '\n')
-          : 'Everything baked goods'}
-      </div>
-
-      {/* 7. Cookies Section */}
+      {/* 5. Cookies Section */}
       <section className={styles.menuSection} id="menu" style={{ paddingBottom: '32px' }}>
         <div className={styles.categoryHeader}>
           <div className={styles.categoryHeaderLeft}>
