@@ -126,7 +126,13 @@ export default function CartPage() {
                         >
                           <X size={15} />
                         </button>
-                        <img src={item.image || 'data:image/svg+xml;base64,...'} alt={item.product_name} className={styles.itemImage} />
+                        <img
+                          src={item.image || 'data:image/svg+xml;base64,...'}
+                          alt={item.product_name}
+                          className={styles.itemImage}
+                          loading="eager"
+                          decoding="async"
+                        />
                         <div className={styles.itemDetails}>
                           <h3 className={styles.itemName}>{item.product_name}</h3>
                           {item.variant && (

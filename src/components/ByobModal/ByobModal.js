@@ -261,6 +261,9 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
               src={images[currentImgIndex]}
               alt={product.name || 'Build Your Own Box'}
               className={styles.productImg}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
             />
           ) : (
             <div className={styles.placeholderImg}>
@@ -446,7 +449,13 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                       <div className={styles.flavourThumbWrap}>
                         {thumb ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={thumb} alt={flavor.name} className={styles.flavourThumb} />
+                          <img
+                            src={thumb}
+                            alt={flavor.name}
+                            className={styles.flavourThumb}
+                            loading="lazy"
+                            decoding="async"
+                          />
                         ) : (
                           <div className={styles.flavourThumbFallback}>
                             <Cookie size={22} strokeWidth={1.5} />

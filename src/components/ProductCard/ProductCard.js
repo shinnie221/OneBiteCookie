@@ -11,7 +11,8 @@ import styles from './ProductCard.module.css';
 export default function ProductCard({
   product,
   currencySymbol = 'RM',
-  allProducts = []
+  allProducts = [],
+  priority = false
 }) {
   const { items } = useCart();
   const [modalOpen, setModalOpen] = useState(false);
@@ -60,7 +61,9 @@ export default function ProductCard({
               src={images[0]}
               alt={product.name}
               className={styles.image}
-              loading="lazy"
+              loading={priority ? 'eager' : 'lazy'}
+              fetchPriority={priority ? 'high' : 'auto'}
+              decoding="async"
             />
           ) : (
             <div className={styles.placeholder}>

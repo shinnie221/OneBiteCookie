@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { ArrowLeft } from 'lucide-react';
+import { warmupStorefrontCache, registerServiceWorker } from '@/lib/clientCache';
 import styles from './page.module.css';
 
 export default function LoginPage() {
@@ -13,6 +14,12 @@ export default function LoginPage() {
   const { loginWithGoogle, isAuthenticated, user } = useAuth();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
+
+  // Preload storefront images and register service worker while on login page
+  useEffect(() => {
+    registerServiceWorker();
+    warmupStorefrontCache();
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated && user) {

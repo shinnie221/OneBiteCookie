@@ -154,6 +154,9 @@ export default function ProductDetailModal({ product, isOpen, onClose, currencyS
                 src={images[currentImgIndex]}
                 alt={product.name}
                 className={styles.productImg}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
                 onClick={() => setIsLightboxOpen(true)}
                 title="Tap to view full photo"
               />

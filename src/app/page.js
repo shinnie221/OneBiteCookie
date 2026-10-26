@@ -10,6 +10,13 @@ import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import Footer from '@/components/Footer/Footer';
 import { DEFAULT_BANNER, DEFAULT_AVATAR } from '@/lib/storefrontDefaults';
 import {
+  getCachedItem,
+  setCachedItem,
+  CACHE_KEYS,
+  preloadImageUrls,
+  registerServiceWorker
+} from '@/lib/clientCache';
+import {
   Menu,
   X,
   Search,
@@ -48,6 +55,33 @@ export default function HomePage() {
   useEffect(() => {
     let isMounted = true;
 
+    // Register service worker for image caching
+    registerServiceWorker();
+
+    // 1. Instantly restore cached products & settings if available (0ms loading time)
+    const cachedProducts = getCachedItem(CACHE_KEYS.PRODUCTS);
+    const cachedSettings = getCachedItem(CACHE_KEYS.SETTINGS);
+
+    if (cachedProducts && Array.isArray(cachedProducts) && cachedProducts.length > 0) {
+      setProducts(cachedProducts);
+      setLoading(false);
+    }
+
+    if (cachedSettings) {
+      setSettings(prev => ({
+        ...prev,
+        banner_image: cachedSettings.banner_image || prev.banner_image,
+        avatar_image: cachedSettings.avatar_image || prev.avatar_image,
+        store_name: cachedSettings.store_name || prev.store_name,
+        store_bio: cachedSettings.store_bio || prev.store_bio,
+        currency_symbol: cachedSettings.currency_symbol || prev.currency_symbol,
+        cart_button_label: cachedSettings.cart_button_label && cachedSettings.cart_button_label !== '购物车'
+          ? cachedSettings.cart_button_label
+          : prev.cart_button_label,
+      }));
+    }
+
+    // 2. Fetch fresh data in the background (Stale-While-Revalidate)
     Promise.all([
       fetch('/api/products').then(r => r.ok ? r.json() : { products: [] }).catch(() => ({ products: [] })),
       fetch('/api/settings').then(r => r.ok ? r.json() : { settings: {} }).catch(() => ({ settings: {} }))
@@ -56,6 +90,7 @@ export default function HomePage() {
 
       if (prodData?.products) {
         setProducts(prodData.products);
+        setCachedItem(CACHE_KEYS.PRODUCTS, prodData.products);
       }
 
       if (settData?.settings) {
@@ -70,7 +105,21 @@ export default function HomePage() {
             ? settData.settings.cart_button_label
             : 'View Cart',
         }));
+        setCachedItem(CACHE_KEYS.SETTINGS, settData.settings);
       }
+
+      // Preload all product photos and brand banners into browser & service worker cache
+      const imagesToPreload = [];
+      if (settData?.settings?.banner_image) imagesToPreload.push(settData.settings.banner_image);
+      if (settData?.settings?.avatar_image) imagesToPreload.push(settData.settings.avatar_image);
+      if (prodData?.products) {
+        prodData.products.forEach(p => {
+          if (Array.isArray(p.images)) imagesToPreload.push(...p.images);
+          if (p.image) imagesToPreload.push(p.image);
+        });
+      }
+      preloadImageUrls(imagesToPreload);
+
       setLoading(false);
     }).catch(() => {
       if (isMounted) setLoading(false);
@@ -248,6 +297,9 @@ export default function HomePage() {
             src={settings.banner_image || DEFAULT_BANNER}
             alt="Bakery Banner"
             className={styles.heroBannerImg}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
         </div>
 
@@ -259,6 +311,9 @@ export default function HomePage() {
               src={settings.avatar_image || DEFAULT_AVATAR}
               alt="Bakery Avatar Logo"
               className={styles.avatarImg}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
             />
           </div>
         </div>
@@ -308,13 +363,14 @@ export default function HomePage() {
           </div>
         ) : (
           <div className={styles.productList}>
-            {cookieProducts.map(product => (
+            {cookieProducts.map((product, idx) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 currencySymbol={currencySymbol}
                 allProducts={products}
                 location={storeLocation}
+                priority={idx < 4}
               />
             ))}
           </div>
@@ -338,13 +394,14 @@ export default function HomePage() {
           </p>
 
           <div className={styles.productList}>
-            {byobProducts.map(product => (
+            {byobProducts.map((product, idx) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 currencySymbol={currencySymbol}
                 allProducts={products}
                 location={storeLocation}
+                priority={idx < 2}
               />
             ))}
           </div>
