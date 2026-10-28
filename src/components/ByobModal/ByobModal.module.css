@@ -963,3 +963,29 @@
     padding: 13px 20px;
   }
 }
+
+/* Larger screens: the photo column is a square as tall as the overlay, so photos show uncropped.
+   Matches the product overlay. */
+@media (min-width: 1280px) {
+  .modal {
+    --photo-side: min(720px, 90vh, calc((100vw - 48px) * 0.56));
+    width: min(calc(100vw - 48px), calc(var(--photo-side) + 560px));
+    max-width: none;
+    height: var(--photo-side);
+  }
+
+  .mediaContainer {
+    width: var(--photo-side);
+    flex-shrink: 0;
+  }
+
+  /* The square can be a little shorter than before, so tighten spacing to keep the builder unscrolled */
+  .contentBody {
+    padding-top: 14px;
+    gap: 6px;
+  }
+
+  .flavourItem {
+    padding: 4px 10px;
+  }
+}

@@ -741,3 +741,19 @@
     padding: 13px 16px;
   }
 }
+
+/* Larger screens: the photo column is a square as tall as the overlay, so photos show uncropped.
+   Matches the Build Your Own Box overlay. */
+@media (min-width: 1280px) {
+  .modal {
+    --photo-side: min(720px, 90vh, calc((100vw - 48px) * 0.56));
+    width: min(calc(100vw - 48px), calc(var(--photo-side) + 560px));
+    max-width: none;
+    height: var(--photo-side);
+  }
+
+  .mediaContainer {
+    width: var(--photo-side);
+    flex-shrink: 0;
+  }
+}
