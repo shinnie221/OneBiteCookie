@@ -82,9 +82,9 @@ const item = (p, variant, pieces, price, qty, extra = {}) => ({
 });
 const byob = byName('Build Your Own Box (BYOB)');
 const cart = { voucher: null, discount: 0, items: [
-  item(byName('Strawberry White Choc'), 'Box of 6', 6, 47, 1),
-  item(byName('Red Velvet White Choc'), 'Per piece', 1, 7.9, 2),
-  item(byob, 'Box of 5', 5, 39, 1, { is_byob: true, cart_item_id: 'byob_5_mix', flavour_summary: 'Red Velvet White Choc ×1, Toasted Marshmallow ×1, Classic Chocolate Chip ×1, Caramel Walnut ×1, Strawberry White Choc ×1' }),
+  item(byName('Strawberry White Choc'), 'Box of 6', 6, byName('Strawberry White Choc').box_6_price, 1),
+  item(byName('Red Velvet White Choc'), 'Per piece', 1, byName('Red Velvet White Choc').price, 2),
+  item(byob, 'Box of 5', 5, byob.box_5_price, 1, { is_byob: true, cart_item_id: 'byob_5_mix', flavour_summary: 'Red Velvet White Choc ×1, Toasted Marshmallow ×1, Classic Chocolate Chip ×1, Caramel Walnut ×1, Strawberry White Choc ×1' }),
 ]};
 await page.evaluate(c => localStorage.setItem('onebite_cart', JSON.stringify(c)), cart);
 await page.goto(BASE + '/cart', { waitUntil: 'networkidle0' });

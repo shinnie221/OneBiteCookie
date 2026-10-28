@@ -20,10 +20,9 @@
   #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden;
     background: radial-gradient(1200px 800px at 30% 20%, #FFFDFA 0%, #FBF8F4 45%, #F3EADF 100%); }
 
-  /* Floating cookie photos */
-  .bubble { position: absolute; border-radius: 50%; overflow: hidden; border: 6px solid #fff;
-    box-shadow: 0 24px 60px rgba(56,36,21,.20), 0 4px 14px rgba(56,36,21,.10); will-change: transform, opacity; }
-  .bubble img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* Floating cookie cutouts */
+  .bubble { position: absolute; filter: drop-shadow(0 22px 26px rgba(56,36,21,.28)) drop-shadow(0 4px 6px rgba(56,36,21,.18)); will-change: transform, opacity; }
+  .bubble img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
   /* Intro */
   #icon { position: absolute; width: 240px; height: 240px; left: 840px; top: 330px; will-change: transform, opacity; }
@@ -57,7 +56,7 @@
   .p { font-size: 23px; line-height: 1.55; color: var(--muted); }
   .p b { color: var(--dark); font-weight: 600; }
   .row { display: flex; align-items: center; gap: 16px; font-size: 22px; font-weight: 500; color: var(--dark); }
-  .row img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 4px 12px rgba(56,36,21,.18); }
+  .row img { width: 58px; height: 58px; object-fit: contain; filter: drop-shadow(0 5px 7px rgba(56,36,21,.28)); }
   .list { display: flex; flex-direction: column; gap: 12px; }
   .price { font-size: 22px; color: var(--muted); }
   .price b { font-variant-numeric: lining-nums; font-family: 'Playfair Display', serif; font-size: 34px; color: var(--brown); margin-left: 6px; }
@@ -111,22 +110,22 @@
     <div class="kicker">The menu</div>
     <div class="h">Five signature flavors.</div>
     <div class="list">
-      <div class="row"><img src="assets/cookie-strawberry.jpg" alt="">Strawberry White Choc</div>
-      <div class="row"><img src="assets/cookie-red-velvet.jpg" alt="">Red Velvet White Choc</div>
-      <div class="row"><img src="assets/cookie-choc-chip.jpg" alt="">Classic Chocolate Chip</div>
-      <div class="row"><img src="assets/cookie-marshmallow.jpg" alt="">Toasted Marshmallow</div>
-      <div class="row"><img src="assets/cookie-caramel-walnut.jpg" alt="">Caramel Walnut</div>
+      <div class="row"><img src="assets/cutout-strawberry.png" alt="">Strawberry White Choc</div>
+      <div class="row"><img src="assets/cutout-red-velvet.png" alt="">Red Velvet White Choc</div>
+      <div class="row"><img src="assets/cutout-choc-chip.png" alt="">Classic Chocolate Chip</div>
+      <div class="row"><img src="assets/cutout-marshmallow.png" alt="">Toasted Marshmallow</div>
+      <div class="row"><img src="assets/cutout-caramel-walnut.png" alt="">Caramel Walnut</div>
     </div>
-    <div class="price">From <b>RM7.90</b> per piece</div>
+    <div class="price">From <b>RM8.90</b> per piece</div>
   </div>
   <div class="cap" id="cap-product">
     <div class="kicker">Product details</div>
     <div class="h">By the piece or by the box.</div>
     <div class="list">
-      <div class="opt">Per piece <b>RM7.90</b></div>
-      <div class="opt">Box of 4 <b>RM31.00</b></div>
-      <div class="opt" id="opt6">Box of 6 <b>RM47.00</b></div>
-      <div class="opt">Box of 12 <b>RM92.00</b></div>
+      <div class="opt">Per piece <b>RM8.90</b></div>
+      <div class="opt">Box of 4 <b>RM35.00</b></div>
+      <div class="opt" id="opt6">Box of 6 <b>RM53.00</b></div>
+      <div class="opt">Box of 12 <b>RM105.00</b></div>
     </div>
   </div>
   <div class="cap" id="cap-byob">
@@ -228,29 +227,29 @@ const toView = (c, x, y) => [(x - c.ox) * c.k, (y - c.oy) * c.k];
 const cursors = [
   { screen: 'home', show: [12.0, 13.45], keys: [[12.0, 1020, 1180], [12.9, 1265, 800]], click: 13.0 },
   { screen: 'product', show: [14.9, 16.7], keys: [[14.9, 1120, 640], [15.65, 835, 412]], click: 15.8 },
-  { screen: 'byob', show: [19.6, 21.2], keys: [[19.6, 1260, 620], [20.4, 1117, 305]], click: 20.55 },
+  { screen: 'byob', show: [19.6, 21.2], keys: [[19.6, 1260, 620], [20.4, 1120, 294]], click: 20.55 },
   { screen: 'cart', show: [24.9, 26.3], keys: [[24.9, 1300, 1000], [25.7, 1080, 834]], click: 25.85 },
 ];
 // Highlight rectangles (page coords)
 const highlights = [
   { screen: 'home', win: [7.5, 7.9, 9.0, 9.3], rect: [505, 4, 935, 31] },
   { screen: 'product6', win: [16.1, 16.4, 17.9, 18.2], rect: [742, 386, 1170, 435] },
-  { screen: 'byob9', win: [20.9, 21.2, 22.3, 22.6], rect: [660, 281, 1199, 340] },
+  { screen: 'byob9', win: [20.9, 21.2, 22.3, 22.6], rect: [660, 272, 1200, 362] },
 ];
 
-// Floating cookie bubbles (real product photos)
+// Floating cookie cutouts (the shop's own transparent product cutouts)
 const photos = ['strawberry', 'red-velvet', 'choc-chip', 'marshmallow', 'caramel-walnut'];
 const bubbleSpots = [
-  [250, 210, 190], [1650, 190, 170], [200, 820, 160], [1680, 790, 200], [960, 900, 120],
+  [250, 215, 240], [1660, 200, 210], [215, 845, 205], [1690, 805, 250], [960, 935, 150],
 ];
 const bubbles = bubbleSpots.map(([x, y, d], i) => {
   const b = document.createElement('div');
   b.className = 'bubble';
   b.style.cssText = `width:${d}px;height:${d}px;left:${x - d / 2}px;top:${y - d / 2}px`;
-  b.innerHTML = `<img src="assets/cookie-${photos[i]}.jpg" alt="">`;
+  b.innerHTML = `<img src="assets/cutout-${photos[i]}.png" alt="">`;
   $('bubbles').appendChild(b);
   const b2 = b.cloneNode(true);
-  b2.style.borderColor = '#5A3E28';
+  b2.style.filter = 'drop-shadow(0 24px 30px rgba(0,0,0,.5)) drop-shadow(0 4px 6px rgba(0,0,0,.3))';
   $('bubbles2').appendChild(b2);
   return [b, b2];
 });
@@ -285,7 +284,7 @@ window.seek = function (t) {
 
   // Cookie bubbles: intro and outro
   bubbles.forEach(([b, b2], i) => {
-    const drift = `translate(${Math.sin(t * 0.7 + i * 1.3) * 10}px, ${Math.cos(t * 0.6 + i) * 12}px)`;
+    const drift = `translate(${Math.sin(t * 0.7 + i * 1.3) * 10}px, ${Math.cos(t * 0.6 + i) * 12}px) rotate(${[-14, 9, 16, -7, 11][i] + Math.sin(t * 0.5 + i) * 5}deg)`;
     const pin = easeOutBack(prog(t, 0.35 + i * 0.12, 1.15 + i * 0.12));
     set(b, clamp(prog(t, 0.35 + i * 0.12, 0.8 + i * 0.12)) * (1 - easeInOut(prog(t, 3.2, 3.9))),
       `${drift} scale(${lerp(0.4, 1, pin) * (1 + 0.15 * prog(t, 3.2, 3.9))})`);
