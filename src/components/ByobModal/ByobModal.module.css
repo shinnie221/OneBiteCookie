@@ -889,23 +889,25 @@
   background: #e7dac5;
 }
 
-/* Wide screens: photo on the left, box builder on the right so it fits without scrolling */
+/* Wide screens: photo on the left, box builder on the right.
+   Same size and photo crop as the product overlay so the two feel like one view;
+   the flavor list scrolls inside the right pane when the box builder is taller. */
 @media (min-width: 768px) {
   .modal {
     flex-direction: row;
-    max-width: 1000px;
-    height: min(720px, 92vh);
-    max-height: 92vh;
+    max-width: 940px;
+    height: min(600px, 88vh);
+    max-height: 88vh;
   }
 
   .mediaContainer {
-    width: 42%;
+    width: 50%;
     height: auto;
   }
 
   .contentBody {
-    padding: 18px 22px 10px;
-    gap: 8px;
+    padding: 14px 22px 10px;
+    gap: 6px;
   }
 
   .headerRow {
@@ -925,7 +927,7 @@
   }
 
   .flavourItem {
-    padding: 5px 10px;
+    padding: 4px 10px;
   }
 
   .flavourThumbWrap {
@@ -961,31 +963,5 @@
 
   .submitBtn {
     padding: 13px 20px;
-  }
-}
-
-/* Larger screens: the photo column is a square as tall as the overlay, so photos show uncropped.
-   Matches the product overlay. */
-@media (min-width: 1280px) {
-  .modal {
-    --photo-side: min(720px, 90vh, calc((100vw - 48px) * 0.56));
-    width: min(calc(100vw - 48px), calc(var(--photo-side) + 560px));
-    max-width: none;
-    height: var(--photo-side);
-  }
-
-  .mediaContainer {
-    width: var(--photo-side);
-    flex-shrink: 0;
-  }
-
-  /* The square can be a little shorter than before, so tighten spacing to keep the builder unscrolled */
-  .contentBody {
-    padding-top: 14px;
-    gap: 6px;
-  }
-
-  .flavourItem {
-    padding: 4px 10px;
   }
 }

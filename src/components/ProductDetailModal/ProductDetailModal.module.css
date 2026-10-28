@@ -695,18 +695,17 @@
   right: 14px;
 }
 
-/* Wide screens: photo on the left, details on the right so everything fits without scrolling.
-   Same size and photo width as the Build Your Own Box overlay so the two feel like one view. */
+/* Wide screens: photo on the left, details on the right so everything fits without scrolling */
 @media (min-width: 768px) {
   .modal {
     flex-direction: row;
-    max-width: 1000px;
-    height: min(720px, 92vh);
-    max-height: 92vh;
+    max-width: 940px;
+    height: min(600px, 88vh);
+    max-height: 88vh;
   }
 
   .mediaContainer {
-    width: 42%;
+    width: 50%;
     height: auto;
   }
 
@@ -739,21 +738,5 @@
 
   .submitBtn {
     padding: 13px 16px;
-  }
-}
-
-/* Larger screens: the photo column is a square as tall as the overlay, so photos show uncropped.
-   Matches the Build Your Own Box overlay. */
-@media (min-width: 1280px) {
-  .modal {
-    --photo-side: min(720px, 90vh, calc((100vw - 48px) * 0.56));
-    width: min(calc(100vw - 48px), calc(var(--photo-side) + 560px));
-    max-width: none;
-    height: var(--photo-side);
-  }
-
-  .mediaContainer {
-    width: var(--photo-side);
-    flex-shrink: 0;
   }
 }
