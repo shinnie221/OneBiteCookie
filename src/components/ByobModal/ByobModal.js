@@ -110,6 +110,11 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
     return Object.values(selectedFlavours).reduce((sum, count) => sum + (Number(count) || 0), 0);
   }, [selectedFlavours]);
 
+  // Flatten selections into one entry per cookie (in pick order) to fill the box slots
+  const boxSlots = useMemo(() => {
+    return Object.entries(selectedFlavours).flatMap(([prodId, count]) => Array(count).fill(prodId));
+  }, [selectedFlavours]);
+
   const remainingCount = targetCount - totalSelectedCount;
   const isFull = totalSelectedCount === targetCount;
 
@@ -414,14 +419,32 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 </div>
               </div>
 
-              <div className={styles.progressBarWrap}>
-                <div
-                  className={styles.progressBarFill}
-                  style={{
-                    width: `${Math.min(100, (totalSelectedCount / targetCount) * 100)}%`,
-                    backgroundColor: isFull ? '#22c55e' : '#d97706'
-                  }}
-                />
+              {/* One slot per cookie in the box, filled with each picked flavour's photo (tap to remove) */}
+              <div className={styles.slots} style={{ '--slot-cols': Math.min(targetCount, 12) }}>
+                {Array.from({ length: targetCount }, (_, i) => {
+                  const flavorId = boxSlots[i];
+                  const flavor = flavorId ? availableFlavours.find(p => p.id === flavorId) : null;
+                  const thumb = flavor && ((flavor.images && flavor.images[0]) || flavor.image);
+                  return flavor ? (
+                    <button
+                      type="button"
+                      key={i}
+                      className={`${styles.slot} ${styles.slotFilled}`}
+                      onClick={() => handleRemoveFlavour(flavorId)}
+                      title={`${flavor.name} · tap to remove`}
+                      aria-label={`Remove one ${flavor.name}`}
+                    >
+                      {thumb ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={thumb} alt="" decoding="async" />
+                      ) : (
+                        <Cookie size={18} strokeWidth={1.5} />
+                      )}
+                    </button>
+                  ) : (
+                    <span key={i} className={styles.slot} aria-hidden="true" />
+                  );
+                })}
               </div>
             </div>
 

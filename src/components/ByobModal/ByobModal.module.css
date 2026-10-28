@@ -436,18 +436,60 @@
   white-space: nowrap;
 }
 
-.progressBarWrap {
-  width: 100%;
-  height: 6px;
-  background: #e9decb;
-  border-radius: 6px;
-  overflow: hidden;
+/* Box slots: one circle per cookie, filled with the picked flavour's photo (matches the stall POS) */
+.slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
 }
 
-.progressBarFill {
+.slot {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px dashed var(--color-border, #e0d5ca);
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: #a0714f;
+}
+
+.slot img {
+  width: 100%;
   height: 100%;
-  border-radius: 6px;
-  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s;
+  object-fit: cover;
+}
+
+.slotFilled {
+  border: 2px solid var(--color-primary-light, #e8d5c4);
+  background: #f2ede5;
+  cursor: pointer;
+  animation: slotPop 0.18s ease-out;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+@media (hover: hover) {
+  .slotFilled:hover {
+    border-color: #e02424;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes slotPop {
+  from { transform: scale(0.6); opacity: 0.4; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 380px) {
+  .slot {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 .quickActions {
@@ -839,8 +881,8 @@
   }
 
   .contentBody {
-    padding: 22px 22px 12px;
-    gap: 10px;
+    padding: 18px 22px 10px;
+    gap: 8px;
   }
 
   .headerRow {
@@ -866,6 +908,27 @@
   .flavourThumbWrap {
     width: 38px;
     height: 38px;
+  }
+
+  /* The stepper count and box slots already show this, so save the row height */
+  .flavourPickedCount {
+    display: none;
+  }
+
+  .progressCard {
+    padding: 8px 12px;
+  }
+
+  /* Keep up to 12 slots on one row, shrinking them slightly if needed */
+  .slots {
+    display: grid;
+    grid-template-columns: repeat(var(--slot-cols, 12), minmax(0, 38px));
+  }
+
+  .slot {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
   }
 
   .bottomFooter {
