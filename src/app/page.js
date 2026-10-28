@@ -248,7 +248,7 @@ export default function HomePage() {
                   Profile
                 </Link>
               ) : (
-                <Link href="/staff/dashboard" className={styles.desktopAuthBtn} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <Link href="/staff/dashboard" className={styles.desktopAuthBtn}>
                   <LayoutDashboard size={15} /> Dashboard
                 </Link>
               )

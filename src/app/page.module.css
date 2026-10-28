@@ -143,6 +143,14 @@
   max-width: 190px;
 }
 
+/* Very narrow phones: keep menu, logo and cart on one row without overflowing */
+@media (max-width: 360px) {
+  .navCenterTitle .brandLogoImg {
+    height: 36px;
+    max-width: 150px;
+  }
+}
+
 /* Desktop Center Nav Links */
 .desktopNavLinks {
   display: none;
