@@ -480,6 +480,29 @@
   }
 }
 
+/* Transparent cutout: just the cookie, no circle background or border */
+.slotCutout,
+.slotCutout.slotFilled {
+  border-color: transparent;
+  background: transparent;
+  overflow: visible;
+}
+
+.slotCutout img {
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(45, 27, 14, 0.25));
+}
+
+.flavourThumbCutout {
+  background: transparent;
+  overflow: visible;
+}
+
+.flavourThumbCutout .flavourThumb {
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(45, 27, 14, 0.22));
+}
+
 @keyframes slotPop {
   from { transform: scale(0.6); opacity: 0.4; }
   to { transform: scale(1); opacity: 1; }

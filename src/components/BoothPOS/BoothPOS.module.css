@@ -1780,6 +1780,23 @@
   border: 2px solid var(--color-primary-light);
 }
 
+/* Transparent cutout: just the cookie, no circle background or border */
+.slotCutout {
+  border-color: transparent;
+  overflow: visible;
+}
+
+.slotCutout img,
+.thumbCutout img {
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(45, 27, 14, 0.25));
+}
+
+.thumbCutout {
+  background: transparent;
+  overflow: visible;
+}
+
 .mixList {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));

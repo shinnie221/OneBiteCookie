@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Modal from '@/components/Modal/Modal';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
-import { uploadImageToImgBB } from '@/lib/imgbb';
+import { uploadImageToImgBB, uploadTransparentImage, hasTransparency } from '@/lib/imgbb';
 import ImageCropperModal from '@/components/ImageCropperModal/ImageCropperModal';
 import styles from './page.module.css';
 
@@ -20,6 +20,7 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const fileInputRef = useRef(null);
+  const cutoutInputRef = useRef(null);
 
   // Photo Cropper States
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -44,6 +45,8 @@ export default function ProductsPage() {
   const [formData, setFormData] = useState(defaultForm);
   // Array of image items: [{ url, file, isNew }]
   const [imageList, setImageList] = useState([]);
+  // Transparent-background cookie photo for Build Your Own Box: { url, file } or null
+  const [cutout, setCutout] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -68,6 +71,7 @@ export default function ProductsPage() {
     setEditingProduct(null);
     setFormData(defaultForm);
     setImageList([]);
+    setCutout(null);
     setIsModalOpen(true);
   };
 
@@ -93,6 +97,7 @@ export default function ProductsPage() {
       : (product.image ? [product.image] : []);
 
     setImageList(existingUrls.map(url => ({ url, file: null, isNew: false })));
+    setCutout(product.cutout_image ? { url: product.cutout_image, file: null } : null);
     setIsModalOpen(true);
   };
 
@@ -113,6 +118,21 @@ export default function ProductsPage() {
       ...prev,
       [name]: nextVal
     }));
+  };
+
+  // Cutout photo selection: kept as-is (no cropper) so the transparent background survives
+  const handleCutoutChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > 25 * 1024 * 1024) {
+      toast.warning('图片过大（请选择小于 25MB 的照片）');
+      return;
+    }
+    if (!(await hasTransparency(file))) {
+      toast.warning('这张图片似乎没有透明背景，礼盒里会显示出背景。建议使用去背景的 PNG / WebP。');
+    }
+    setCutout({ url: URL.createObjectURL(file), file });
   };
 
   // Multi-image selection with smart single/multi-crop support
@@ -290,6 +310,18 @@ export default function ProductsPage() {
         }
       }
 
+      // Upload a newly picked cutout, keeping its transparency
+      let cutoutUrl = cutout && !cutout.file ? cutout.url : null;
+      if (cutout?.file) {
+        try {
+          cutoutUrl = await uploadTransparentImage(cutout.file);
+        } catch (uploadError) {
+          console.error('Cutout upload error:', uploadError);
+          toast.error('去背景曲奇图上传失败');
+          cutoutUrl = editingProduct?.cutout_image || null;
+        }
+      }
+
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -303,7 +335,8 @@ export default function ProductsPage() {
         box_8_price: formData.box_8_price !== '' && formData.box_8_price !== null ? Number(formData.box_8_price) : null,
         box_12_price: formData.box_12_price !== '' && formData.box_12_price !== null ? Number(formData.box_12_price) : null,
         images: finalImageUrls,
-        image: finalImageUrls[0] || null
+        image: finalImageUrls[0] || null,
+        cutout_image: cutoutUrl
       };
 
       const url = editingProduct
@@ -529,6 +562,53 @@ export default function ProductsPage() {
               className={styles.hiddenInput}
             />
           </div>
+
+          {/* Transparent cutout used inside Build Your Own Box (customer site + booth mix box) */}
+          {!formData.is_byob && (
+            <div className={styles.gallerySection}>
+              <div className={styles.sectionLabel}>🍪 去背景曲奇图（自选礼盒用）</div>
+              <div className={styles.sectionHint}>
+                上传只有曲奇、背景透明的 PNG / WebP（例如 iPhone 长按照片「拷贝主体」后保存）。会显示在顾客端自选礼盒和摆摊混搭礼盒的格子里；未上传时使用主封面照片。
+              </div>
+
+              <div className={styles.cutoutRow}>
+                <div className={styles.cutoutPreview}>
+                  {cutout ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={cutout.url} alt="去背景曲奇图预览" />
+                  ) : (
+                    <span className={styles.cutoutEmpty}>未上传</span>
+                  )}
+                </div>
+                <div className={styles.cutoutActions}>
+                  <button
+                    type="button"
+                    className="btn btnSecondary"
+                    onClick={() => cutoutInputRef.current?.click()}
+                  >
+                    {cutout ? '更换去背景图' : '上传去背景图'}
+                  </button>
+                  {cutout && (
+                    <button
+                      type="button"
+                      className={styles.cutoutRemoveBtn}
+                      onClick={() => setCutout(null)}
+                    >
+                      移除
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <input
+                type="file"
+                ref={cutoutInputRef}
+                onChange={handleCutoutChange}
+                accept="image/png,image/webp,image/*"
+                className={styles.hiddenInput}
+              />
+            </div>
+          )}
 
           <div className="formGroup mb2">
             <label htmlFor="name">曲奇口味名称 *</label>

@@ -424,12 +424,14 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 {Array.from({ length: targetCount }, (_, i) => {
                   const flavorId = boxSlots[i];
                   const flavor = flavorId ? availableFlavours.find(p => p.id === flavorId) : null;
-                  const thumb = flavor && ((flavor.images && flavor.images[0]) || flavor.image);
+                  // Prefer the transparent cutout so only the cookie shows in the box
+                  const cutoutSrc = flavor?.cutout_image;
+                  const thumb = flavor && (cutoutSrc || (flavor.images && flavor.images[0]) || flavor.image);
                   return flavor ? (
                     <button
                       type="button"
                       key={i}
-                      className={`${styles.slot} ${styles.slotFilled}`}
+                      className={`${styles.slot} ${styles.slotFilled} ${cutoutSrc ? styles.slotCutout : ''}`}
                       onClick={() => handleRemoveFlavour(flavorId)}
                       title={`${flavor.name} · tap to remove`}
                       aria-label={`Remove one ${flavor.name}`}
@@ -460,7 +462,8 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
               <div className={styles.flavourList}>
                 {availableFlavours.map(flavor => {
                   const pickedCount = selectedFlavours[flavor.id] || 0;
-                  const thumb = (flavor.images && flavor.images[0]) || flavor.image;
+                  const cutoutSrc = flavor.cutout_image;
+                  const thumb = cutoutSrc || (flavor.images && flavor.images[0]) || flavor.image;
                   return (
                     <div
                       key={flavor.id}
@@ -471,7 +474,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                         onClick={(e) => handleOpenFlavourPreview(flavor, e)}
                         title="Click to view photo & details"
                       >
-                        <div className={styles.flavourThumbWrap}>
+                        <div className={`${styles.flavourThumbWrap} ${cutoutSrc ? styles.flavourThumbCutout : ''}`}>
                           {thumb ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img

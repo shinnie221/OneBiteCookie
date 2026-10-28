@@ -37,6 +37,8 @@ export async function PUT(request, { params }) {
       images = body.image ? [body.image] : [];
     }
     const image = images[0] || body.image || null;
+    // Transparent-background photo used by the Build Your Own Box slots
+    const cutout_image = body.cutout_image !== undefined ? (body.cutout_image || null) : (existing.cutout_image ?? null);
 
     const has_box_options = body.has_box_options !== undefined ? Boolean(body.has_box_options) : (existing.has_box_options !== false);
     const is_byob = body.is_byob !== undefined ? Boolean(body.is_byob) : Boolean(existing.is_byob);
@@ -53,6 +55,7 @@ export async function PUT(request, { params }) {
       available, 
       image, 
       images,
+      cutout_image,
       has_box_options,
       is_byob,
       box_4_price,

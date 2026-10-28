@@ -261,6 +261,11 @@ export default function BoothPOS() {
     return item?.image || null;
   }, [products]);
 
+  // Transparent-background cookie for the mix box (null when the flavour has no cutout yet)
+  const getItemCutout = useCallback((item) => {
+    return matchProduct(item, products)?.cutout_image || null;
+  }, [products]);
+
   // Load initial products and restore local transactions if any
   useEffect(() => {
     async function init() {
@@ -1700,9 +1705,10 @@ export default function BoothPOS() {
                   const order = Object.entries(mix.counts).flatMap(([n, c]) => Array(c).fill(n));
                   const name = order[i];
                   const item = name ? inventory.find(it => it.name === name) : null;
+                  const cutout = item ? getItemCutout(item) : null;
                   return (
-                    <div key={i} className={`${styles.slot} ${name ? styles.slotFilled : ''}`} title={name || ''}>
-                      {item && <CookieImage src={getItemImage(item)} alt="" />}
+                    <div key={i} className={`${styles.slot} ${name ? styles.slotFilled : ''} ${cutout ? styles.slotCutout : ''}`} title={name || ''}>
+                      {item && <CookieImage src={cutout || getItemImage(item)} alt="" />}
                     </div>
                   );
                 })}
@@ -1712,9 +1718,10 @@ export default function BoothPOS() {
               {inventory.map(item => {
                 const count = mix.counts[item.name] || 0;
                 const free = stockOf(item).free - count;
+                const cutout = getItemCutout(item);
                 return (
                   <div key={item.name} className={`${styles.mixItem} ${free <= 0 && !count ? styles.mixItemDisabled : ''}`}>
-                    <div className={styles.lineThumb}><CookieImage src={getItemImage(item)} alt="" /></div>
+                    <div className={`${styles.lineThumb} ${cutout ? styles.thumbCutout : ''}`}><CookieImage src={cutout || getItemImage(item)} alt="" /></div>
                     <div className={styles.mixName}>{item.name}<small>剩 {Math.max(0, free)} 片</small></div>
                     <button type="button" className={styles.stepBtn} onClick={() => changeMixCount(item.name, -1)} disabled={!count} aria-label={`减少 ${item.name}`}>−</button>
                     <span className={styles.stepCount}>{count}</span>
