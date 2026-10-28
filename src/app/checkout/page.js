@@ -12,6 +12,7 @@ import {
   isStateDeliverable,
   WHATSAPP_INQUIRY_URL
 } from '@/lib/addresses.mjs';
+import { DEFAULT_PICKUP, getPickupDetails } from '@/lib/pickupSettings';
 import {
   MapPin,
   Clock,
@@ -41,6 +42,7 @@ export default function CheckoutPage() {
   const toast = useToast();
 
   const [deliveryEnabled, setDeliveryEnabled] = useState(true);
+  const [pickup, setPickup] = useState(DEFAULT_PICKUP);
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const hasRedirected = useRef(false);
@@ -50,7 +52,7 @@ export default function CheckoutPage() {
     phone: '',
     email: user?.email || '',
     order_type: 'pickup',
-    address: 'The Palette @ Danau Kota, Kuala Lumpur'
+    address: DEFAULT_PICKUP.name
   });
 
   useEffect(() => {
@@ -129,16 +131,18 @@ export default function CheckoutPage() {
       }
     }
 
-    // Fetch settings to check if delivery is enabled
+    // Fetch settings for the pickup point and to check if delivery is enabled
     fetch('/api/settings')
       .then(res => res.json())
       .then(data => {
+        const pickupDetails = getPickupDetails(data.settings);
+        setPickup(pickupDetails);
         if (data.settings && data.settings.delivery_enabled === 'false') {
           setDeliveryEnabled(false);
           setFormData(prev => ({
             ...prev,
             order_type: 'pickup',
-            address: 'The Palette @ Danau Kota, Kuala Lumpur'
+            address: pickupDetails.name
           }));
         }
       })
@@ -152,7 +156,7 @@ export default function CheckoutPage() {
         setFormData(prev => ({
           ...prev,
           order_type: 'pickup',
-          address: 'The Palette @ Danau Kota, Kuala Lumpur'
+          address: pickup.name
         }));
       } else {
         const matched = savedAddresses.find(a => a.id === selectedAddressId) || savedAddresses[0];
@@ -203,7 +207,7 @@ export default function CheckoutPage() {
 
     const finalAddress = formData.order_type === 'delivery'
       ? (selectedAddr ? formatFullAddress(selectedAddr) : formData.address)
-      : 'The Palette @ Danau Kota, Kuala Lumpur';
+      : pickup.name;
 
     const deliveryFee = formData.order_type === 'delivery' ? DELIVERY_FEE : 0;
 
@@ -212,7 +216,7 @@ export default function CheckoutPage() {
       customerInfo: {
         ...formData,
         address: finalAddress,
-        pickup_time: formData.order_type === 'pickup' ? '11:00 AM' : null,
+        pickup_time: formData.order_type === 'pickup' ? pickup.time : null,
         delivery_state: formData.order_type === 'delivery'
           ? (selectedAddr?.state || 'Kuala Lumpur')
           : null,
@@ -314,7 +318,7 @@ export default function CheckoutPage() {
                     />
                     <div className={styles.radioContent}>
                       <span className={styles.radioTitle}>Store Pickup</span>
-                      <span className={styles.radioDesc}>Pick up at The Palette @ Danau Kota, KL (11:00 AM)</span>
+                      <span className={styles.radioDesc}>Pick up at {pickup.name} ({pickup.time})</span>
                     </div>
                   </label>
 
@@ -343,35 +347,33 @@ export default function CheckoutPage() {
                         <MapPin size={20} />
                       </span>
                       <div>
-                        <strong className={styles.pickupTitle}>Pickup Point: The Palette @ Danau Kota</strong>
-                        <span className={styles.pickupSubtitle}>Store collection point in Setapak, Kuala Lumpur</span>
+                        <strong className={styles.pickupTitle}>Pickup Point: {pickup.name}</strong>
+                        {pickup.subtitle && <span className={styles.pickupSubtitle}>{pickup.subtitle}</span>}
                       </div>
                     </div>
 
                     <div className={styles.pickupDetails}>
                       <p className={styles.pickupAddress}>
-                        <strong>Address:</strong> The Palette, Danau Kota, 53300 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur
+                        <strong>Address:</strong> {pickup.address}
                       </p>
                       <p className={styles.pickupTime} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Clock size={15} /> <strong>Pickup Time:</strong> 11:00 AM
-                      </p>
-                      <p className={styles.pickupNote} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
-                        <Clock size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
-                        <span>Ready for collection at <strong>11:00 AM</strong> once your order status is marked as <strong>Ready for Pickup</strong>.</span>
+                        <Clock size={15} /> <strong>Pickup Time:</strong> {pickup.time}
                       </p>
                     </div>
 
-                    <div className={styles.pickupLinks}>
-                      <a
-                        href="https://www.google.com/maps/search/?api=1&query=The+Palette+Danau+Kota+Kuala+Lumpur"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.mapsLinkBtn}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                      >
-                        <Map size={15} /> View on Google Maps <ExternalLink size={13} />
-                      </a>
-                    </div>
+                    {pickup.maps_link && (
+                      <div className={styles.pickupLinks}>
+                        <a
+                          href={pickup.maps_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.mapsLinkBtn}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                        >
+                          <Map size={15} /> View on Google Maps <ExternalLink size={13} />
+                        </a>
+                      </div>
+                    )}
                   </div>
                 )}
 

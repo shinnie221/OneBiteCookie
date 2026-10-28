@@ -4,6 +4,7 @@ import { verifyAuth } from '@/lib/auth';
 import { sendOrderNotificationEmail, sendStaffOrderNotificationEmail } from '@/lib/email';
 import { isStateDeliverable } from '@/lib/addresses.mjs';
 import { getProductPackagingOptions } from '@/lib/packaging';
+import { getPickupDetails } from '@/lib/pickupSettings';
 import { NextResponse } from 'next/server';
 
 function generateOrderId() {
@@ -319,6 +320,13 @@ export async function POST(request) {
       finalOrderStatus = order_status || 'preparing';
     }
 
+    // Pickup orders without a time get the store's current pickup time
+    let finalPickupTime = pickup_time || null;
+    if (!finalPickupTime && order_type === 'pickup') {
+      const settingsSnap = await getDoc(doc(db, 'settings', 'store_settings')).catch(() => null);
+      finalPickupTime = getPickupDetails(settingsSnap?.exists() ? settingsSnap.data() : {}).time;
+    }
+
     const newOrder = {
       order_id: orderId,
       customer_id: finalCustomerId,
@@ -327,7 +335,7 @@ export async function POST(request) {
       email: email || '',
       order_type: order_type || 'pickup',
       address: address || '',
-      pickup_time: pickup_time || (order_type === 'pickup' ? '11:00 AM' : null),
+      pickup_time: finalPickupTime,
       delivery_state: delivery_state || (order_type === 'delivery' ? 'Kuala Lumpur' : null),
       subtotal,
       discount,

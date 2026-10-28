@@ -18,6 +18,7 @@ import {
   ANNOUNCEMENT_UPDATED_EVENT,
   sanitizeAnnouncementLink
 } from '@/components/AnnouncementBar/AnnouncementBar';
+import { DEFAULT_PICKUP, sanitizeMapsLink } from '@/lib/pickupSettings';
 import styles from './page.module.css';
 
 const ANNOUNCEMENT_MAX_LENGTH = 160;
@@ -77,6 +78,11 @@ export default function StorefrontSettingsPage() {
     announcement_enabled: false,
     announcement_text: '',
     announcement_link: '',
+    pickup_name: DEFAULT_PICKUP.name,
+    pickup_subtitle: DEFAULT_PICKUP.subtitle,
+    pickup_address: DEFAULT_PICKUP.address,
+    pickup_time: DEFAULT_PICKUP.time,
+    pickup_maps_link: DEFAULT_PICKUP.maps_link,
   });
 
   useEffect(() => {
@@ -97,6 +103,11 @@ export default function StorefrontSettingsPage() {
             announcement_enabled: Boolean(data.settings.announcement_enabled),
             announcement_text: data.settings.announcement_text || '',
             announcement_link: data.settings.announcement_link || '',
+            pickup_name: data.settings.pickup_name || DEFAULT_PICKUP.name,
+            pickup_subtitle: data.settings.pickup_subtitle ?? DEFAULT_PICKUP.subtitle,
+            pickup_address: data.settings.pickup_address || DEFAULT_PICKUP.address,
+            pickup_time: data.settings.pickup_time || DEFAULT_PICKUP.time,
+            pickup_maps_link: data.settings.pickup_maps_link ?? DEFAULT_PICKUP.maps_link,
           }));
           setAnnouncementUpdatedAt(data.settings.announcement_updated_at || null);
         }
@@ -301,14 +312,29 @@ export default function StorefrontSettingsPage() {
       toast.error('公告链接需以 https:// 或 / 开头');
       return;
     }
+    if (!formData.pickup_name.trim() || !formData.pickup_address.trim() || !formData.pickup_time.trim()) {
+      toast.error('请填写自取点名称、地址和自取时间');
+      return;
+    }
+    if (formData.pickup_maps_link.trim() && !sanitizeMapsLink(formData.pickup_maps_link)) {
+      toast.error('地图链接需以 https:// 开头');
+      return;
+    }
 
     setSaving(true);
     try {
       const announcementPayload = buildAnnouncementPayload();
+      const pickupPayload = {
+        pickup_name: formData.pickup_name.trim(),
+        pickup_subtitle: formData.pickup_subtitle.trim(),
+        pickup_address: formData.pickup_address.trim(),
+        pickup_time: formData.pickup_time.trim(),
+        pickup_maps_link: sanitizeMapsLink(formData.pickup_maps_link),
+      };
       const res = await authFetch('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, ...announcementPayload })
+        body: JSON.stringify({ ...formData, ...announcementPayload, ...pickupPayload })
       });
 
       if (res.ok) {
@@ -591,6 +617,78 @@ export default function StorefrontSettingsPage() {
                     撤下公告
                   </button>
                 )}
+              </div>
+            </section>
+
+            {/* 4. Store Pickup Point */}
+            <section className={styles.card}>
+              <div className={styles.cardHeader}>
+                <h2>4. 门店自取信息 (Store Pickup)</h2>
+                <p>显示在顾客结账页和订单确认页的自取地点与时间。修改后点击下方「保存所有外观更改」生效。</p>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="pickup_name">自取点名称 *</label>
+                <input
+                  type="text"
+                  id="pickup_name"
+                  name="pickup_name"
+                  value={formData.pickup_name}
+                  onChange={handleInputChange}
+                  placeholder={`例如：${DEFAULT_PICKUP.name}`}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="pickup_subtitle">自取点简介（可选）</label>
+                <input
+                  type="text"
+                  id="pickup_subtitle"
+                  name="pickup_subtitle"
+                  value={formData.pickup_subtitle}
+                  onChange={handleInputChange}
+                  placeholder={`例如：${DEFAULT_PICKUP.subtitle}`}
+                />
+                <span className={styles.helperText}>显示在自取点名称下方的一行小字，留空则不显示</span>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="pickup_address">完整地址 *</label>
+                <textarea
+                  id="pickup_address"
+                  name="pickup_address"
+                  rows={2}
+                  value={formData.pickup_address}
+                  onChange={handleInputChange}
+                  placeholder={`例如：${DEFAULT_PICKUP.address}`}
+                  className={styles.bioTextarea}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="pickup_time">自取时间 *</label>
+                <input
+                  type="text"
+                  id="pickup_time"
+                  name="pickup_time"
+                  value={formData.pickup_time}
+                  onChange={handleInputChange}
+                  placeholder={`例如：${DEFAULT_PICKUP.time}`}
+                />
+                <span className={styles.helperText}>顾客端为英文页面，建议用英文填写，例如 11:00 AM 或 2:00 PM – 5:00 PM</span>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="pickup_maps_link">Google 地图链接（可选）</label>
+                <input
+                  type="text"
+                  id="pickup_maps_link"
+                  name="pickup_maps_link"
+                  value={formData.pickup_maps_link}
+                  onChange={handleInputChange}
+                  placeholder="例如：https://maps.app.goo.gl/..."
+                />
+                <span className={styles.helperText}>在 Google 地图中点「分享」复制链接；留空则不显示「View on Google Maps」按钮</span>
               </div>
             </section>
 

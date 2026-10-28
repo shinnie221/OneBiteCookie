@@ -8,6 +8,7 @@ import Navbar from '@/components/Navbar/Navbar';
 import OrderStatusBadge from '@/components/OrderStatusBadge/OrderStatusBadge';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import { Check, MessageCircle, ExternalLink } from 'lucide-react';
+import { DEFAULT_PICKUP } from '@/lib/pickupSettings';
 import styles from './page.module.css';
 
 function ConfirmationContent() {
@@ -17,6 +18,16 @@ function ConfirmationContent() {
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [pickup, setPickup] = useState(DEFAULT_PICKUP);
+
+  useEffect(() => {
+    fetch('/api/pickup')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data?.pickup) setPickup(data.pickup);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
@@ -113,19 +124,21 @@ function ConfirmationContent() {
             <p><strong>Delivery Address:</strong> {order.address}</p>
           ) : (
             <>
-              <p><strong>Pickup Time:</strong> {order.pickup_time || '11:00 AM'}</p>
+              <p><strong>Pickup Time:</strong> {order.pickup_time || pickup.time}</p>
               <p>
                 <strong>Pickup Location:</strong>{' '}
-                <a
-                  href="https://thepalette.com.my/the-palette-danau-kota/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: 'var(--color-primary)', textDecoration: 'underline', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}
-                >
-                  The Palette @ Danau Kota <ExternalLink size={13} />
-                </a>{' '}
-                (Setapak, Kuala Lumpur)
+                {pickup.maps_link ? (
+                  <a
+                    href={pickup.maps_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--color-primary)', textDecoration: 'underline', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                  >
+                    {pickup.name} <ExternalLink size={13} />
+                  </a>
+                ) : pickup.name}
               </p>
+              <p><strong>Address:</strong> {pickup.address}</p>
             </>
           )}
         </div>

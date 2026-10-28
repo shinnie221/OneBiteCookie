@@ -507,12 +507,6 @@
   gap: 6px;
 }
 
-.pickupNote {
-  font-size: 0.82rem;
-  color: #78350f;
-  margin: 0;
-}
-
 .pickupLinks {
   display: flex;
   align-items: center;
