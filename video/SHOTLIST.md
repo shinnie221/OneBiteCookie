@@ -19,7 +19,7 @@ All UI in the video comes from real screenshots of the local storefront (desktop
 | Time | Shot | On screen |
 |---|---|---|
 | 0.0–4.0 | **Brand intro** | Cookie icon spins in, then moves into the "One Bite" script logo as the logo wipes on. "HANDCRAFTED COOKIES" with rules either side, then "Order online · Pickup or delivery". The shop's own transparent cookie cutouts float in the corners. |
-| 4.0–7.3 | **Storefront** | A browser window (onebitecookie.com) rises in, showing the home page (announcement bar, nav, hero banner, round logo, cookie grid). Caption: "Freshly baked, beautifully online." |
+| 4.0–7.3 | **Storefront** | A browser window (one-bite-cookie.vercel.app) rises in, showing the home page (announcement bar, nav, hero banner, round logo, cookie grid). Caption: "Freshly baked, beautifully online." |
 | 7.3–9.6 | **Announcement bar** | The camera zooms onto the top bar and highlights "Next delivery & pickup date: 25 October 2026 11am-2pm". Caption: "Never miss a bake day." |
 | 9.6–13.4 | **Menu** | The page scrolls down to the Cookies grid. On the left, the five flavors appear one by one with cookie-cutout thumbnails (Strawberry White Choc, Red Velvet White Choc, Classic Chocolate Chip, Toasted Marshmallow, Biscoff Walnut), then "From RM8.90 per piece". A cursor clicks Strawberry White Choc. |
 | 13.4–18.2 | **Product view** | The product overlay opens and the camera zooms to the options. The cursor picks "Box of 6", which gets a highlight, and the button changes to "Add to Cart · RM53.00". On the left, matching price chips: Per piece RM8.90 / Box of 4 RM35 / Box of 6 RM53 / Box of 12 RM105. |
@@ -30,7 +30,7 @@ All UI in the video comes from real screenshots of the local storefront (desktop
 ## Notes
 
 - The checkout page needs a sign-in, so it isn't screenshotted. Pickup and delivery appear as motion-graphic cards, and their wording comes from the checkout page.
-- `onebitecookie.com` appears only in the browser window's address bar. It's the default base URL in `src/lib/email.js`; change it in `scene.html` if the live domain is different.
+- `one-bite-cookie.vercel.app` (the live site) appears only in the browser window's address bar. Change it in `scene.html` if the live domain changes.
 - The website's Home page plays this video above the menu ("One Bite in 30 Seconds"). It uses a smaller web encode at `public/videos/one-bite-promo.mp4` with a poster frame. Re-export both when this video changes (see below).
 
 ## Re-rendering

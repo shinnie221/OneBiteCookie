@@ -150,7 +150,7 @@
   <div id="device">
     <div id="chrome">
       <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-      <div id="url"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B5443" stroke-width="2.4" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>onebitecookie.com</div>
+      <div id="url"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B5443" stroke-width="2.4" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>one-bite-cookie.vercel.app</div>
     </div>
     <div id="viewport">
       <div class="screen" id="s-home"><img src="assets/02-home-full.jpg" alt=""></div>
@@ -266,8 +266,9 @@ window.seek = function (t) {
   // Intro
   const icIn = easeOutBack(prog(t, 0.15, 1.05));
   const icMove = easeInOut(prog(t, 1.15, 1.95));
-  const icX = lerp(0, 1311 - 960, icMove), icY = lerp(0, 466 - 450, icMove);
-  const icS = lerp(lerp(0.35, 1, icIn), 198 / 240, icMove);
+  // Lands exactly on the cookie inside the logo (measured from the two PNGs) so the crossfade doesn't ghost
+  const icX = lerp(0, 1308.6 - 960, icMove), icY = lerp(0, 477.6 - 450, icMove);
+  const icS = lerp(lerp(0.35, 1, icIn), 206.5 / 240, icMove);
   set($('icon'), clamp(prog(t, 0.15, 0.6)) * (1 - prog(t, 2.0, 2.25)),
     `translate(${icX}px, ${icY}px) rotate(${lerp(-35, 0, icIn)}deg) scale(${icS})`);
   const reveal = easeInOut(prog(t, 1.2, 2.1));
