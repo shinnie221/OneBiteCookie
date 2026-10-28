@@ -326,6 +326,34 @@ export default function HomePage() {
       {/* Page heading for screen readers & SEO (the logo already shows the brand visually) */}
       <h1 className={styles.srOnly}>One Bite</h1>
 
+      {/* 4b. Promo Video Section (Above the Menu) */}
+      <section className={styles.menuSection} id="video" style={{ paddingBottom: '32px' }}>
+        <div className={styles.categoryHeader}>
+          <div className={styles.categoryHeaderLeft}>
+            <h2 className={styles.categoryTitle}>One Bite in 30 Seconds</h2>
+            <span className={styles.categoryBadge}>Video</span>
+          </div>
+        </div>
+        <p className={styles.categorySubtitle}>
+          From picking your flavors to pickup or delivery.
+        </p>
+
+        <div className={styles.promoVideoWrap}>
+          <video
+            className={styles.promoVideo}
+            src="/videos/one-bite-promo.mp4"
+            poster="/videos/one-bite-promo-poster.jpg"
+            width={1920}
+            height={1080}
+            controls
+            playsInline
+            preload="none"
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </section>
+
       {/* 5. Cookies Section */}
       <section className={styles.menuSection} id="menu" style={{ paddingBottom: '32px' }}>
         <div className={styles.categoryHeader}>
@@ -400,34 +428,6 @@ export default function HomePage() {
           </div>
         </section>
       )}
-
-      {/* 8b. Promo Video Section (Below the Menu) */}
-      <section className={styles.menuSection} id="video">
-        <div className={styles.categoryHeader}>
-          <div className={styles.categoryHeaderLeft}>
-            <h2 className={styles.categoryTitle}>One Bite in 30 Seconds</h2>
-            <span className={styles.categoryBadge}>Video</span>
-          </div>
-        </div>
-        <p className={styles.categorySubtitle}>
-          From picking your flavors to pickup or delivery.
-        </p>
-
-        <div className={styles.promoVideoWrap}>
-          <video
-            className={styles.promoVideo}
-            src="/videos/one-bite-promo.mp4"
-            poster="/videos/one-bite-promo-poster.jpg"
-            width={1920}
-            height={1080}
-            controls
-            playsInline
-            preload="none"
-          >
-            Your browser does not support the video tag.
-          </video>
-        </div>
-      </section>
 
       {/* 9. Floating Bottom Sticky Cart Bar */}
       {totalQuantity > 0 && (

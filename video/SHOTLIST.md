@@ -31,7 +31,7 @@ All UI in the video comes from real screenshots of the local storefront (desktop
 
 - The checkout page needs a sign-in, so it isn't screenshotted. Pickup and delivery appear as motion-graphic cards, and their wording comes from the checkout page.
 - `onebitecookie.com` appears only in the browser window's address bar. It's the default base URL in `src/lib/email.js`; change it in `scene.html` if the live domain is different.
-- The website's Home page plays this video below the menu ("One Bite in 30 Seconds"). It uses a smaller web encode at `public/videos/one-bite-promo.mp4` with a poster frame. Re-export both when this video changes (see below).
+- The website's Home page plays this video above the menu ("One Bite in 30 Seconds"). It uses a smaller web encode at `public/videos/one-bite-promo.mp4` with a poster frame. Re-export both when this video changes (see below).
 
 ## Re-rendering
 
