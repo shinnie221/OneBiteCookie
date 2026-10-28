@@ -30,6 +30,8 @@ const clickText = async (selector, text) => {
   return ok;
 };
 const waitImages = () => page.evaluate(async () => {
+  // Lazy images below the fold never start loading in a full-page shot, so force them
+  document.querySelectorAll('img[loading="lazy"]').forEach(i => { i.loading = 'eager'; });
   await Promise.all([...document.images].filter(i => !i.complete).map(i => new Promise(r => { i.onload = i.onerror = r; })));
   await document.fonts.ready;
 });
@@ -37,6 +39,8 @@ const waitImages = () => page.evaluate(async () => {
 await page.goto(BASE + '/', { waitUntil: 'networkidle0' });
 await page.evaluate(() => localStorage.removeItem('onebite_cart'));
 await page.reload({ waitUntil: 'networkidle0' });
+// Hide the Home page's own promo video so the promo doesn't film itself
+await page.addStyleTag({ content: '#video{display:none!important}' });
 await sleep(1500);
 await waitImages();
 await shot('01-home-top');
@@ -84,7 +88,7 @@ const byob = byName('Build Your Own Box (BYOB)');
 const cart = { voucher: null, discount: 0, items: [
   item(byName('Strawberry White Choc'), 'Box of 6', 6, byName('Strawberry White Choc').box_6_price, 1),
   item(byName('Red Velvet White Choc'), 'Per piece', 1, byName('Red Velvet White Choc').price, 2),
-  item(byob, 'Box of 5', 5, byob.box_5_price, 1, { is_byob: true, cart_item_id: 'byob_5_mix', flavour_summary: 'Red Velvet White Choc ×1, Toasted Marshmallow ×1, Classic Chocolate Chip ×1, Caramel Walnut ×1, Strawberry White Choc ×1' }),
+  item(byob, 'Box of 5', 5, byob.box_5_price, 1, { is_byob: true, cart_item_id: 'byob_5_mix', flavour_summary: products.filter(p => !p.is_byob).map(p => `${p.name} ×1`).join(', ') }),
 ]};
 await page.evaluate(c => localStorage.setItem('onebite_cart', JSON.stringify(c)), cart);
 await page.goto(BASE + '/cart', { waitUntil: 'networkidle0' });
