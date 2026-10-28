@@ -695,17 +695,18 @@
   right: 14px;
 }
 
-/* Wide screens: photo on the left, details on the right so everything fits without scrolling */
+/* Wide screens: photo on the left, details on the right so everything fits without scrolling.
+   Same size and photo width as the Build Your Own Box overlay so the two feel like one view. */
 @media (min-width: 768px) {
   .modal {
     flex-direction: row;
-    max-width: 940px;
-    height: min(600px, 88vh);
-    max-height: 88vh;
+    max-width: 1000px;
+    height: min(720px, 92vh);
+    max-height: 92vh;
   }
 
   .mediaContainer {
-    width: 50%;
+    width: 42%;
     height: auto;
   }
 
