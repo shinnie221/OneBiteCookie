@@ -401,6 +401,34 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* 8b. Promo Video Section (Below the Menu) */}
+      <section className={styles.menuSection} id="video">
+        <div className={styles.categoryHeader}>
+          <div className={styles.categoryHeaderLeft}>
+            <h2 className={styles.categoryTitle}>One Bite in 30 Seconds</h2>
+            <span className={styles.categoryBadge}>Video</span>
+          </div>
+        </div>
+        <p className={styles.categorySubtitle}>
+          From picking your flavors to pickup or delivery.
+        </p>
+
+        <div className={styles.promoVideoWrap}>
+          <video
+            className={styles.promoVideo}
+            src="/videos/one-bite-promo.mp4"
+            poster="/videos/one-bite-promo-poster.jpg"
+            width={1920}
+            height={1080}
+            controls
+            playsInline
+            preload="none"
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </section>
+
       {/* 9. Floating Bottom Sticky Cart Bar */}
       {totalQuantity > 0 && (
         <div className={styles.floatingCartContainer}>

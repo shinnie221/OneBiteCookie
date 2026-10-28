@@ -569,6 +569,30 @@
   }
 }
 
+/* Promo video: 16:9 player capped to the hero banner's width */
+.promoVideoWrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #382415;
+  box-shadow: 0 10px 30px rgba(56, 36, 21, 0.12);
+}
+
+.promoVideo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .promoVideoWrap {
+    border-radius: 20px;
+  }
+}
+
 .emptyState {
   text-align: center;
   padding: 48px 16px;
