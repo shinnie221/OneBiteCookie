@@ -19,6 +19,7 @@ import {
   Minus,
   Plus
 } from 'lucide-react';
+import CookieThumb from '@/components/CookieThumb/CookieThumb';
 import styles from './ByobModal.module.css';
 
 export default function ByobModal({ product, isOpen, onClose, currencySymbol = '₱', allProducts = [] }) {
@@ -42,6 +43,23 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
   const [isFavorited, setIsFavorited] = useState(false);
   const [previewFlavour, setPreviewFlavour] = useState(null);
   const [previewImgIndex, setPreviewImgIndex] = useState(0);
+
+  // Thumbnail URLs that failed to load; the flavour falls back to its next photo, then the cookie icon
+  const [brokenThumbs, setBrokenThumbs] = useState(() => new Set());
+  const markThumbBroken = (src) => {
+    setBrokenThumbs(prev => (prev.has(src) ? prev : new Set(prev).add(src)));
+  };
+  // Prefer the transparent cutout so only the cookie shows, else the first working photo
+  const getThumb = (flavor) => {
+    if (!flavor) return { src: null, isCutout: false };
+    const candidates = [
+      flavor.cutout_image,
+      ...(Array.isArray(flavor.images) ? flavor.images : []),
+      flavor.image,
+    ];
+    const src = candidates.find(url => typeof url === 'string' && url && !brokenThumbs.has(url)) || null;
+    return { src, isCutout: !!src && src === flavor.cutout_image };
+  };
 
   useEffect(() => {
     if (product?.id) {
@@ -424,21 +442,18 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                 {Array.from({ length: targetCount }, (_, i) => {
                   const flavorId = boxSlots[i];
                   const flavor = flavorId ? availableFlavours.find(p => p.id === flavorId) : null;
-                  // Prefer the transparent cutout so only the cookie shows in the box
-                  const cutoutSrc = flavor?.cutout_image;
-                  const thumb = flavor && (cutoutSrc || (flavor.images && flavor.images[0]) || flavor.image);
+                  const { src: thumb, isCutout } = getThumb(flavor);
                   return flavor ? (
                     <button
                       type="button"
                       key={i}
-                      className={`${styles.slot} ${styles.slotFilled} ${cutoutSrc ? styles.slotCutout : ''}`}
+                      className={`${styles.slot} ${styles.slotFilled} ${isCutout ? styles.slotCutout : ''}`}
                       onClick={() => handleRemoveFlavour(flavorId)}
                       title={`${flavor.name} · tap to remove`}
                       aria-label={`Remove one ${flavor.name}`}
                     >
                       {thumb ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={thumb} alt="" decoding="async" />
+                        <CookieThumb src={thumb} onError={() => markThumbBroken(thumb)} />
                       ) : (
                         <Cookie size={18} strokeWidth={1.5} />
                       )}
@@ -462,8 +477,7 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
               <div className={styles.flavourList}>
                 {availableFlavours.map(flavor => {
                   const pickedCount = selectedFlavours[flavor.id] || 0;
-                  const cutoutSrc = flavor.cutout_image;
-                  const thumb = cutoutSrc || (flavor.images && flavor.images[0]) || flavor.image;
+                  const { src: thumb, isCutout } = getThumb(flavor);
                   return (
                     <div
                       key={flavor.id}
@@ -474,15 +488,13 @@ export default function ByobModal({ product, isOpen, onClose, currencySymbol = '
                         onClick={(e) => handleOpenFlavourPreview(flavor, e)}
                         title="Click to view photo & details"
                       >
-                        <div className={`${styles.flavourThumbWrap} ${cutoutSrc ? styles.flavourThumbCutout : ''}`}>
+                        <div className={`${styles.flavourThumbWrap} ${isCutout ? styles.flavourThumbCutout : ''}`}>
                           {thumb ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
+                            <CookieThumb
                               src={thumb}
                               alt={flavor.name}
                               className={styles.flavourThumb}
-                              loading="lazy"
-                              decoding="async"
+                              onError={() => markThumbBroken(thumb)}
                             />
                           ) : (
                             <div className={styles.flavourThumbFallback}>

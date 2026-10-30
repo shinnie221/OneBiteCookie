@@ -34,7 +34,9 @@ export function setCachedItem(key, data) {
 }
 
 /**
- * Preload an array of image URLs into the browser memory and Cache API
+ * Preload an array of image URLs into the browser's HTTP/memory cache.
+ * (Not the Cache API: cross-origin no-cors fetches come back opaque, so a
+ * failed load would be stored and served back as if it were the photo.)
  */
 export function preloadImageUrls(urls = []) {
   if (typeof window === 'undefined' || !Array.isArray(urls)) return;
@@ -52,26 +54,8 @@ export function preloadImageUrls(urls = []) {
 
   validUrls.forEach((src) => {
     try {
-      // 1. Browser image memory cache
       const img = new Image();
       img.src = src;
-
-      // 2. Persistent Cache API if available
-      if ('caches' in window) {
-        caches.open('one-bite-images-v1').then((cache) => {
-          cache.match(src).then((matched) => {
-            if (!matched) {
-              fetch(src, { mode: 'no-cors' })
-                .then((res) => {
-                  if (res.status === 200 || res.type === 'opaque') {
-                    cache.put(src, res).catch(() => {});
-                  }
-                })
-                .catch(() => {});
-            }
-          });
-        }).catch(() => {});
-      }
     } catch (err) {
       // Ignore background preload errors
     }
@@ -87,13 +71,20 @@ export function registerServiceWorker() {
     'serviceWorker' in navigator &&
     window.location.protocol.startsWith('http')
   ) {
-    window.addEventListener('load', () => {
+    const register = () => {
       navigator.serviceWorker
         .register('/sw.js')
         .catch((err) => {
           console.debug('[SW] Registration failed:', err);
         });
-    });
+    };
+    // This runs after hydration, often after 'load' has already fired, so
+    // waiting for it would only register on slow loads (mostly phones)
+    if (document.readyState === 'complete') {
+      register();
+    } else {
+      window.addEventListener('load', register, { once: true });
+    }
   }
 }
 
