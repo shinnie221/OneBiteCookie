@@ -5,7 +5,7 @@ import { sendOrderNotificationEmail, sendStaffOrderNotificationEmail } from '@/l
 import { isStateDeliverable } from '@/lib/addresses.mjs';
 import { getProductPackagingOptions } from '@/lib/packaging';
 import { getPickupDetails } from '@/lib/pickupSettings';
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 
 function generateOrderId() {
   const now = new Date();
@@ -360,23 +360,25 @@ export async function POST(request) {
 
     const docRef = await addDoc(collection(db, 'orders'), newOrder);
 
-    // Send email notification to customer
-    if (email && email.includes('@')) {
-      sendOrderNotificationEmail({
-        to: email.trim(),
-        customerName: customer_name,
-        orderId: orderId,
-        orderTotal: total,
-        items: resolvedItems,
-        isNewCustomer: isNewCustomerCreated
-      }).catch(e => console.error('Customer email notification error:', e));
-    }
+    // Email the customer and the staff team after the response is sent. after() keeps
+    // the serverless function alive until the emails finish, so they aren't dropped on Vercel.
+    after(async () => {
+      if (email && email.includes('@')) {
+        await sendOrderNotificationEmail({
+          to: email.trim(),
+          customerName: customer_name,
+          orderId: orderId,
+          orderTotal: total,
+          items: resolvedItems,
+          isNewCustomer: isNewCustomerCreated
+        }).catch(e => console.error('Customer email notification error:', e));
+      }
 
-    // Send email notification to staff team
-    sendStaffOrderNotificationEmail({
-      order: newOrder,
-      db
-    }).catch(e => console.error('Staff email notification error:', e));
+      await sendStaffOrderNotificationEmail({
+        order: newOrder,
+        db
+      }).catch(e => console.error('Staff email notification error:', e));
+    });
 
     // Update voucher usage if applied
     if (matchedVoucherDocRef && matchedVoucherData) {
