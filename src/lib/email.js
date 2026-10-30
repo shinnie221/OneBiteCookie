@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
 /**
  * Returns a configured nodemailer transporter or null if SMTP credentials are missing.
@@ -33,68 +33,33 @@ function getTransporter() {
   };
 }
 
+// Staff who always get new-order alerts
+const STAFF_ORDER_EMAILS = ['shinniecheng221@gmail.com', 'yunxuanhuang60@gmail.com'];
+
 /**
- * Gathers staff & admin recipient emails for new order alerts.
- * Priority order:
- * 1. Environment variables (STAFF_NOTIFICATION_EMAILS / STAFF_EMAIL / ADMIN_EMAIL)
- * 2. Settings document (settings/store_settings -> staff_notification_email, shop_email)
- * 3. Firestore users with role 'admin' or 'staff'
- * 4. Fallback admin emails
+ * Gathers the recipient emails for new order alerts:
+ * 1. The staff emails above (always)
+ * 2. Extra addresses from STAFF_NOTIFICATION_EMAILS / STAFF_EMAIL / ADMIN_EMAIL
+ * 3. Extra addresses from settings/store_settings -> staff_notification_email
  */
 export async function getStaffNotificationRecipients(db) {
-  const recipients = new Set();
-
-  // 1. Environment variable overrides
-  const envEmails = process.env.STAFF_NOTIFICATION_EMAILS || process.env.STAFF_EMAIL || process.env.ADMIN_EMAIL;
-  if (envEmails) {
-    envEmails.split(',').forEach(e => {
+  const recipients = new Set(STAFF_ORDER_EMAILS);
+  const addList = (list) => {
+    (list || '').split(',').forEach(e => {
       const trimmed = e.trim().toLowerCase();
       if (trimmed.includes('@')) recipients.add(trimmed);
     });
-  }
+  };
 
-  // 2. Settings in Firestore (store_settings)
+  addList(process.env.STAFF_NOTIFICATION_EMAILS || process.env.STAFF_EMAIL || process.env.ADMIN_EMAIL);
+
   if (db) {
     try {
-      const docRef = doc(db, 'settings', 'store_settings');
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data.staff_notification_email) {
-          data.staff_notification_email.split(',').forEach(e => {
-            const trimmed = e.trim().toLowerCase();
-            if (trimmed.includes('@')) recipients.add(trimmed);
-          });
-        }
-        if (data.shop_email && data.shop_email.includes('@')) {
-          recipients.add(data.shop_email.trim().toLowerCase());
-        }
-      }
+      const snap = await getDoc(doc(db, 'settings', 'store_settings'));
+      if (snap.exists()) addList(snap.data().staff_notification_email);
     } catch (err) {
       console.warn('[Email] Could not load staff emails from store_settings:', err.message);
     }
-  }
-
-  // 3. Firestore registered admins/staff
-  if (db) {
-    try {
-      const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('role', 'in', ['admin', 'staff']));
-      const snap = await getDocs(q);
-      snap.forEach(d => {
-        const u = d.data();
-        if (u.email && u.email.includes('@')) {
-          recipients.add(u.email.trim().toLowerCase());
-        }
-      });
-    } catch (err) {
-      console.warn('[Email] Could not load admin/staff users from Firestore:', err.message);
-    }
-  }
-
-  // 4. Default fallback admin emails
-  if (recipients.size === 0) {
-    ['shinniecheng221@gmail.com', 'yunxuanhuang60@gmail.com'].forEach(e => recipients.add(e));
   }
 
   return Array.from(recipients);

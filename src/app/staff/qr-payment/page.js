@@ -192,7 +192,7 @@ export default function QrPaymentPage() {
                   onChange={handleInputChange}
                 />
                 <small style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>
-                  当顾客在官网下单或提交新订单时，系统将自动发送完整订单详情至此邮箱。支持填入多个，用逗号分隔。未填写时默认发送至系统管理员及客服邮箱。
+                  当顾客在官网下单或提交新订单时，系统将自动发送完整订单详情。shinniecheng221@gmail.com 和 yunxuanhuang60@gmail.com 始终会收到；如需额外通知其他人，可在此填写，多个邮箱用逗号分隔。
                 </small>
               </div>
             </div>
